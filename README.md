@@ -15,6 +15,7 @@ Just drop the latest 100MiB SNDH ZIP archive file downloaded from awesome [SNDH-
 
 # How to build
 This repo comes with a pre-build player (SndhArchivePlayer_x64.exe) but you can also compile the executable by your own. Easy way is to have a windows system, download latest "Visual Studio 2022 community" (it's free & awesome) and open SndhArchivePlayer.sln
+
 If you're still stuck in past century you can also create a makefile by yourself :)
 
 Enjoy!
