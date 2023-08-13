@@ -1,0 +1,174 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\extern">
+      <UniqueIdentifier>{734fbd9d-4f64-41bb-a900-e0cc3b1a2921}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\extern\imgui">
+      <UniqueIdentifier>{270060a1-9cc3-477b-a332-69d4a8e63327}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\AtariAudio">
+      <UniqueIdentifier>{f5b8b194-c9cd-47be-af6e-397c574ffade}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\AtariAudio\extern">
+      <UniqueIdentifier>{7c0e9953-6a44-4174-bdca-13fceddbfd3d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\AtariAudio\extern\Musashi">
+      <UniqueIdentifier>{1d9486e0-055f-4b4b-a8f6-148f20ae334a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="SndhArchivePlayer\AudioWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\SndhArchive.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\SndhArchivePlayer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\imgui\imgui.cpp">
+      <Filter>Source Files\extern\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\imgui\imgui_demo.cpp">
+      <Filter>Source Files\extern\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\imgui\imgui_draw.cpp">
+      <Filter>Source Files\extern\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\imgui\imgui_tables.cpp">
+      <Filter>Source Files\extern\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\imgui\imgui_widgets.cpp">
+      <Filter>Source Files\extern\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_dx11.cpp">
+      <Filter>Source Files\extern\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_win32.cpp">
+      <Filter>Source Files\extern\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="AtariAudio\AtariMachine.cpp">
+      <Filter>Source Files\AtariAudio</Filter>
+    </ClCompile>
+    <ClCompile Include="AtariAudio\Mk68901.cpp">
+      <Filter>Source Files\AtariAudio</Filter>
+    </ClCompile>
+    <ClCompile Include="AtariAudio\SndhFile.cpp">
+      <Filter>Source Files\AtariAudio</Filter>
+    </ClCompile>
+    <ClCompile Include="AtariAudio\SteDac.cpp">
+      <Filter>Source Files\AtariAudio</Filter>
+    </ClCompile>
+    <ClCompile Include="AtariAudio\ym2149c.cpp">
+      <Filter>Source Files\AtariAudio</Filter>
+    </ClCompile>
+    <ClCompile Include="AtariAudio\external\Musashi\m68kcpu.c">
+      <Filter>Source Files\AtariAudio\extern\Musashi</Filter>
+    </ClCompile>
+    <ClCompile Include="AtariAudio\external\Musashi\m68kops.c">
+      <Filter>Source Files\AtariAudio\extern\Musashi</Filter>
+    </ClCompile>
+    <ClCompile Include="AtariAudio\external\ice_24.c">
+      <Filter>Source Files\AtariAudio\extern</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\zip\src\zip.c">
+      <Filter>Source Files\extern</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="SndhArchivePlayer\AudioWriter.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SndhArchivePlayer\SndhArchive.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SndhArchivePlayer\SndhArchivePlayer.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SndhArchivePlayer\extern\imgui\imconfig.h">
+      <Filter>Source Files\extern\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="SndhArchivePlayer\extern\imgui\imgui.h">
+      <Filter>Source Files\extern\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="SndhArchivePlayer\extern\imgui\imgui_internal.h">
+      <Filter>Source Files\extern\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="SndhArchivePlayer\extern\imgui\imgui_memory_editor.h">
+      <Filter>Source Files\extern\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="SndhArchivePlayer\extern\imgui\imstb_rectpack.h">
+      <Filter>Source Files\extern\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="SndhArchivePlayer\extern\imgui\imstb_textedit.h">
+      <Filter>Source Files\extern\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="SndhArchivePlayer\extern\imgui\imstb_truetype.h">
+      <Filter>Source Files\extern\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_dx11.h">
+      <Filter>Source Files\extern\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_win32.h">
+      <Filter>Source Files\extern\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="AtariAudio\AtariAudio.h">
+      <Filter>Source Files\AtariAudio</Filter>
+    </ClInclude>
+    <ClInclude Include="AtariAudio\AtariMachine.h">
+      <Filter>Source Files\AtariAudio</Filter>
+    </ClInclude>
+    <ClInclude Include="AtariAudio\Mk68901.h">
+      <Filter>Source Files\AtariAudio</Filter>
+    </ClInclude>
+    <ClInclude Include="AtariAudio\SndhFile.h">
+      <Filter>Source Files\AtariAudio</Filter>
+    </ClInclude>
+    <ClInclude Include="AtariAudio\SteDac.h">
+      <Filter>Source Files\AtariAudio</Filter>
+    </ClInclude>
+    <ClInclude Include="AtariAudio\ym2149_tables.h">
+      <Filter>Source Files\AtariAudio</Filter>
+    </ClInclude>
+    <ClInclude Include="AtariAudio\ym2149c.h">
+      <Filter>Source Files\AtariAudio</Filter>
+    </ClInclude>
+    <ClInclude Include="AtariAudio\external\Musashi\m68k.h">
+      <Filter>Source Files\AtariAudio\extern\Musashi</Filter>
+    </ClInclude>
+    <ClInclude Include="AtariAudio\external\Musashi\m68kconf.h">
+      <Filter>Source Files\AtariAudio\extern\Musashi</Filter>
+    </ClInclude>
+    <ClInclude Include="AtariAudio\external\Musashi\m68kcpu.h">
+      <Filter>Source Files\AtariAudio\extern\Musashi</Filter>
+    </ClInclude>
+    <ClInclude Include="AtariAudio\external\Musashi\m68kops.h">
+      <Filter>Source Files\AtariAudio\extern\Musashi</Filter>
+    </ClInclude>
+    <ClInclude Include="AtariAudio\external\ice_24.h">
+      <Filter>Source Files\AtariAudio\extern</Filter>
+    </ClInclude>
+    <ClInclude Include="SndhArchivePlayer\extern\zip\src\miniz.h">
+      <Filter>Source Files\extern</Filter>
+    </ClInclude>
+    <ClInclude Include="SndhArchivePlayer\extern\zip\src\zip.h">
+      <Filter>Source Files\extern</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
