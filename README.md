@@ -1,2 +1,20 @@
-# sndh-player
-ATARI-ST SNDH Archive music browser/player
+# SNDH-Archive-Player
+ATARI-ST SNDH ZIP Archive music browser/player by [Leonard/Oxygene](https://twitter.com/leonard_coder)
+
+![image info](./thumbnail.png)
+
+# Why?
+While having fun writing a YM7 format player on embeded device, I started to re-write my 30 years old ym2149 emulation (StSound). The new emulation is more accurate and source code is really simple.
+To be able to properly test new emulatior (ym2149, mfp & STE DAC), I wrote a SNDH player (using great Musashi 68k emulator) to listen to thousands of SNDH files from sndh.atari.org.
+You can use this library to play SNDH in your own player. Everything is in AtariAudio/ directory
+
+# Drop single large ZIP file and enjoy
+Just drop the latest 100MiB SNDH ZIP archive file downloaded from awesome [SNDH-YM2149 Archive website](https://sndh.atari.org/download.php) and start to browse & play!
+
+[You can watch a running example here!](https://youtu.be/c0lH98TNtGg)
+
+# How to build
+This repo comes with a pre-build player (SndhArchivePlayer_x64.exe) but you can also compile the executable by your own. Easy way is to have a windows system, download latest "Visual Studio 2022 community" (it's free & awesome) and open SndhArchivePlayer.sln
+If you're still stuck in past century you can also create a makefile by yourself :)
+
+Enjoy!
