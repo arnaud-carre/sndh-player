@@ -30,9 +30,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="SndhArchivePlayer\AudioWriter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="SndhArchivePlayer\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -90,11 +87,11 @@
     <ClCompile Include="SndhArchivePlayer\extern\zip\src\zip.c">
       <Filter>Source Files\extern</Filter>
     </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\AsyncSndhStream.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="SndhArchivePlayer\AudioWriter.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="SndhArchivePlayer\SndhArchive.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -169,6 +166,9 @@
     </ClInclude>
     <ClInclude Include="SndhArchivePlayer\extern\zip\src\zip.h">
       <Filter>Source Files\extern</Filter>
+    </ClInclude>
+    <ClInclude Include="SndhArchivePlayer\AsyncSndhStream.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -8,7 +8,6 @@
 #include <stdint.h>
 #include "AtariMachine.h"
 
-static	const	int		kDefaultSndhSubsongDuration = 3 * 60;		// 3 minutes by default
 static	const	int		kSubsongCountMax = 128;
 
 class SndhFile
@@ -28,13 +27,13 @@ public:
 		const char* year;
 	};
 
-	bool	Load(const void* rawSndhFile, int sndhFileSize, uint32_t hostReplayRate, int subsongDurationInSecByDefault = kDefaultSndhSubsongDuration);
+	bool	Load(const void* rawSndhFile, int sndhFileSize, uint32_t hostReplayRate);
 	void	Unload();
 	bool	IsLoaded() const { return m_bLoaded; }
 	
 	int		GetSubsongCount() const;
 	int		GetDefaultSubsong() const { return m_defaultSubSong; }
-	bool	GetSubsongInfo(int subSongId, SubSongInfo& out);
+	bool	GetSubsongInfo(int subSongId, SubSongInfo& out) const;
 	bool	InitSubSong(int subSongId);
 	int		AudioRender(int16_t* buffer, int count);
 

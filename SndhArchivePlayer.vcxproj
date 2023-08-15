@@ -27,7 +27,7 @@
     <ClCompile Include="AtariAudio\SndhFile.cpp" />
     <ClCompile Include="AtariAudio\SteDac.cpp" />
     <ClCompile Include="AtariAudio\ym2149c.cpp" />
-    <ClCompile Include="SndhArchivePlayer\AudioWriter.cpp" />
+    <ClCompile Include="SndhArchivePlayer\AsyncSndhStream.cpp" />
     <ClCompile Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_dx11.cpp" />
     <ClCompile Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_win32.cpp" />
     <ClCompile Include="SndhArchivePlayer\extern\imgui\imgui.cpp" />
@@ -53,7 +53,7 @@
     <ClInclude Include="AtariAudio\SteDac.h" />
     <ClInclude Include="AtariAudio\ym2149c.h" />
     <ClInclude Include="AtariAudio\ym2149_tables.h" />
-    <ClInclude Include="SndhArchivePlayer\AudioWriter.h" />
+    <ClInclude Include="SndhArchivePlayer\AsyncSndhStream.h" />
     <ClInclude Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_dx11.h" />
     <ClInclude Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_win32.h" />
     <ClInclude Include="SndhArchivePlayer\extern\imgui\imconfig.h" />

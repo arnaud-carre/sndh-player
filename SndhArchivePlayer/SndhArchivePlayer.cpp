@@ -4,34 +4,27 @@
 #include "imgui_impl_dx11.h"
 #include "imgui_internal.h"
 #include "imgui_memory_editor.h"
-#include "AudioWriter.h"
 #include "../AtariAudio/AtariAudio.h"
 #include "SndhArchivePlayer.h"
 #include "SndhArchive.h"
+#include "AsyncSndhStream.h"
+//#include "extern/zip/src/zip.h"
 
 static const int kHostReplayRate = 44100;
 static const int kLatencySampleCount = kHostReplayRate / 60;
 
+static int gDefaultDurationInMin = 4;
+
 static	SndhArchive	gArchive;
 
+int16_t gOneSecondAudioBuffer[kHostReplayRate];
 
 SndhArchivePlayer::SndhArchivePlayer()
 {
-	m_musicPlaying = false;
 }
 
 SndhArchivePlayer::~SndhArchivePlayer()
 {
-
-}
-
-void	SndhArchivePlayer::StopAudio()
-{
-	if (m_musicPlaying)
-	{
-		m_musicPlaying = false;
-		m_audioWriter.Close();
-	}
 }
 
 bool	SndhArchivePlayer::StartSubsong(int subsong)
@@ -39,13 +32,9 @@ bool	SndhArchivePlayer::StartSubsong(int subsong)
 	bool ret = false;
 	if ((subsong >= 1) && (subsong <= m_sndh.GetSubsongCount()))
 	{
-		StopAudio();
-		if (m_sndh.InitSubSong(subsong))
+		if (m_sndh.StartSubsong(subsong, gDefaultDurationInMin*60))
 		{
-			m_audioWriter.Open(kLatencySampleCount, kHostReplayRate, false);
-			m_musicPlaying = true;
 			m_currentSubSong = subsong;
-			ret = true;
 		}
 	}
 	return ret;
@@ -67,9 +56,9 @@ bool	SndhArchivePlayer::LoadNewMusic(const char* sFilename)
 		fread(sndhBuffer, 1, sndhSize, h);
 		fclose(h);
 
-		if (m_sndh.Load(sndhBuffer, sndhSize, kHostReplayRate))
+		if (m_sndh.LoadSndh(sndhBuffer, sndhSize, kHostReplayRate))
 		{
-			if ( StartSubsong(m_sndh.GetDefaultSubsong()))
+			if ( m_sndh.StartSubsong(m_sndh.GetDefaultSubsong(), gDefaultDurationInMin*60))
 				ret = true;
 		}
 		free(sndhBuffer);
@@ -91,7 +80,7 @@ void	SndhArchivePlayer::PlayZipEntry(SndhArchive& sndhArchive, int zipIndex)
 			if (depackSize == size)
 			{
 				m_sndh.Unload();
-				if (m_sndh.Load(unpack, int(size), kHostReplayRate))
+				if (m_sndh.LoadSndh(unpack, int(size), kHostReplayRate))
 				{
 					StartSubsong(m_sndh.GetDefaultSubsong());
 				}
@@ -195,7 +184,6 @@ void	ImDrawOscillo(const int16_t* audio, int count, const char* winName)
 void	SndhArchivePlayer::DropFile(const char* sFilename)
 {
 
-	StopAudio();
 	m_sndh.Unload();
 
 	// first, try to open as a big ZIP archive
@@ -244,7 +232,13 @@ void	SndhArchivePlayer::UpdateImGui()
 				ImGui::TableNextColumn();
 				ImGui::TextUnformatted("Song name:");
 				ImGui::TableNextColumn();
-				ImGui::Text("%s (%d:%02d)", info.musicName, len / 60, len % 60);
+				if (info.playerTickCount > 0)
+				{
+					const int len = info.playerTickCount / info.playerTickRate;
+					ImGui::Text("%s (%d:%02d)", info.musicName, len / 60, len % 60);
+				}
+				else
+					ImGui::Text("%s (?)", info.musicName);
 
 				ImGui::TableNextColumn();
 				ImGui::TextUnformatted("Author:");
@@ -281,14 +275,12 @@ void	SndhArchivePlayer::UpdateImGui()
 						StartSubsong(newSubsong);
 				}
 
-				ImGui::TableNextColumn();
-				ImGui::TextUnformatted("Play pos:");
-				ImGui::TableNextColumn();
-				uint32_t psec = m_audioWriter.GetPlayTime();
-				ImGui::Text("%d:%02d", psec/60, psec%60);
-
-
 				ImGui::EndTable();
+
+				m_sndh.DrawGui();
+
+//				ImGui::Slider
+
 			}
 
 			//				ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
@@ -308,39 +300,48 @@ void	SndhArchivePlayer::UpdateImGui()
 	//		ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
 
 		}
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-		if (ImGui::Button("AtariAudio & SNDH Player by Leonard/Oxygene"))
-		{
-			extern void OsOpenInShell(const char* path);
-			OsOpenInShell("https://github.com/arnaud-carre/sndh-player");
-		}
-		ImGui::End();
-	}
 
-	if (m_musicPlaying)
-	{
-		int count;
-		int16_t* p;
-		while (p = m_audioWriter.GetAudioBlockToFillIfAny(count))
-			m_sndh.AudioRender(p, kLatencySampleCount);
+
+		{
+			static char sBuf[128];
+			sprintf_s(sBuf, "Default duration: %d min", gDefaultDurationInMin);
+			if (ImGui::Button(sBuf))
+				ImGui::OpenPopup("my_select_popup");
+			if (ImGui::BeginPopup("my_select_popup"))
+			{
+				const char* names[] = { "4 minutes", "8 minutes", "12 minutes", "16 minutes", "32 minutes" };
+				const int lens[] = { 4,8,12,16,32 };
+				for (int i = 0; i < 5; i++)
+					if (ImGui::Selectable(names[i]))
+						gDefaultDurationInMin = lens[i];
+				ImGui::EndPopup();
+			}
+		}
+
+//		ImGui::SliderInt("Default Duration (min)", &gDefaultDurationInMin, 1, 30);
+
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+		ImGui::End();
 	}
 
 	if (drawOscillo)
 	{
-		const int16_t* display = m_audioWriter.GetDisplayBuffer();
+		const int16_t* display = m_sndh.GetDisplaySampleData(kLatencySampleCount);
 		ImDrawOscillo(display, kLatencySampleCount,"Oscilloscope");
 //		ImDrawOscillo(display, kLatencySampleCount, "Oscilloscope2");
 	}
 
 	// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-// 	if (show_demo_window)
-// 		ImGui::ShowDemoWindow(&show_demo_window);
-
-
+/*
+	show_demo_window = true;
+ 	if (show_demo_window)
+ 		ImGui::ShowDemoWindow(&show_demo_window);
+*/
 	static MemoryEditor mem_edit;
 	mem_edit.ReadOnly = true;
-	mem_edit.DrawWindow("File Viewer", (void*)m_sndh.GetRawData(), m_sndh.GetRawDataSize());
-
+	int fsize;
+	const void* rdata = m_sndh.GetRawData(fsize);
+	mem_edit.DrawWindow("File Viewer", (void*)rdata, fsize);
 
 	DrawPlayList();
 
@@ -348,5 +349,4 @@ void	SndhArchivePlayer::UpdateImGui()
 
 void	SndhArchivePlayer::Shutdown()
 {
-	StopAudio();
 }

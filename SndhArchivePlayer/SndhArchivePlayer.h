@@ -1,8 +1,8 @@
 #pragma once
 
 #include <stdint.h>
-#include "AudioWriter.h"
 #include "../AtariAudio/AtariAudio.h"
+#include "AsyncSndhStream.h"
 
 class SndhArchive;
 
@@ -22,13 +22,10 @@ public:
 private:
 	bool	StartSubsong(int subsong);
 	void	DrawPlayList();
-	void	StopAudio();
 	bool show_demo_window = false;
 	bool show_another_window = false;
 
-	bool		m_musicPlaying;
-	AudioWriter	m_audioWriter;
-	SndhFile	m_sndh;
+	AsyncSndhStream	m_sndh;
 	int			m_currentSubSong;
 
 };

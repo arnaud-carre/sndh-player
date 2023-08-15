@@ -232,7 +232,7 @@ void	SndhArchive::ImGuiDraw(SndhArchivePlayer& player)
 							}
 
 							ImGui::TableSetColumnIndex(2);
-							if (item.duration != 3 * 60)
+							if (item.duration > 0)
 							{
 								const int mm = item.duration / 60;
 								const int ss = item.duration % 60;

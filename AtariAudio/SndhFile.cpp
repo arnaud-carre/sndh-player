@@ -55,7 +55,7 @@ const char* SndhFile::skipNTString(const char* r)
 	return r;
 }
 
-bool	SndhFile::Load(const void* rawSndhFile, int sndhFileSize, uint32_t hostReplayRate, int subsongDurationInSecByDefault)
+bool	SndhFile::Load(const void* rawSndhFile, int sndhFileSize, uint32_t hostReplayRate)
 {
 
 	Unload();
@@ -80,7 +80,7 @@ bool	SndhFile::Load(const void* rawSndhFile, int sndhFileSize, uint32_t hostRepl
 	}
 
 	for (int i = 0; i < kSubsongCountMax; i++)
-		m_subSongLen[i] = subsongDurationInSecByDefault;
+		m_subSongLen[i] = 0;
 
 	const char* read8 = (const char*)m_rawBuffer;
 	if (m_rawSize > 16)
@@ -101,8 +101,6 @@ bool	SndhFile::Load(const void* rawSndhFile, int sndhFileSize, uint32_t hostRepl
 				{
 					assert(m_subSongCount > 0);
 					read8 += 4 + m_subSongCount * 2;			// skip 2bytes per offset
-// 						for (int j = 0; j < m_subSongCount; j++)
-// 							read8 = skipNTString(read8);
 				}
 				if (0 == strncmp(read8, "!#", 2))
 				{
@@ -191,14 +189,14 @@ int	SndhFile::GetSubsongCount() const
 	return m_subSongCount;
 }
 
-bool	SndhFile::GetSubsongInfo(int subSongId, SubSongInfo& out)
+bool	SndhFile::GetSubsongInfo(int subSongId, SubSongInfo& out) const
 {
 	if (!m_bLoaded)
 		return false;
 	if ((subSongId <= 0) || (subSongId > m_subSongCount))
 		return false;
 
-	const int songLen = m_subSongLen[subSongId - 1] ? m_subSongLen[subSongId - 1] : kDefaultSndhSubsongDuration;
+	const int songLen = m_subSongLen[subSongId - 1];
 	out.playerTickCount = songLen * m_playerRate;
 	out.playerTickRate = m_playerRate;
 	out.samplePerTick = m_hostReplayRate / m_playerRate;
