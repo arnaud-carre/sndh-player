@@ -140,8 +140,8 @@ bool AsyncSndhStream::StartSubsong(int subSongId, int durationByDefaultInSec)
 
 	// launch worker thread to generate
 	m_asyncInfo.forceQuit = false;
-	m_asyncInfo.thread = new std::thread(sAsyncSndhWorkerThread, (void*)this);
 	m_asyncInfo.fillPos = m_replayRate;
+	m_asyncInfo.thread = new std::thread(sAsyncSndhWorkerThread, (void*)this);
 
 	// start the replay
 	playOffsetInSec = 0;
