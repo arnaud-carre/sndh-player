@@ -3,6 +3,13 @@ ATARI-ST SNDH ZIP Archive music browser/player by [Leonard/Oxygene](https://twit
 
 ![image info](./thumbnail.png)
 
+# Versions
+
+- v0.2 : SNDH music are time seekable! enjoy!
+- v0.1 : first version
+
+
+
 # Why?
 While having fun writing a YM7 format player on embeded device, I started to re-write my 30 years old ym2149 emulation (StSound). The new emulation is more accurate and source code is really simple.
 To be able to properly test new emulatior (ym2149, mfp & STE DAC), I wrote a SNDH player (using great Musashi 68k emulator) to listen to thousands of SNDH files from sndh.atari.org.
