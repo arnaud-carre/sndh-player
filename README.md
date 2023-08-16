@@ -5,6 +5,7 @@ ATARI-ST SNDH ZIP Archive music browser/player by [Leonard/Oxygene](https://twit
 
 # Versions
 
+- v0.3 : WAV export, play/pause button, and low CPU usage when app minimized
 - v0.2 : SNDH music are time seekable! enjoy!
 - v0.1 : first version
 
