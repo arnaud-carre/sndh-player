@@ -39,6 +39,7 @@
     <ClCompile Include="SndhArchivePlayer\main.cpp" />
     <ClCompile Include="SndhArchivePlayer\SndhArchive.cpp" />
     <ClCompile Include="SndhArchivePlayer\SndhArchivePlayer.cpp" />
+    <ClCompile Include="SndhArchivePlayer\WavWriter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AtariAudio\AtariAudio.h" />
@@ -67,6 +68,7 @@
     <ClInclude Include="SndhArchivePlayer\extern\zip\src\zip.h" />
     <ClInclude Include="SndhArchivePlayer\SndhArchive.h" />
     <ClInclude Include="SndhArchivePlayer\SndhArchivePlayer.h" />
+    <ClInclude Include="SndhArchivePlayer\WavWriter.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

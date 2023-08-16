@@ -16,6 +16,7 @@ public:
 	bool LoadSndh(const void* sndhFile, int fileSize, uint32_t replayRate);
 	void Unload();
 	bool StartSubsong(int subSongId, int durationByDefaultInSec);
+	void Pause(bool pause);
 
 	int GetReplayPosInSec() const;
 	const int16_t* GetDisplaySampleData(int sampleCount) const;
@@ -24,7 +25,7 @@ public:
 	bool	GetSubsongInfo(int subSongId, SndhFile::SubSongInfo& out) const;
 	const void* GetRawData(int& fileSize) const;
 
-	void	DrawGui();
+	void	DrawGui(const char* musicName);
 
 	static void sAsyncSndhWorkerThread(void* a);
 
@@ -50,6 +51,8 @@ private:
 	int16_t*	m_audioBuffer;
 	uint32_t 	m_audioBufferLen;
 	uint32_t	m_replayRate;
+	bool		m_paused;
+	bool		m_saved;
 
 	AsyncInfo m_asyncInfo;
 };

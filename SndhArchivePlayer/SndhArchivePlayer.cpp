@@ -223,7 +223,7 @@ void	SndhArchivePlayer::UpdateImGui()
 //		if (ImGui::BeginTable("song", 2, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoBordersInBody))
 
 		SndhFile::SubSongInfo info;
-		if (m_sndh.GetSubsongInfo(1, info))
+		if (m_sndh.GetSubsongInfo(m_currentSubSong, info))
 		{
 			if (ImGui::BeginTable("song", 2, ImGuiTableFlags_NoBordersInBody))
 			{
@@ -277,7 +277,7 @@ void	SndhArchivePlayer::UpdateImGui()
 
 				ImGui::EndTable();
 
-				m_sndh.DrawGui();
+				m_sndh.DrawGui(info.musicName);
 
 //				ImGui::Slider
 
@@ -320,7 +320,7 @@ void	SndhArchivePlayer::UpdateImGui()
 
 //		ImGui::SliderInt("Default Duration (min)", &gDefaultDurationInMin, 1, 30);
 
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+//		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 		ImGui::End();
 	}
 

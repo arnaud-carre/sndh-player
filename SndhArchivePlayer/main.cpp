@@ -31,7 +31,7 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
     //ImGui_ImplWin32_EnableDpiAwareness();
     WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, L"ImGui Example", nullptr };
     ::RegisterClassExW(&wc);
-    HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"SNDH-Archive Player", WS_OVERLAPPEDWINDOW, 100, 100, 800, 640, nullptr, nullptr, wc.hInstance, nullptr);
+    HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"SNDH-Archive Player v0.3", WS_OVERLAPPEDWINDOW, 100, 100, 800, 640, nullptr, nullptr, wc.hInstance, nullptr);
 
     // Initialize Direct3D
     if (!CreateDeviceD3D(hwnd))
@@ -162,8 +162,11 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
 				ImGui::RenderPlatformWindowsDefault();
 			}
 
-			g_pSwapChain->Present(1, 0); // Present with vsync
-			//g_pSwapChain->Present(0, 0); // Present without vsync
+			if (DXGI_STATUS_OCCLUDED == g_pSwapChain->Present(1, 0))
+			{
+				// when app is minimized, avoid high CPU usage
+				::Sleep(32);
+			}
 		}
 	}
 	

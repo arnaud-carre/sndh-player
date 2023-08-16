@@ -2,6 +2,7 @@
 #include <string.h>
 #include "AsyncSndhStream.h"
 #include "imgui.h"
+#include "WavWriter.h"
 
 #pragma	comment(lib,"winmm.lib")
 
@@ -141,6 +142,8 @@ bool AsyncSndhStream::StartSubsong(int subSongId, int durationByDefaultInSec)
 	// launch worker thread to generate
 	m_asyncInfo.forceQuit = false;
 	m_asyncInfo.fillPos = m_replayRate;
+	m_paused = false;
+	m_saved = false;
 	m_asyncInfo.thread = new std::thread(sAsyncSndhWorkerThread, (void*)this);
 
 	// start the replay
@@ -209,6 +212,8 @@ void AsyncSndhStream::SetReplayPosInSec(int pos)
 	// start replay
 	waveOutWrite(m_waveOutHandle, &m_waveHeader, sizeof(WAVEHDR));
 
+	m_paused = false;
+
 }
 
 const int16_t* AsyncSndhStream::GetDisplaySampleData(int sampleCount) const
@@ -228,8 +233,23 @@ const int16_t* AsyncSndhStream::GetDisplaySampleData(int sampleCount) const
 	return m_audioBuffer + posInSample;
 }
 
-void	AsyncSndhStream::DrawGui()
+void	AsyncSndhStream::DrawGui(const char* musicName)
 {
+
+	bool change = false;
+
+	if (m_paused)
+		change = ImGui::ArrowButton("play", ImGuiDir_Right);
+	else
+		change = ImGui::Button("||");
+
+	if (change)
+	{
+		m_paused ^= true;
+		Pause(m_paused);
+	}
+	ImGui::SameLine();
+
 	ImGui::BeginDisabled(m_asyncInfo.fillPos < m_audioBufferLen);
 	char sLen[64];
 	sprintf_s(sLen, "%d:%02d", m_lenInSec / 60, m_lenInSec % 60);
@@ -241,6 +261,31 @@ void	AsyncSndhStream::DrawGui()
 	{
 		SetReplayPosInSec(pos);
 	}
+
+	if (musicName)
+	{
+		char sFilename[_MAX_PATH];
+		sprintf_s(sFilename, "%s.wav", musicName);
+		char dispName[_MAX_PATH];
+		uint32_t sizeInMiB = (m_audioBufferLen * sizeof(int16_t) + (1 << 20) - 1) >> 20;
+		if ( m_saved )
+			sprintf_s(dispName, "\"%s\" saved", sFilename);
+		else
+			sprintf_s(dispName, "Save \"%s\" (%d MiB)", sFilename, sizeInMiB);
+		ImGui::BeginDisabled(m_saved);
+		if (ImGui::Button(dispName))
+		{
+			WavWriter wv;
+			if (wv.Open(sFilename, m_replayRate, 1))
+			{
+				wv.AddAudioData(m_audioBuffer, m_audioBufferLen);
+				wv.Close();
+				m_saved = true;
+			}
+		}
+		ImGui::EndDisabled();
+	}
+
 	ImGui::EndDisabled();
 }
 
@@ -249,3 +294,15 @@ const void* AsyncSndhStream::GetRawData(int& fileSize) const
 	fileSize = m_asyncInfo.sndh.GetRawDataSize();
 	return m_asyncInfo.sndh.GetRawData();
 }
+
+void AsyncSndhStream::Pause(bool pause)
+{
+	if (NULL == m_audioBuffer)
+		return;
+
+	if ( pause )
+		waveOutPause(m_waveOutHandle);
+	else
+		waveOutRestart(m_waveOutHandle);
+}
+

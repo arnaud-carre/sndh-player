@@ -90,6 +90,9 @@
     <ClCompile Include="SndhArchivePlayer\AsyncSndhStream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\WavWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SndhArchivePlayer\SndhArchive.h">
@@ -168,6 +171,9 @@
       <Filter>Source Files\extern</Filter>
     </ClInclude>
     <ClInclude Include="SndhArchivePlayer\AsyncSndhStream.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SndhArchivePlayer\WavWriter.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
