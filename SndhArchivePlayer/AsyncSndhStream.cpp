@@ -9,6 +9,7 @@
 AsyncSndhStream::AsyncSndhStream()
 {
 	m_audioBuffer = NULL;
+	m_audioDebugBuffer = NULL;
 	m_bLoaded = false;
 	m_asyncInfo.thread = NULL;
 }
@@ -43,7 +44,9 @@ void AsyncSndhStream::CloseSubsong()
 		waveOutClose(m_waveOutHandle);
 
 		free(m_audioBuffer);
+		free(m_audioDebugBuffer);
 		m_audioBuffer = NULL;
+		m_audioDebugBuffer = NULL;
 	}
 }
 
@@ -74,7 +77,7 @@ void AsyncSndhStream::AsyncWorkerFunction()
 		if (m_asyncInfo.fillPos + todo > m_audioBufferLen)
 			todo = m_audioBufferLen - m_asyncInfo.fillPos;
 
-		m_asyncInfo.sndh.AudioRender(m_audioBuffer + m_asyncInfo.fillPos, todo);
+		m_asyncInfo.sndh.AudioRender(m_audioBuffer + m_asyncInfo.fillPos, todo, m_audioDebugBuffer + m_asyncInfo.fillPos);
 		m_asyncInfo.fillPos += todo;
 
 		m_asyncInfo.progress = (m_asyncInfo.fillPos * 100) / m_audioBufferLen;
@@ -126,7 +129,9 @@ bool AsyncSndhStream::StartSubsong(int subSongId, int durationByDefaultInSec)
 		return false;
 
 	assert(NULL == m_audioBuffer);
+	assert(NULL == m_audioDebugBuffer);
 	m_audioBuffer = (int16_t*)malloc(m_audioBufferLen*sizeof(int16_t));
+	m_audioDebugBuffer = (uint32_t*)malloc(m_audioBufferLen*sizeof(uint32_t));
 
 	m_waveHeader.dwFlags = 0; // WHDR_BEGINLOOP | WHDR_ENDLOOP;
 	m_waveHeader.lpData = (LPSTR)m_audioBuffer;
@@ -137,7 +142,7 @@ bool AsyncSndhStream::StartSubsong(int subSongId, int durationByDefaultInSec)
 	waveOutPrepareHeader(m_waveOutHandle, &m_waveHeader, sizeof(WAVEHDR));
 
 	// Generate first second of music
-	m_asyncInfo.sndh.AudioRender(m_audioBuffer, m_replayRate);
+	m_asyncInfo.sndh.AudioRender(m_audioBuffer, m_replayRate, m_audioDebugBuffer);
 
 	// launch worker thread to generate
 	m_asyncInfo.forceQuit = false;
@@ -216,7 +221,7 @@ void AsyncSndhStream::SetReplayPosInSec(int pos)
 
 }
 
-const int16_t* AsyncSndhStream::GetDisplaySampleData(int sampleCount) const
+const int16_t* AsyncSndhStream::GetDisplaySampleData(int sampleCount, uint32_t** ppDebugView) const
 {
 	if (NULL == m_audioBuffer)
 		return NULL;
@@ -229,6 +234,9 @@ const int16_t* AsyncSndhStream::GetDisplaySampleData(int sampleCount) const
 	const uint32_t posInSample = mmt.u.sample + playOffsetInSec * m_replayRate;
 	if (posInSample + sampleCount > m_audioBufferLen)
 		return NULL;
+
+	if (ppDebugView)
+		*ppDebugView = m_audioDebugBuffer + posInSample;
 
 	return m_audioBuffer + posInSample;
 }

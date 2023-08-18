@@ -6,6 +6,7 @@
 --------------------------------------------------------------------*/
 // Tiny & cycle accurate ym2149 emulation.
 // operate at original YM freq divided by 8 (so 250Khz, as nothing runs faster in the chip)
+#include <assert.h>
 #include "ym2149c.h"
 #include "ym2149_tables.h"
 
@@ -14,15 +15,13 @@
 
 void	Ym2149c::Reset(uint32_t hostReplayRate, uint32_t ymClock)
 {
-#if D_USE_MEASURED_MIXING_TABLE
 	InitYmTable(s_ymMixingVolumeTable, sSTReplayTable);
-#endif
 	for (int v = 0; v < 3; v++)
 	{
 		m_toneCounter[v] = 0;
 		m_tonePeriod[v] = 0;
-		m_toneEdge[v] = 0;
 	}
+	m_toneEdges = 0;
 	m_insideTimerIrq = false;
 	m_hostReplayRate = hostReplayRate;
 	m_ymClockOneEighth = ymClock/8;
@@ -35,6 +34,7 @@ void	Ym2149c::Reset(uint32_t hostReplayRate, uint32_t ymClock)
 	m_currentLevel = 0;
 	m_innerCycle = 0;
 	m_envPos = 0;
+	m_currentDebugThreeVoices = 0;
 }
 
 void	Ym2149c::WritePort(uint8_t port, uint8_t value)
@@ -74,8 +74,11 @@ void	Ym2149c::WriteReg(int reg, uint8_t value)
 			m_noisePeriod = m_regs[6];
 			break;
 		case 7:
-			m_toneMask = value & 0x7;
-			m_noiseMask = (value>>3) & 0x7;
+		{
+			static const uint32_t masks[8] = { 0x000,0x00f,0x0f0, 0x0ff, 0xf00, 0xf0f, 0xff0, 0xfff };
+			m_toneMask = masks[value & 0x7];
+			m_noiseMask = masks[(value >> 3) & 0x7];
+		}
 			break;
 		case 11:
 		case 12:
@@ -117,33 +120,26 @@ int16_t	Ym2149c::dcAdjust(uint16_t v)
 // Tick internal YM2149 state machine at 250Khz ( 2Mhz/8 )
 uint16_t Ym2149c::Tick()
 {
-	uint16_t output = 0;
-	for (int v = 0; v < 3; v++)
-	{
-		const uint32_t vmask = ((m_toneEdge[v]) | (m_toneMask >> v)) &
-								(m_currentNoiseBit | (m_noiseMask >> v));
-		if (vmask & 1)
-		{
-			int level = m_regs[8 + v];
-			if (level & 0x10)
-				level = m_pCurrentEnv[m_envPos+32];
-#if D_USE_MEASURED_MIXING_TABLE
-			output = (output<<4)|level;
-#else
-			output += s_volTab[level];
-#endif
-		}
-	}
-#if D_USE_MEASURED_MIXING_TABLE
-	output = s_ymMixingVolumeTable[output];
-#endif
+
+	const uint32_t envLevel = m_pCurrentEnv[m_envPos + 32];
+	uint32_t levels;
+	levels  = ((m_regs[8] & 0x10) ? envLevel : m_regs[8]) << 0;
+	levels |= ((m_regs[9] & 0x10) ? envLevel : m_regs[9]) << 4;
+	levels |= ((m_regs[10] & 0x10) ? envLevel : m_regs[10]) << 8;
+
+	// three voices at same time
+	const uint32_t vmask = (m_toneEdges | m_toneMask) & (m_currentNoiseBit | m_noiseMask);
+	levels &= vmask;
+	m_currentDebugThreeVoices = levels;
+	uint32_t output = s_ymMixingVolumeTable[levels];
+
 	// update internal state
 	for (int v = 0; v < 3; v++)
 	{
 		m_toneCounter[v]++;
 		if (m_toneCounter[v] >= m_tonePeriod[v])
 		{
-			m_toneEdge[v] ^= 1;
+			m_toneEdges ^= 0xf<<(v*4);
 			m_toneCounter[v] = 0;
 		}
 	}
@@ -156,8 +152,8 @@ uint16_t Ym2149c::Tick()
 		m_noiseCounter++;
 		if (m_noiseCounter >= m_noisePeriod)
 		{
-			m_currentNoiseBit = (m_noiseRndRack & 1) ^ ((m_noiseRndRack >> 2) & 1);
-			m_noiseRndRack = (m_noiseRndRack >> 1) | (m_currentNoiseBit << 16);
+			m_currentNoiseBit = ((m_noiseRndRack ^ (m_noiseRndRack >> 2))&1) ? ~0 : 0;
+			m_noiseRndRack = (m_noiseRndRack >> 1) | ((m_currentNoiseBit&1) << 16);
 			m_noiseCounter = 0;
 		}
 
@@ -175,19 +171,29 @@ uint16_t Ym2149c::Tick()
 
 // called at host replay rate ( like 48Khz )
 // internally update YM chip state machine at 250Khz and average output for each host sample
-int16_t Ym2149c::ComputeNextSample()
+int16_t Ym2149c::ComputeNextSample(uint32_t* pSampleDebugInfo)
 {
 #if D_DOWNSAMPLE_USE_MAX_VALUE
 	uint16_t tickLevel = 0;
+	uint32_t debugValues = 0x000;
 	do
 	{
 		uint16_t level = Tick();
-		tickLevel = (level > tickLevel) ? level : tickLevel;
+		if (level > tickLevel)
+		{
+			tickLevel = level;
+			debugValues = m_currentDebugThreeVoices;
+		}
 		m_innerCycle += m_hostReplayRate;
 	}
 	while (m_innerCycle < m_ymClockOneEighth);
 	m_innerCycle -= m_ymClockOneEighth;
 	int16_t out = dcAdjust(tickLevel);
+	if (pSampleDebugInfo)
+	{
+		assert(debugValues < 0x1000);
+		*pSampleDebugInfo = s444to888[debugValues];
+	}
 #else
 	// down-sample by averaging samples
 	uint16_t tickLevel;
@@ -221,7 +227,7 @@ void	Ym2149c::InsideTimerIrq(bool inside)
 		{
 			if (m_edgeNeedReset[v])
 			{
-				m_toneEdge[v] ^= 1;
+				m_toneEdges ^= 0xf<<(v*4);
 				m_toneCounter[v] = 0;
 				m_edgeNeedReset[v] = false;
 			}

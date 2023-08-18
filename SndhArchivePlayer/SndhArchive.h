@@ -23,6 +23,7 @@ public:
 	int		GetUnFilteredSize() const { return m_size; }
 	void	ImGuiDraw(SndhArchivePlayer& player);
 	bool	IsOpen() const { return m_zipArchive != NULL; }
+	bool	IsOpening() const { return (m_asyncZipThread != NULL); }
 
 private:
 	struct PlayListItem

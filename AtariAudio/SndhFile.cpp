@@ -220,12 +220,14 @@ bool	SndhFile::InitSubSong(int subSongId)
 	m_frameCount = info.playerTickCount;
 	m_loopCount = 0;
 	m_atariMachine.Startup(m_hostReplayRate);
-	if (m_atariMachine.SndhInit(m_rawBuffer, m_rawSize, subSongId))
-		ret = true;
+	if (m_atariMachine.Upload(m_rawBuffer, SNDH_UPLOAD_ADDR, m_rawSize))
+	{
+		ret = m_atariMachine.Jsr(SNDH_UPLOAD_ADDR, subSongId);
+	}
 	return ret;
 }
 
-int	SndhFile::AudioRender(int16_t* buffer, int count)
+int	SndhFile::AudioRender(int16_t* buffer, int count, uint32_t* pSampleViewInfo)
 {
 	for (int i = 0; i < count; i++)
 	{
@@ -233,7 +235,7 @@ int	SndhFile::AudioRender(int16_t* buffer, int count)
 		// check if we should call SNDH music driver tick (most of the time 50hz)
 		if (m_innerSamplePos <= 0)
 		{
-			m_atariMachine.SndhPlayerTick();
+			m_atariMachine.Jsr(SNDH_UPLOAD_ADDR + 8, 0);
 			m_innerSamplePos = m_samplePerTick;
 			m_frame++;
 			if (m_frame >= m_frameCount)
@@ -243,7 +245,9 @@ int	SndhFile::AudioRender(int16_t* buffer, int count)
 		}
 
 		// compute the Atari machine sample (YM2149 and STE DAC)
-		*buffer++ = m_atariMachine.ComputeNextSample();
+		*buffer++ = m_atariMachine.ComputeNextSample(pSampleViewInfo);
+		if (pSampleViewInfo)
+			pSampleViewInfo++;
 	}
 	return m_loopCount;
 }

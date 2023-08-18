@@ -58,7 +58,7 @@ bool	SndhArchivePlayer::LoadNewMusic(const char* sFilename)
 
 		if (m_sndh.LoadSndh(sndhBuffer, sndhSize, kHostReplayRate))
 		{
-			if ( m_sndh.StartSubsong(m_sndh.GetDefaultSubsong(), gDefaultDurationInMin*60))
+			if ( StartSubsong(m_sndh.GetDefaultSubsong()))
 				ret = true;
 		}
 		free(sndhBuffer);
@@ -103,8 +103,8 @@ static bool drawOscillo = true;
 void	ImDrawOscillo(const int16_t* audio, int count, const char* winName)
 {
 	const float dpiScale = 1.0f;
-	ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale, 32.0f*dpiScale), ImVec2(1280, 800));
-	if (ImGui::Begin(winName, &drawOscillo, 0))
+//	ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale, 32.0f*dpiScale), ImVec2(1280, 800));
+	if (ImGui::Begin(winName, NULL, 0))
 	{
 		ImDrawList* dl = ImGui::GetWindowDrawList();
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -130,7 +130,7 @@ void	ImDrawOscillo(const int16_t* audio, int count, const char* winName)
 		ImU32 refColor = IM_COL32(0, 0, 0, 255);
 		ImU32 guideColor = IM_COL32(255, 0, 0, 255);
 		ImGui::ItemSize(size, style.FramePadding.y);
-		ImU32 bkgColor = IM_COL32(63, 63, 63, 255);
+		ImU32 bkgColor = IM_COL32(16, 16, 48, 255);
 		if (ImGui::ItemAdd(rect, ImGui::GetID("wsDisplay")))
 		{
 			dl->AddRectFilledMultiColor(
@@ -180,9 +180,135 @@ void	ImDrawOscillo(const int16_t* audio, int count, const char* winName)
 	ImGui::End();
 }
 
+void	ImDrawOscilloVoice(const uint32_t* audio, int count, int voiceShift)
+{
+	const float dpiScale = 1.0f;
+	{
+		ImDrawList* dl = ImGui::GetWindowDrawList();
+		ImGuiWindow* window = ImGui::GetCurrentWindow();
+		if (count > kLatencySampleCount)
+			count = kLatencySampleCount;
+		ImVec2 waveform[kLatencySampleCount];
+		ImVec2 size = ImGui::GetContentRegionAvail();
+
+		ImVec2 minArea = window->DC.CursorPos;
+		ImVec2 maxArea = ImVec2(
+			minArea.x + size.x,
+			minArea.y + size.y
+		);
+		ImRect rect = ImRect(minArea, maxArea);
+		ImRect inRect = rect;
+/*
+		inRect.Min.x += dpiScale;
+		inRect.Min.y += dpiScale;
+		inRect.Max.x -= dpiScale;
+		inRect.Max.y -= dpiScale;
+*/
+		ImGuiStyle& style = ImGui::GetStyle();
+		ImU32 color = IM_COL32(224, 255, 224, 255);
+		ImU32 borderColor = IM_COL32(0, 0, 255, 255);
+		ImU32 refColor = IM_COL32(0, 0, 0, 255);
+		ImU32 guideColor = IM_COL32(255, 0, 0, 255);
+		ImGui::ItemSize(size, style.FramePadding.y);
+		ImU32 bkgColor = IM_COL32(15, 31, 15, 255);
+		if (ImGui::ItemAdd(rect, ImGui::GetID("wsDisplay")))
+		{
+
+			dl->AddRectFilledMultiColor(
+				inRect.Min,
+				inRect.Max,
+				bkgColor,
+				bkgColor,
+				bkgColor,
+				bkgColor
+			);
+
+			int w = int(inRect.Max.x) - int(inRect.Min.x);
+			if (w > count)
+				w = count;
+			if (w <= 0)
+				w = 1;
+
+			ImU32 rPos = 0;
+			ImU32 rStep = (count << 16) / w;
+			for (int i = 0; i < w; i++)
+			{
+				float x = (float)i / float(w);
+				float y = 0.f;
+				if (audio)
+				{
+					int8_t sv = int8_t((audio[rPos >> 16] >> voiceShift) & 0xff);
+					y = float(sv * (1.0f / 256.f));
+					rPos += rStep;
+					{
+						if (y < -0.5f) y = -0.5f;
+						if (y > 0.5f) y = 0.5f;
+					}
+				}
+				waveform[i] = ImLerp(inRect.Min, inRect.Max, ImVec2(x, 0.5f - y));
+			}
+
+			{
+				dl->PushClipRectFullScreen();
+				dl->AddPolyline(waveform, w, color, ImDrawFlags_None, dpiScale);
+				dl->PopClipRect();
+			}
+			{
+//				dl->AddRect(inRect.Min, inRect.Max, borderColor, 8.0f * dpiScale, 0, 1.5f * dpiScale);
+			}
+		}
+	}
+}
+
+void ImDrawOscillo4Voices(const uint32_t* audio, int count)
+{
+
+	if (ImGui::Begin("Emulation", NULL, 0))
+	{
+		ImVec2 totalSize = ImGui::GetContentRegionAvail();
+		// Child 1: no border, enable horizontal scrollbar
+		{
+			ImGuiWindowFlags window_flags = 0; //ImGuiWindowFlags_HorizontalScrollbar;
+			ImGui::BeginChild("Ym Voice A", ImVec2(totalSize.x*0.5f, totalSize.y * 0.5f), false); //, window_flags);
+			ImGui::Text("Ym Voice A");
+			ImDrawOscilloVoice(audio, count, 0*8);
+			ImGui::EndChild();
+		}
+		// Child 2: no border, enable horizontal scrollbar
+		{
+			ImGui::SameLine();
+			ImGuiWindowFlags window_flags = 0; //ImGuiWindowFlags_HorizontalScrollbar;
+			ImGui::BeginChild("Ym Voice B", ImVec2(0, totalSize.y*0.5f), false); //, window_flags);
+			ImGui::Text("Ym Voice B");
+			ImDrawOscilloVoice(audio, count, 1*8);
+			ImGui::EndChild();
+		}
+		// Child 2: no border, enable horizontal scrollbar
+		{
+			ImGuiWindowFlags window_flags = 0; //ImGuiWindowFlags_HorizontalScrollbar;
+			ImGui::BeginChild("Ym Voice C", ImVec2(totalSize.x*0.5f,0), false); //, window_flags);
+			ImGui::Text("Ym Voice C");
+			ImDrawOscilloVoice(audio, count, 2*8);
+			ImGui::EndChild();
+		}
+		// Child 3: no border, enable horizontal scrollbar
+		{
+			ImGui::SameLine();
+			ImGuiWindowFlags window_flags = 0; //ImGuiWindowFlags_HorizontalScrollbar;
+			ImGui::BeginChild("STE DAC", ImVec2(0, 0), false); //, window_flags);
+			ImGui::Text("STE DAC");
+			ImDrawOscilloVoice(audio, count, 3*8);
+			ImGui::EndChild();
+		}
+	}
+	ImGui::End();
+}
 
 void	SndhArchivePlayer::DropFile(const char* sFilename)
 {
+
+	if (gArchive.IsOpening())
+		return;
 
 	m_sndh.Unload();
 
@@ -201,11 +327,27 @@ void	SndhArchivePlayer::Startup()
 //	DropFile("C:\\Users\\arnaud\\Downloads\\sndh48lf.zip");
 }
 
+static void DrawTextCentered(const char* text)
+{
+	ImGui::SetCursorPosX( (ImGui::GetWindowWidth() - ImGui::CalcTextSize(text).x) * 0.5f);
+	ImGui::Text(text);
+}
+
+static bool CenteredButton(const char* label, float widthScale = 1.2f)
+{
+	const float buttonWidth = ImGui::CalcTextSize(label).x * widthScale;
+	ImGui::SetCursorPosX( ((ImGui::GetWindowWidth() - buttonWidth) * 0.5f));
+	return ImGui::Button(label, ImVec2(buttonWidth, 0));
+}
+
 void	SndhArchivePlayer::UpdateImGui()
 {
 	
 	
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+	ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+
 
 	// 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
 	{
@@ -318,6 +460,51 @@ void	SndhArchivePlayer::UpdateImGui()
 			}
 		}
 
+		if (ImGui::Button("About"))
+			ImGui::OpenPopup("About");
+
+		// Always center this window when appearing
+		ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+		ImGui::SetNextWindowSize(ImVec2(480,320), ImGuiCond_FirstUseEver);
+
+		if (ImGui::BeginPopupModal("About", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			DrawTextCentered("SNDH Archive Player v0.4");
+			ImGui::Separator();
+			extern void OsOpenInShell(const char* path);
+
+			ImGui::Text("\n\n");
+			DrawTextCentered("Accurate & fast ATARI SNDH player");
+			DrawTextCentered("Written by Leonard/Oxygene");
+			if (CenteredButton("Twitter"))
+			{
+				OsOpenInShell("https://twitter.com/leonard_coder");
+			}
+			ImGui::Text("\n\n");
+
+			DrawTextCentered("Powered by AtariAudio library");
+			DrawTextCentered("and DearImGui!");
+			if (CenteredButton("GitHub Repository"))
+			{
+				OsOpenInShell("https://github.com/arnaud-carre/sndh-player");
+			}
+
+			ImGui::Text("\n\n\n");
+
+			//static int unused_i = 0;
+			//ImGui::Combo("Combo", &unused_i, "Delete\0Delete harder\0");
+
+			if (CenteredButton("Ok", 6.0f))
+			{
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::SetItemDefaultFocus();
+			ImGui::EndPopup();
+		}
+
+
+
 //		ImGui::SliderInt("Default Duration (min)", &gDefaultDurationInMin, 1, 30);
 
 //		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
@@ -326,9 +513,10 @@ void	SndhArchivePlayer::UpdateImGui()
 
 	if (drawOscillo)
 	{
-		const int16_t* display = m_sndh.GetDisplaySampleData(kLatencySampleCount);
+		uint32_t* debugAudio = NULL;
+		const int16_t* display = m_sndh.GetDisplaySampleData(kLatencySampleCount, &debugAudio);
 		ImDrawOscillo(display, kLatencySampleCount,"Oscilloscope");
-//		ImDrawOscillo(display, kLatencySampleCount, "Oscilloscope2");
+		ImDrawOscillo4Voices(debugAudio, kLatencySampleCount);
 	}
 
 	// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
@@ -344,6 +532,8 @@ void	SndhArchivePlayer::UpdateImGui()
 	mem_edit.DrawWindow("File Viewer", (void*)rdata, fsize);
 
 	DrawPlayList();
+
+	ImGui::PopStyleVar();
 
 }
 

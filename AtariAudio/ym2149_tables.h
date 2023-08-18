@@ -40,7 +40,6 @@ static const uint8_t s_envData[10 * 64] =
 	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
 };
 
-#if D_USE_MEASURED_MIXING_TABLE
 // All possible volume mixing combine, in ST-Replay mode (ie when all voices ON)
 // Data measured on real hardware by Paulo Simoes in 2012
 static const uint16_t sSTReplayTable[816] =
@@ -98,6 +97,15 @@ static const uint16_t sSTReplayTable[816] =
 	0x03e7,0x035f,0x02b4,0x02d3,0x022c,0x0181,0x035f,0x02d7,0x0229,0x024d,0x01a3,0x00fb,0x01c5,0x011b,0x0078,0x0000
 };
 
+#define	k15toS8(a)	((((a*127)>>15)+63)^0x80)	// signed 8bits value for oscillators viewing display per voice
+static const uint32_t	s_ViewVolTab[16] =
+{
+	k15toS8(62),k15toS8(161),k15toS8(265),k15toS8(377),k15toS8(580),k15toS8(774),k15toS8(1155),k15toS8(1575),
+	k15toS8(2260),k15toS8(3088),k15toS8(4570),k15toS8(6233),k15toS8(9330),k15toS8(13187),k15toS8(21220),k15toS8(32767)
+};
+
+static	uint32_t	s444to888[0x1000];
+
 static uint16_t	s_ymMixingVolumeTable[16 * 16 * 16];
 static	void	InitYmTable(uint16_t* pOut, const uint16_t* pIn)
 {
@@ -117,12 +125,14 @@ static	void	InitYmTable(uint16_t* pOut, const uint16_t* pIn)
 			}
 		}
 	}
+
+	// init debug view table
+	for (int i = 0; i < 0x1000; i++)
+	{
+		uint32_t v;
+		v = s_ViewVolTab[(i >> 0) & 15] << 0;
+		v |= s_ViewVolTab[(i >> 4) & 15] << 8;
+		v |= s_ViewVolTab[(i >> 8) & 15] << 16;
+		s444to888[i] = v;
+	}
 }
-#else
-#define	k15toD3(a)	((a)/3)	// 15bits input, and 3 YM voices
-static const uint16_t	s_volTab[16] =
-{
-	k15toD3(62),k15toD3(161),k15toD3(265),k15toD3(377),k15toD3(580),k15toD3(774),k15toD3(1155),k15toD3(1575),
-	k15toD3(2260),k15toD3(3088),k15toD3(4570),k15toD3(6233),k15toD3(9330),k15toD3(13187),k15toD3(21220),k15toD3(32767)
-};
-#endif

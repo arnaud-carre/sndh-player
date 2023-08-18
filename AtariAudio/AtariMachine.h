@@ -10,11 +10,12 @@
 #include "Mk68901.h"
 #include "SteDac.h"
 
-static	const	uint32_t	RAM_SIZE = 1024 * 1024;
+static	const	uint32_t	RAM_SIZE = 2*1024*1024;
 static	const	uint32_t	RTE_INSTRUCTION_ADDR = 0x500;
 static	const	uint32_t	RESET_INSTRUCTION_ADDR = 0x502;
 static	const	uint32_t	SNDH_UPLOAD_ADDR = 0x10000;		// some SNDH can't play below (ie SynthDream2)
-static	const	uint32_t	GEMDOS_MALLOC_EMUL_BUFFER = RAM_SIZE-0x80000;
+static	const	uint32_t	GEMDOS_MALLOC_EMUL_BUFFER = RAM_SIZE-0x100000;
+
 
 class AtariMachine
 {
@@ -29,9 +30,9 @@ public:
 	};
 
 	void		Startup(uint32_t hostReplayRate);
- 	bool		SndhInit(const void* data, int dataSize, int d0);
-	bool		SndhPlayerTick();
-	int16_t		ComputeNextSample();
+	bool		Upload(const void* src, uint32_t addr, uint32_t size);
+	bool		Jsr(uint32_t addr, uint32_t d0);
+	int16_t		ComputeNextSample(uint32_t* pSampleDebugInfo = NULL);
 
 	unsigned int	memRead8(unsigned int address);
 	unsigned int	memRead16(unsigned int address);
@@ -45,7 +46,6 @@ private:
 	void		ConfigureReturnByRts();
 	void		ConfigureReturnByRte();
 	bool		JmpBinary(int pc, int timeOut50Hz);
-	bool		Upload(const void* src, int addr, int size);
 
 	uint8_t*	m_RAM;
 	int			m_ExitCode;

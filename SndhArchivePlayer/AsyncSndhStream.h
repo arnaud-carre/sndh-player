@@ -19,7 +19,7 @@ public:
 	void Pause(bool pause);
 
 	int GetReplayPosInSec() const;
-	const int16_t* GetDisplaySampleData(int sampleCount) const;
+	const int16_t* GetDisplaySampleData(int sampleCount, uint32_t** ppDebugView = NULL) const;
 	int		GetSubsongCount() const;
 	int		GetDefaultSubsong() const;
 	bool	GetSubsongInfo(int subSongId, SndhFile::SubSongInfo& out) const;
@@ -49,6 +49,7 @@ private:
 	HWAVEOUT	m_waveOutHandle;
 	WAVEHDR		m_waveHeader;
 	int16_t*	m_audioBuffer;
+	uint32_t*	m_audioDebugBuffer;
 	uint32_t 	m_audioBufferLen;
 	uint32_t	m_replayRate;
 	bool		m_paused;

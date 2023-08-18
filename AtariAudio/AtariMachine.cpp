@@ -260,9 +260,9 @@ void	AtariMachine::Startup(uint32_t hostReplayRate)
 	gCurrentMachine = NULL;
 }
 
-bool	AtariMachine::Upload(const void* src, int addr, int size)
+bool	AtariMachine::Upload(const void* src, uint32_t addr, uint32_t size)
 {
-	if (uint32_t(addr + size) > RAM_SIZE)
+	if (addr + size > RAM_SIZE)
 		return false;
 
 	if ((NULL == src) || (0 == size))
@@ -287,8 +287,7 @@ void	AtariMachine::ConfigureReturnByRte()
 
 bool	AtariMachine::JmpBinary(int pc, int timeOut50Hz)
 {
-	m68k_write_memory_32(0x14, 0x500);		// DIV by ZERO excep jump at $500
-	memWrite16(0x500, 0x4e73);				// $500 is just RTE
+	m68k_write_memory_32(0x14, RTE_INSTRUCTION_ADDR);		// DIV by ZERO excep jump at $500
 
 	m68k_write_memory_32(4, pc);			// pc at next RESET
 	m68k_pulse_reset();						// reset CPU & start execution at PC
@@ -304,31 +303,27 @@ bool	AtariMachine::JmpBinary(int pc, int timeOut50Hz)
 	return (kReset == m_ExitCode);
 }
 
-bool	AtariMachine::SndhInit(const void* data, int dataSize, int d0)
+bool	AtariMachine::Jsr(uint32_t addr, uint32_t d0)
 {
 	gCurrentMachine = this;
 
 	bool ret = false;
 	// upload data in RAM
-	if (Upload(data, SNDH_UPLOAD_ADDR, dataSize))
-	{
-		ConfigureReturnByRts();
-		m68k_set_reg(M68K_REG_D0, d0);
-
-		if (JmpBinary(SNDH_UPLOAD_ADDR, 50*10))		// timeout of 1sec for init
-		{
-			ret = true;
-		}
-	}
+	ConfigureReturnByRts();
+	m68k_set_reg(M68K_REG_D0, d0);
+	ret = JmpBinary(addr, 50*10);		// timeout of 1sec for init
 	gCurrentMachine = NULL;
 	return ret;
 }
 
-int16_t	AtariMachine::ComputeNextSample()
+int16_t	AtariMachine::ComputeNextSample(uint32_t* pSampleDebugInfo)
 {
 	gCurrentMachine = this;
-	int32_t level = m_Ym2149.ComputeNextSample();
-	level += m_SteDac.ComputeNextSample((const int8_t*)m_RAM, RAM_SIZE, m_Mfp);
+	int32_t level = m_Ym2149.ComputeNextSample(pSampleDebugInfo);
+	int32_t steLevel = m_SteDac.ComputeNextSample((const int8_t*)m_RAM, RAM_SIZE, m_Mfp);
+	if (steLevel && (pSampleDebugInfo))
+		*pSampleDebugInfo |= (steLevel >> 8) << 24;
+	level += steLevel;
 
 	if (level > 32767)
 		level = 32767;
@@ -352,18 +347,4 @@ int16_t	AtariMachine::ComputeNextSample()
 	}
 	gCurrentMachine = NULL;
 	return out;
-}
-
-bool	AtariMachine::SndhPlayerTick()
-{
-//	printf("--------- frame tick -------------\n");
-	gCurrentMachine = this;
-	bool ret = false;
-	ConfigureReturnByRts();
-	if (JmpBinary(SNDH_UPLOAD_ADDR+8, 1))		// +8 is player tick in SNDH (timeout of 1VBL)
-	{
-		ret = true;
-	}
-	gCurrentMachine = NULL;
-	return ret;
 }

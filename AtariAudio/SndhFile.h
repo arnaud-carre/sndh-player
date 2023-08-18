@@ -35,7 +35,17 @@ public:
 	int		GetDefaultSubsong() const { return m_defaultSubSong; }
 	bool	GetSubsongInfo(int subSongId, SubSongInfo& out) const;
 	bool	InitSubSong(int subSongId);
-	int		AudioRender(int16_t* buffer, int count);
+
+	/*
+	 * Main audio rendering function.
+	 * Compute the next "count" samples into "buffer" (mono, signed, 16bits samples)
+	 * pSampleViewInfo is an optional buffer of "count" uint32_t for gadget visualization purpose
+	 * The 32bits contains four 8bits signed values that are respectivly from low byte to high byte:
+	 * YM voices A,B,C and STE DAC
+	 * Note: Always use "buffer" as audio source. Do *not* mix yourself the SampleViewInfo data
+	 * It's visualization data only!
+	*/
+	int		AudioRender(int16_t* buffer, int count, uint32_t* pSampleViewInfo = NULL);
 
 	const void*	GetRawData() const { return m_rawBuffer; }
 	const int	GetRawDataSize() const { return m_rawSize; }
