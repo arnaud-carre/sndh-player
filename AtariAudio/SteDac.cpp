@@ -144,7 +144,7 @@ int16_t	SteDac::ComputeNextSample(const int8_t* atariRam, uint32_t ramSize, Mk68
 			m_samplePtr += mono ? 1 : 2;
 			if (m_samplePtr == m_sampleEndPtr)
 			{
-				mfp.SetExternalEvent(Mk68901::eTimerA);
+				mfp.SetSteDacExternalEvent();
 				FetchSamplePtr();
 				if ((m_regs[0x1] & (1 << 1)) == 0)
 				{

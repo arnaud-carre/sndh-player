@@ -46,6 +46,9 @@ private:
 	void		ConfigureReturnByRts();
 	void		ConfigureReturnByRte();
 	bool		JmpBinary(int pc, int timeOut50Hz);
+	void		Gemdos(int func, uint32_t a7);
+	void		XBios(int func, uint32_t a7);
+	void		XbiosTimerSet(int ctrlPort, int dataPort, int enablePort, int bit, int mask, int ctrlValue, int dataValue);
 
 	uint8_t*	m_RAM;
 	int			m_ExitCode;

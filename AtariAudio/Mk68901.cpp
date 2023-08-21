@@ -15,8 +15,17 @@ void	Mk68901::Reset(uint32_t hostReplayRate)
 	for (int i = 0; i < 256; i++)
 		m_regs[i] = 0;
 
-	for (int t = 0; t < 4; t++)
+	for (int t = 0; t < 5; t++)
 		m_timers[t].Reset();
+
+	// by default on Atari OS timer C is enable (and even running, but we just enable)
+	m_timers[eTimerC].enable = true;
+	m_timers[eTimerC].mask = true;
+
+	// gpi7 is not really a timer, "simulate" an event type timer with count=1 to make the code simpler
+	m_timers[eGpi7].controlRegister = 1<<3;	// simulate event mode
+	m_timers[eGpi7].dataRegisterInit = 1;	// event count always 1
+	m_timers[eGpi7].dataRegister = 1;
 
 	m_hostReplayRate = hostReplayRate;
 }
@@ -83,6 +92,7 @@ void	Mk68901::Write8(int port,uint8_t data)
 		case 0x07:
 			m_timers[eTimerA].SetER((data&(1 << 5)) != 0);
 			m_timers[eTimerB].SetER((data&(1 << 0)) != 0);
+			m_timers[eGpi7].SetER((data&(1 << 7)) != 0);
 			break;
 		case 0x09:
 			m_timers[eTimerC].SetER((data&(1 << 5)) != 0);
@@ -91,6 +101,7 @@ void	Mk68901::Write8(int port,uint8_t data)
 		case 0x13:
 			m_timers[eTimerA].SetMR((data&(1 << 5)) != 0);
 			m_timers[eTimerB].SetMR((data&(1 << 0)) != 0);
+			m_timers[eGpi7].SetMR((data&(1 << 7)) != 0);
 			break;
 		case 0x15:
 			m_timers[eTimerC].SetMR((data&(1 << 5)) != 0);

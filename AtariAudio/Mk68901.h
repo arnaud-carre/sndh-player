@@ -19,14 +19,15 @@ public:
 		eTimerA = 0,
 		eTimerB,
 		eTimerC,
-		eTimerD
+		eTimerD,
+		eGpi7,
 	};
 
 	uint8_t		Read8(int port);
 	uint16_t	Read16(int port);
 	void		Write8(int port, uint8_t data);				// Write a 8bits value to a MFP register
 	void		Write16(int port, uint16_t data);				// Write a 16bits value on MFP register
-	void		SetExternalEvent(eTimerName timerId) { m_timers[timerId].externalEvent = true; }
+	void		SetSteDacExternalEvent() { m_timers[eTimerA].externalEvent = true; m_timers[eGpi7].externalEvent = true; }
 
 private:
 	struct Timer
@@ -52,6 +53,6 @@ private:
 
 	uint32_t m_hostReplayRate;
 	uint8_t	m_regs[256];
-	Timer	m_timers[4];
+	Timer	m_timers[5];
 };
 

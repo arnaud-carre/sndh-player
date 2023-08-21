@@ -180,9 +180,11 @@ void	ImDrawOscillo(const int16_t* audio, int count, const char* winName)
 	ImGui::End();
 }
 
-void	ImDrawOscilloVoice(const uint32_t* audio, int count, int voiceShift)
+void	ImDrawOscilloVoice(const uint32_t* audio, int count, int index, const char* name, const ImVec2& size)
 {
 	const float dpiScale = 1.0f;
+	ImGui::BeginChild(name, size, false); //, window_flags);
+	ImGui::Text(name);
 	{
 		ImDrawList* dl = ImGui::GetWindowDrawList();
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -198,6 +200,7 @@ void	ImDrawOscilloVoice(const uint32_t* audio, int count, int voiceShift)
 		);
 		ImRect rect = ImRect(minArea, maxArea);
 		ImRect inRect = rect;
+		const int voiceShift = index * 8;
 /*
 		inRect.Min.x += dpiScale;
 		inRect.Min.y += dpiScale;
@@ -258,6 +261,7 @@ void	ImDrawOscilloVoice(const uint32_t* audio, int count, int voiceShift)
 			}
 		}
 	}
+	ImGui::EndChild();
 }
 
 void ImDrawOscillo4Voices(const uint32_t* audio, int count)
@@ -266,40 +270,12 @@ void ImDrawOscillo4Voices(const uint32_t* audio, int count)
 	if (ImGui::Begin("Emulation", NULL, 0))
 	{
 		ImVec2 totalSize = ImGui::GetContentRegionAvail();
-		// Child 1: no border, enable horizontal scrollbar
-		{
-			ImGuiWindowFlags window_flags = 0; //ImGuiWindowFlags_HorizontalScrollbar;
-			ImGui::BeginChild("Ym Voice A", ImVec2(totalSize.x*0.5f, totalSize.y * 0.5f), false); //, window_flags);
-			ImGui::Text("Ym Voice A");
-			ImDrawOscilloVoice(audio, count, 0*8);
-			ImGui::EndChild();
-		}
-		// Child 2: no border, enable horizontal scrollbar
-		{
-			ImGui::SameLine();
-			ImGuiWindowFlags window_flags = 0; //ImGuiWindowFlags_HorizontalScrollbar;
-			ImGui::BeginChild("Ym Voice B", ImVec2(0, totalSize.y*0.5f), false); //, window_flags);
-			ImGui::Text("Ym Voice B");
-			ImDrawOscilloVoice(audio, count, 1*8);
-			ImGui::EndChild();
-		}
-		// Child 2: no border, enable horizontal scrollbar
-		{
-			ImGuiWindowFlags window_flags = 0; //ImGuiWindowFlags_HorizontalScrollbar;
-			ImGui::BeginChild("Ym Voice C", ImVec2(totalSize.x*0.5f,0), false); //, window_flags);
-			ImGui::Text("Ym Voice C");
-			ImDrawOscilloVoice(audio, count, 2*8);
-			ImGui::EndChild();
-		}
-		// Child 3: no border, enable horizontal scrollbar
-		{
-			ImGui::SameLine();
-			ImGuiWindowFlags window_flags = 0; //ImGuiWindowFlags_HorizontalScrollbar;
-			ImGui::BeginChild("STE DAC", ImVec2(0, 0), false); //, window_flags);
-			ImGui::Text("STE DAC");
-			ImDrawOscilloVoice(audio, count, 3*8);
-			ImGui::EndChild();
-		}
+		ImDrawOscilloVoice(audio, count, 0, "Ym Voice A", ImVec2(totalSize.x*0.5f, totalSize.y * 0.5f));
+		ImGui::SameLine();
+		ImDrawOscilloVoice(audio, count, 1, "Ym Voice B", ImVec2(0, totalSize.y*0.5f));
+		ImDrawOscilloVoice(audio, count, 2, "Ym Voice C", ImVec2(totalSize.x*0.5f, 0));
+		ImGui::SameLine();
+		ImDrawOscilloVoice(audio, count, 3, "STE DAC", ImVec2(0, 0));
 	}
 	ImGui::End();
 }
@@ -313,18 +289,28 @@ void	SndhArchivePlayer::DropFile(const char* sFilename)
 	m_sndh.Unload();
 
 	// first, try to open as a big ZIP archive
-	if (!gArchive.Open(sFilename))
+	bool loadOk = gArchive.Open(sFilename);
+
+	if (!loadOk)
 	{
 		// if not zip archive, try to play the file as sndh
-		LoadNewMusic(sFilename);
+		loadOk = LoadNewMusic(sFilename);
 	}
 
-
+	if (loadOk)
+	{
+		WritePrivateProfileStringA("SNDH-Archive-Player", "ArchiveFile", sFilename, ".\\SNDH_Archive.ini");
+	}
 }
 
 void	SndhArchivePlayer::Startup()
 {
-//	DropFile("C:\\Users\\arnaud\\Downloads\\sndh48lf.zip");
+	char sFilename[_MAX_PATH];
+	DWORD nc = GetPrivateProfileStringA("SNDH-Archive-Player", "ArchiveFile", "", sFilename, _MAX_PATH, ".\\SNDH_Archive.ini");
+	if (nc > 0)
+	{
+		DropFile(sFilename);
+	}
 }
 
 static void DrawTextCentered(const char* text)
@@ -466,22 +452,22 @@ void	SndhArchivePlayer::UpdateImGui()
 		// Always center this window when appearing
 		ImVec2 center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-		ImGui::SetNextWindowSize(ImVec2(480,320), ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowSize(ImVec2(480,400), ImGuiCond_FirstUseEver);
 
 		if (ImGui::BeginPopupModal("About", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			DrawTextCentered("SNDH Archive Player v0.4");
+			DrawTextCentered("SNDH Archive Player v0.5");
 			ImGui::Separator();
 			extern void OsOpenInShell(const char* path);
 
-			ImGui::Text("\n\n");
+			ImGui::Text("\n");
 			DrawTextCentered("Accurate & fast ATARI SNDH player");
 			DrawTextCentered("Written by Leonard/Oxygene");
 			if (CenteredButton("Twitter"))
 			{
 				OsOpenInShell("https://twitter.com/leonard_coder");
 			}
-			ImGui::Text("\n\n");
+			ImGui::Text("\n");
 
 			DrawTextCentered("Powered by AtariAudio library");
 			DrawTextCentered("and DearImGui!");
@@ -489,8 +475,15 @@ void	SndhArchivePlayer::UpdateImGui()
 			{
 				OsOpenInShell("https://github.com/arnaud-carre/sndh-player");
 			}
+			ImGui::Text("\n");
+			DrawTextCentered("You can also use awesome Web player");
+			DrawTextCentered("written by Oxbab/Oxygene");
+			if (CenteredButton("Web Player"))
+			{
+				OsOpenInShell("https://sndh.oxygenedemos.com/");
+			}
 
-			ImGui::Text("\n\n\n");
+			ImGui::Text("\n\n");
 
 			//static int unused_i = 0;
 			//ImGui::Combo("Combo", &unused_i, "Delete\0Delete harder\0");
