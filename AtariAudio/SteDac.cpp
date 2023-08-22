@@ -20,6 +20,9 @@ void	SteDac::Reset(uint32_t hostReplayRate)
 	m_microwireShift = 0;
 	m_microwireData = 0;
 	m_masterVolume = 64;
+	m_currentDacLevel = 0;
+	m_50Acc = 0;
+	m_50to25 = false;
 }
 
 void	SteDac::FetchSamplePtr()
@@ -47,6 +50,13 @@ void	SteDac::Write8(int ad, uint8_t data)
 		case 0x7:
 		case 0xd:
 			data &= 0xfe;
+			case 0x21:
+				if ((data & 3) != (m_regs[0x21]&3))
+				{
+					m_50Acc = 0;
+					m_50to25 = false;
+				}
+			break;
 		default:
 			break;
 		}
@@ -125,23 +135,44 @@ int8_t	SteDac::FetchSample(const int8_t* atariRam, uint32_t ramSize, uint32_t at
 
 int16_t	SteDac::ComputeNextSample(const int8_t* atariRam, uint32_t ramSize, Mk68901& mfp)
 {
-	int16_t level = 0;
+	// supports tricky Tao "MS3" driver. Seems to be a 3 or 4 voices synth, without need of mixing code!
+	// the 4 voices are just output in 4 consecutive bytes. Everything is playing at 50Khz, stereo
+	// On real hardware with analog filters & friends, it "sounds" like if you mixed 4 voices at 25Khz
+	//
+	// ComputeNextSample is called at host rate
+	// but the while loop is running at DAC speed. In 50khz mode, 2 samples are accumulated before 
+	// output. So you get a mixed stream at 25Khz. None of original atari samples are missed, and
+	// Tao MS3 songs are playing ok!
+	// Please note it also works perfectly with Quartet STE code, that is mixing into a 2 bytes 50Khz buffer!! :)
+	static	const uint32_t	sDacFreq[4] = { kSTE_DAC_Frq / 8 , kSTE_DAC_Frq / 4 , kSTE_DAC_Frq / 2 , kSTE_DAC_Frq / 1 };
 	if (m_regs[1] & 1)
 	{
-		const bool mono = (m_regs[0x21] & 0x80);
-		level = FetchSample(atariRam, ramSize, m_samplePtr) * m_masterVolume; // 14bits
-		if (!mono)
-		{
-			int16_t levelR = FetchSample(atariRam, ramSize, m_samplePtr + 1) * m_masterVolume;
-			level += levelR;	// 15bits
-		}
-
-		static	const uint32_t	sDacFreq[4] = { kSTE_DAC_Frq/8 , kSTE_DAC_Frq/4 , kSTE_DAC_Frq/2 , kSTE_DAC_Frq/1};
 		m_innerClock += sDacFreq[m_regs[0x21] & 3];
-		// most of the time this while will never loop
+		const bool stereo = (0 == (m_regs[0x21] & 0x80));
+		const bool b50k = (3 == (m_regs[0x21]&3));
+	
 		while (m_innerClock >= m_hostReplayRate)
 		{
-			m_samplePtr += mono ? 1 : 2;
+			int16_t level = FetchSample(atariRam, ramSize, m_samplePtr);
+			if (stereo)
+				level += FetchSample(atariRam, ramSize, m_samplePtr + 1);
+	
+			if (b50k)
+			{
+				m_50Acc += level;
+				m_50to25 ^= true;
+				if (!m_50to25)
+				{
+					m_currentDacLevel = (m_50Acc * m_masterVolume)>>1;
+					m_50Acc = 0;
+				}
+			}
+			else
+			{
+				m_currentDacLevel = level * m_masterVolume;
+			}
+	
+			m_samplePtr += stereo?2:1;
 			if (m_samplePtr == m_sampleEndPtr)
 			{
 				mfp.SetSteDacExternalEvent();
@@ -155,9 +186,10 @@ int16_t	SteDac::ComputeNextSample(const int8_t* atariRam, uint32_t ramSize, Mk68
 			}
 			m_innerClock -= m_hostReplayRate;
 		}
-
 	}
-	return level;
+	else
+		m_currentDacLevel = 0;
+	return m_currentDacLevel;
 }
 
 // emulate internal rol to please any user 68k code reading & waiting the complete cycle

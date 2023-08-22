@@ -33,6 +33,7 @@ private:
 		const char* author;
 		const char* year;
 		int	duration;
+		int subsongCount;
 	};
 
 	void			RebuildFilterList()
@@ -72,5 +73,6 @@ private:
 	std::thread*	m_asyncZipThread;
 	std::atomic<bool> m_asyncDone;
 	std::atomic<int> m_progress;
+	bool m_firstSearchFocus;
 
 };

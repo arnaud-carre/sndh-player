@@ -21,7 +21,7 @@ private:
 	void	WriteReg(int reg, uint8_t value);
 	uint16_t Tick();
 
-	static const uint32_t kDcAdjustHistoryBit = 9;	// 512 values
+	static const uint32_t kDcAdjustHistoryBit = 11;	// 2048 values (~20ms at 44Khz) 
 
 	int16_t		dcAdjust(uint16_t v);
 

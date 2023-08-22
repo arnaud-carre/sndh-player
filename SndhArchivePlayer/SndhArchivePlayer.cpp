@@ -8,7 +8,6 @@
 #include "SndhArchivePlayer.h"
 #include "SndhArchive.h"
 #include "AsyncSndhStream.h"
-//#include "extern/zip/src/zip.h"
 
 static const int kHostReplayRate = 44100;
 static const int kLatencySampleCount = kHostReplayRate / 60;
@@ -456,7 +455,7 @@ void	SndhArchivePlayer::UpdateImGui()
 
 		if (ImGui::BeginPopupModal("About", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			DrawTextCentered("SNDH Archive Player v0.5");
+			DrawTextCentered("SNDH Archive Player v0.60");
 			ImGui::Separator();
 			extern void OsOpenInShell(const char* path);
 

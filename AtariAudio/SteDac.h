@@ -34,4 +34,7 @@ private:
 	int			m_microwireShift;
 	uint8_t		m_regs[256];
 	int			m_masterVolume;
+	bool m_50to25;
+	int m_50Acc;
+	int16_t m_currentDacLevel;
 };

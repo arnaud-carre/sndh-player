@@ -8,6 +8,7 @@ SndhArchive::SndhArchive()
 	m_filteredList = NULL;
 	m_filterdSize = 0;
 	m_asyncZipThread = NULL;
+	m_firstSearchFocus = false;
 }
 
 SndhArchive::~SndhArchive()
@@ -52,6 +53,7 @@ void	SndhArchive::AsyncBrowseArchive()
 						itemOut.title = info.musicName ? _strdup(info.musicName) : _strdup(fname);
 						itemOut.duration = info.playerTickCount / info.playerTickRate;
 						itemOut.year = NULL;
+						itemOut.subsongCount = info.subsongCount;
 						outSize++;
 					}
 				}
@@ -61,6 +63,7 @@ void	SndhArchive::AsyncBrowseArchive()
 		zip_entry_close(m_zipArchive);
 	}
 
+	m_firstSearchFocus = true;
 	m_size = outSize;
 	qsort((void *)m_list, (size_t)m_size, sizeof(PlayListItem), fEntrySort);
 	RebuildFilterList();
@@ -175,6 +178,11 @@ void	SndhArchive::ImGuiDraw(SndhArchivePlayer& player)
 			{
 				ImGui::Text("Search:");
 				ImGui::SameLine();
+				if (m_firstSearchFocus)
+				{
+					ImGui::SetKeyboardFocusHere();
+					m_firstSearchFocus = false;
+				}
 				if (m_ImGuiFilter.Draw("Found:"))
 					RebuildFilterList();
 
@@ -198,10 +206,11 @@ void	SndhArchive::ImGuiDraw(SndhArchivePlayer& player)
 		*/
 				if (ImGui::BeginTable("table_advanced", 4, flags))
 				{
+					ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
 					ImGui::TableSetupColumn("Author", ImGuiTableColumnFlags_DefaultSort | ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoHide, 120.0f, 0);
 					ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, 0.0f, 1);
 					ImGui::TableSetupColumn("Duration", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, 2);
-					ImGui::TableSetupColumn("Year", ImGuiTableColumnFlags_PreferSortDescending, 0.0f, 3);
+					ImGui::TableSetupColumn("Sub-Song", ImGuiTableColumnFlags_PreferSortDescending, 0.0f, 3);
 
 					ImGui::TableHeadersRow();
 
@@ -242,7 +251,8 @@ void	SndhArchive::ImGuiDraw(SndhArchivePlayer& player)
 								ImGui::TextUnformatted("?");
 
 							ImGui::TableSetColumnIndex(3);
-							ImGui::TextUnformatted(item.year);
+							if ( item.subsongCount>1)
+								ImGui::Text("%d", item.subsongCount);
 
 							ImGui::PopID();
 						}

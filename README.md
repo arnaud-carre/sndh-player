@@ -5,11 +5,12 @@ ATARI-ST SNDH ZIP Archive music browser/player by [Leonard/Oxygene](https://twit
 
 # Versions
 
-- v0.5 : reload last loaded SNDH archive, bug fixes for some SNDH
-- v0.4 : per voice visualization oscilloscopes, 2MiB emulated Atari machine, AtariAudio API cleanup, some optimizations
-- v0.3 : WAV export, play/pause button, and low CPU usage when app minimized
-- v0.2 : SNDH music are time seekable! enjoy!
-- v0.1 : first version
+- v0.60 : Tao "MS3" songs support! Added subsong count in list
+- v0.50 : reload last loaded SNDH archive, bug fixes for some SNDH
+- v0.40 : per voice visualization oscilloscopes, 2MiB emulated Atari machine, AtariAudio API cleanup, some optimizations
+- v0.30 : WAV export, play/pause button, and low CPU usage when app minimized
+- v0.20 : SNDH music are time seekable! enjoy!
+- v0.10 : first version
 
 
 
