@@ -13,6 +13,13 @@
 // fix the high pitch issue with quartet-like STF code where square waves are active at highest frequency (period=0)
 #define	D_DOWNSAMPLE_USE_MAX_VALUE		1
 
+static uint32_t sRndSeed = 1;
+uint16_t stdLibRand()
+{
+	sRndSeed = sRndSeed*214013+2531011;
+	return uint16_t((sRndSeed >> 16) & 0x7fff);
+}
+
 void	Ym2149c::Reset(uint32_t hostReplayRate, uint32_t ymClock)
 {
 	InitYmTable(s_ymMixingVolumeTable, sSTReplayTable);
@@ -21,7 +28,7 @@ void	Ym2149c::Reset(uint32_t hostReplayRate, uint32_t ymClock)
 		m_toneCounter[v] = 0;
 		m_tonePeriod[v] = 0;
 	}
-	m_toneEdges = 0;
+	m_toneEdges = (stdLibRand()&0x111)*0xf;		// YM internal edge state are un-predictable
 	m_insideTimerIrq = false;
 	m_hostReplayRate = hostReplayRate;
 	m_ymClockOneEighth = ymClock/8;
@@ -63,9 +70,16 @@ void	Ym2149c::WriteReg(int reg, uint8_t value)
 		{
 			const int voice = reg >> 1;
 			m_tonePeriod[voice] = (m_regs[voice * 2 + 1] << 8) | m_regs[voice * 2];
-			if (m_insideTimerIrq)
+
+			// when period change and counter is above, counter will restart at next YM cycle
+			// but there is some delay if you do that on 3 voices using CPU. Simulate this delay
+			// with empirical offset
+			if (m_toneCounter[voice] >= m_tonePeriod[voice])
+				m_toneCounter[voice] = voice * 8;
+
+			if (m_tonePeriod[voice] <= 1)
 			{
-				if (m_tonePeriod[voice] <= 1)
+				if (m_insideTimerIrq)
 					m_edgeNeedReset[voice] = true;
 			}
 			break;
@@ -128,7 +142,7 @@ uint16_t Ym2149c::Tick()
 	levels |= ((m_regs[10] & 0x10) ? envLevel : m_regs[10]) << 8;
 
 	// three voices at same time
-	const uint32_t vmask = (m_toneEdges | m_toneMask) & (m_currentNoiseBit | m_noiseMask);
+	const uint32_t vmask = (m_toneEdges | m_toneMask) & (m_currentNoiseMask | m_noiseMask);
 	levels &= vmask;
 	m_currentDebugThreeVoices = levels;
 	uint32_t output = s_ymMixingVolumeTable[levels];
@@ -152,8 +166,8 @@ uint16_t Ym2149c::Tick()
 		m_noiseCounter++;
 		if (m_noiseCounter >= m_noisePeriod)
 		{
-			m_currentNoiseBit = ((m_noiseRndRack ^ (m_noiseRndRack >> 2))&1) ? ~0 : 0;
-			m_noiseRndRack = (m_noiseRndRack >> 1) | ((m_currentNoiseBit&1) << 16);
+			m_currentNoiseMask = ((m_noiseRndRack ^ (m_noiseRndRack >> 2))&1) ? ~0 : 0;
+			m_noiseRndRack = (m_noiseRndRack >> 1) | ((m_currentNoiseMask&1) << 16);
 			m_noiseCounter = 0;
 		}
 

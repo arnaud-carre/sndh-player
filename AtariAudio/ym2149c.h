@@ -42,7 +42,7 @@ private:
 	uint32_t	m_toneMask;
 	uint32_t	m_noiseMask;
 	uint32_t	m_noiseRndRack;
-	uint32_t	m_currentNoiseBit;
+	uint32_t	m_currentNoiseMask;
 	uint16_t	m_dcAdjustBuffer[1<<kDcAdjustHistoryBit];
 	unsigned int	m_dcAdjustPos;
 	uint32_t	m_dcAdjustSum;
