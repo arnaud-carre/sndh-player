@@ -10,7 +10,7 @@
 #include "Mk68901.h"
 #include "SteDac.h"
 
-static	const	uint32_t	RAM_SIZE = 2*1024*1024;
+static	const	uint32_t	RAM_SIZE = 4*1024*1024;
 static	const	uint32_t	RTE_INSTRUCTION_ADDR = 0x500;
 static	const	uint32_t	RESET_INSTRUCTION_ADDR = 0x502;
 static	const	uint32_t	SNDH_UPLOAD_ADDR = 0x10000;		// some SNDH can't play below (ie SynthDream2)

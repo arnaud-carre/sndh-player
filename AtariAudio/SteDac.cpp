@@ -153,6 +153,19 @@ int16_t	SteDac::ComputeNextSample(const int8_t* atariRam, uint32_t ramSize, Mk68
 	
 		while (m_innerClock >= m_hostReplayRate)
 		{
+			if (m_samplePtr == m_sampleEndPtr)
+			{
+				mfp.SetSteDacExternalEvent();
+				FetchSamplePtr();
+				if ((m_regs[0x1] & (1 << 1)) == 0)
+				{
+					// if no loop mode, switch off replay
+					m_regs[0x1] &= 0xfe;
+					m_currentDacLevel = 0;
+					break;
+				}
+			}
+			
 			int16_t level = FetchSample(atariRam, ramSize, m_samplePtr);
 			if (stereo)
 				level += FetchSample(atariRam, ramSize, m_samplePtr + 1);
@@ -173,17 +186,6 @@ int16_t	SteDac::ComputeNextSample(const int8_t* atariRam, uint32_t ramSize, Mk68
 			}
 	
 			m_samplePtr += stereo?2:1;
-			if (m_samplePtr == m_sampleEndPtr)
-			{
-				mfp.SetSteDacExternalEvent();
-				FetchSamplePtr();
-				if ((m_regs[0x1] & (1 << 1)) == 0)
-				{
-					// if no loop mode, switch off replay
-					m_regs[0x1] &= 0xfe;
-					break;
-				}
-			}
 			m_innerClock -= m_hostReplayRate;
 		}
 	}

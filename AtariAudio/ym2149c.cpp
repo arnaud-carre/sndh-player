@@ -135,17 +135,8 @@ int16_t	Ym2149c::dcAdjust(uint16_t v)
 uint16_t Ym2149c::Tick()
 {
 
-	const uint32_t envLevel = m_pCurrentEnv[m_envPos + 32];
-	uint32_t levels;
-	levels  = ((m_regs[8] & 0x10) ? envLevel : m_regs[8]) << 0;
-	levels |= ((m_regs[9] & 0x10) ? envLevel : m_regs[9]) << 4;
-	levels |= ((m_regs[10] & 0x10) ? envLevel : m_regs[10]) << 8;
-
 	// three voices at same time
 	const uint32_t vmask = (m_toneEdges | m_toneMask) & (m_currentNoiseMask | m_noiseMask);
-	levels &= vmask;
-	m_currentDebugThreeVoices = levels;
-	uint32_t output = s_ymMixingVolumeTable[levels];
 
 	// update internal state
 	for (int v = 0; v < 3; v++)
@@ -180,7 +171,7 @@ uint16_t Ym2149c::Tick()
 			m_envCounter = 0;
 		}
 	}
-	return output;
+	return vmask;
 }
 
 // called at host replay rate ( like 48Khz )
@@ -188,26 +179,26 @@ uint16_t Ym2149c::Tick()
 int16_t Ym2149c::ComputeNextSample(uint32_t* pSampleDebugInfo)
 {
 #if D_DOWNSAMPLE_USE_MAX_VALUE
-	uint16_t tickLevel = 0;
-	uint32_t debugValues = 0x000;
+	uint16_t highMask = 0;
 	do
 	{
-		uint16_t level = Tick();
-		if (level > tickLevel)
-		{
-			tickLevel = level;
-			debugValues = m_currentDebugThreeVoices;
-		}
+		highMask |= Tick();
 		m_innerCycle += m_hostReplayRate;
 	}
 	while (m_innerCycle < m_ymClockOneEighth);
 	m_innerCycle -= m_ymClockOneEighth;
-	int16_t out = dcAdjust(tickLevel);
+
+	const uint32_t envLevel = m_pCurrentEnv[m_envPos + 32];
+	uint32_t levels;
+	levels  = ((m_regs[8] & 0x10) ? envLevel : m_regs[8]) << 0;
+	levels |= ((m_regs[9] & 0x10) ? envLevel : m_regs[9]) << 4;
+	levels |= ((m_regs[10] & 0x10) ? envLevel : m_regs[10]) << 8;
+
+	levels &= highMask;
+	assert(levels < 0x1000);
+	int16_t out = dcAdjust(s_ymMixingVolumeTable[levels]);
 	if (pSampleDebugInfo)
-	{
-		assert(debugValues < 0x1000);
-		*pSampleDebugInfo = s444to888[debugValues];
-	}
+		*pSampleDebugInfo = s444to888[levels];
 #else
 	// down-sample by averaging samples
 	uint16_t tickLevel;
