@@ -29,5 +29,10 @@ Like, let's say your replay rate is 44.1Khz and you want to generate 1 second of
   AudioRender(buffer, 44100);
 ````
 
+# Credits
 
-AtariAudio library written by Arnaud Carré aka Leonard/Oxygene.
+- AtariAudio library written by Arnaud Carré aka Leonard/Oxygene.
+- MUSASHI 68000 emulation written by Karl Stenerud
+- Atari ICE depacker C version written by Hans Wessels
+
+
