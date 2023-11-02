@@ -242,10 +242,6 @@ void	ImDrawOscilloVoice(const uint32_t* audio, int count, int index, const char*
 					int8_t sv = int8_t((audio[rPos >> 16] >> voiceShift) & 0xff);
 					y = float(sv * (1.0f / 256.f));
 					rPos += rStep;
-					{
-						if (y < -0.5f) y = -0.5f;
-						if (y > 0.5f) y = 0.5f;
-					}
 				}
 				waveform[i] = ImLerp(inRect.Min, inRect.Max, ImVec2(x, 0.5f - y));
 			}
@@ -455,7 +451,7 @@ void	SndhArchivePlayer::UpdateImGui()
 
 		if (ImGui::BeginPopupModal("About", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			DrawTextCentered("SNDH Archive Player v0.71");
+			DrawTextCentered("SNDH Archive Player v0.72");
 			ImGui::Separator();
 			extern void OsOpenInShell(const char* path);
 
