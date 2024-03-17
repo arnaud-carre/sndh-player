@@ -38,6 +38,10 @@ void	Ym2149c::Reset(uint32_t hostReplayRate, uint32_t ymClock)
 	m_innerCycle = 0;
 	m_envPos = 0;
 	m_currentDebugThreeVoices = 0;
+	m_dcAdjustPos = 0;
+	m_dcAdjustSum = 0;
+	for (int i=0;i<1<<kDcAdjustHistoryBit;i++)
+		m_dcAdjustBuffer[i] = 0;
 }
 
 void	Ym2149c::WritePort(uint8_t port, uint8_t value)
