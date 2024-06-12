@@ -4,6 +4,7 @@
 #include <atomic>
 #include "imgui_internal.h"
 #include "extern/zip/src/zip.h"
+#include "jobSystem.h"
 
 
 class SndhArchivePlayer;
@@ -23,7 +24,7 @@ public:
 	int		GetUnFilteredSize() const { return m_size; }
 	void	ImGuiDraw(SndhArchivePlayer& player);
 	bool	IsOpen() const { return m_zipArchive != NULL; }
-	bool	IsOpening() const { return (m_asyncZipThread != NULL); }
+	bool	IsOpening() const { return m_asyncBrowse; }
 
 private:
 	struct PlayListItem
@@ -68,10 +69,15 @@ private:
 		return r;
 	}
 
-	static void AsyncBrowseArchiveEntry(void* a);
-	void AsyncBrowseArchive();
-	std::thread*	m_asyncZipThread;
-	std::atomic<bool> m_asyncDone;
+	static const int kMaxZipWorkers = 16;
+
+	// job system large SNDH zip archive reader
+	struct zip_t* m_zipPerWorker[kMaxZipWorkers];
+	JobSystem m_jsBrowse;
+	static bool JobZipItemProcessing(void* user, int itemId, int workerId);
+	bool LoadZipEntry(int itemId, int workerId);
+	int m_zipWorkersCount;
+	std::atomic<bool> m_asyncBrowse;
 	std::atomic<int> m_progress;
 	bool m_firstSearchFocus;
 

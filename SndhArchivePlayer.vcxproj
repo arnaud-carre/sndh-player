@@ -36,6 +36,7 @@
     <ClCompile Include="SndhArchivePlayer\extern\imgui\imgui_tables.cpp" />
     <ClCompile Include="SndhArchivePlayer\extern\imgui\imgui_widgets.cpp" />
     <ClCompile Include="SndhArchivePlayer\extern\zip\src\zip.c" />
+    <ClCompile Include="SndhArchivePlayer\jobSystem.cpp" />
     <ClCompile Include="SndhArchivePlayer\main.cpp" />
     <ClCompile Include="SndhArchivePlayer\SndhArchive.cpp" />
     <ClCompile Include="SndhArchivePlayer\SndhArchivePlayer.cpp" />
@@ -66,6 +67,7 @@
     <ClInclude Include="SndhArchivePlayer\extern\imgui\imstb_truetype.h" />
     <ClInclude Include="SndhArchivePlayer\extern\zip\src\miniz.h" />
     <ClInclude Include="SndhArchivePlayer\extern\zip\src\zip.h" />
+    <ClInclude Include="SndhArchivePlayer\jobSystem.h" />
     <ClInclude Include="SndhArchivePlayer\SndhArchive.h" />
     <ClInclude Include="SndhArchivePlayer\SndhArchivePlayer.h" />
     <ClInclude Include="SndhArchivePlayer\WavWriter.h" />

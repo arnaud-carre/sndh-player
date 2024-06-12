@@ -5,6 +5,7 @@ ATARI-ST SNDH ZIP Archive music browser/player by [Leonard/Oxygene](https://twit
 
 # Versions
 
+- v0.75 : Light speed large SNDH ZIP archive loading (multi-thread)
 - v0.74 : fix crash when loading some SNDH files
 - v0.73 : uninitialized vars potential crash fixed
 - v0.72 : "low level buzzers" support

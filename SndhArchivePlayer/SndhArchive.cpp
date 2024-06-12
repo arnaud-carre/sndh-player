@@ -1,5 +1,7 @@
 #include "SndhArchivePlayer.h"
 #include "SndhArchive.h"
+#include "jobSystem.h"
+
 
 SndhArchive::SndhArchive()
 {
@@ -7,8 +9,8 @@ SndhArchive::SndhArchive()
 	m_list = NULL;
 	m_filteredList = NULL;
 	m_filterdSize = 0;
-	m_asyncZipThread = NULL;
 	m_firstSearchFocus = false;
+	m_asyncBrowse = false;
 }
 
 SndhArchive::~SndhArchive()
@@ -16,58 +18,52 @@ SndhArchive::~SndhArchive()
 	Close();
 }
 
-void	SndhArchive::AsyncBrowseArchiveEntry(void* a)
+bool SndhArchive::JobZipItemProcessing(void* user, int itemId, int workerId)
 {
-	SndhArchive* _this = (SndhArchive*)a;
-	_this->AsyncBrowseArchive();
+	SndhArchive* snd = (SndhArchive*)user;
+	return snd->LoadZipEntry(itemId, workerId);
 }
 
-void	SndhArchive::AsyncBrowseArchive()
+bool SndhArchive::LoadZipEntry(int itemId, int workerId)
 {
-	assert(m_zipArchive);
+	bool ret = false;
+	int progress = ((itemId+1) * 100) / m_size;
+	if (progress > m_progress)
+		m_progress = progress;
 
-	m_asyncDone = false;
-	int outSize = 0;
-	for (int i = 0; i < m_size; i++)
+	struct zip_t* zip = m_zipPerWorker[workerId];
+
+	PlayListItem& item = m_list[itemId];
+	if (0 == zip_entry_openbyindex(zip, item.zipIndex))
 	{
-		m_progress = ((i+1) * 100) / m_size;
-		const PlayListItem& itemIn = m_list[i];
-		if (0 == zip_entry_openbyindex(m_zipArchive, itemIn.zipIndex))
+		assert(!zip_entry_isdir(zip));
+		size_t size = zip_entry_size(zip);
+		void* unpack = calloc(1, size);
+		size_t depackSize = zip_entry_noallocread(zip, unpack, size);
+		if (depackSize == size)
 		{
-			assert(!zip_entry_isdir(m_zipArchive));
-			size_t size = zip_entry_size(m_zipArchive);
-			void* unpack = calloc(1, size);
-			size_t depackSize = zip_entry_noallocread(m_zipArchive, unpack, size);
-			if (depackSize == size)
+			const char* fname = zip_entry_name(zip);
+			SndhFile sndhFile;
+			if (sndhFile.Load(unpack, int(size), 44100))		// dummy host replay rate
 			{
-				const char* fname = zip_entry_name(m_zipArchive);
-				SndhFile sndhFile;
-				if (sndhFile.Load(unpack, int(size), 44100))		// dummy host replay rate
+				SndhFile::SubSongInfo info;
+				if (sndhFile.GetSubsongInfo(sndhFile.GetDefaultSubsong(), info))
 				{
-					SndhFile::SubSongInfo info;
-					if (sndhFile.GetSubsongInfo(sndhFile.GetDefaultSubsong(), info))
-					{
-						PlayListItem& itemOut = m_list[outSize];
-						itemOut.zipIndex = itemIn.zipIndex;
-						itemOut.author = info.musicAuthor ? _strdup(info.musicAuthor) : _strdup("Not defined");
-						itemOut.title = info.musicName ? _strdup(info.musicName) : _strdup(fname);
-						itemOut.duration = info.playerTickCount / info.playerTickRate;
-						itemOut.year = NULL;
-						itemOut.subsongCount = info.subsongCount;
-						outSize++;
-					}
+					item.author = info.musicAuthor ? _strdup(info.musicAuthor) : _strdup("Not defined");
+					item.title = info.musicName ? _strdup(info.musicName) : _strdup(fname);
+					item.duration = info.playerTickCount / info.playerTickRate;
+					item.year = NULL;
+					item.subsongCount = info.subsongCount;
+					ret = true;
 				}
 			}
-			free(unpack);
 		}
-		zip_entry_close(m_zipArchive);
+		free(unpack);
 	}
-
-	m_firstSearchFocus = true;
-	m_size = outSize;
-	qsort((void *)m_list, (size_t)m_size, sizeof(PlayListItem), fEntrySort);
-	RebuildFilterList();
-	m_asyncDone = true;
+	zip_entry_close(zip);
+	if (!ret)
+		item.zipIndex = -1;
+	return ret;
 }
 
 bool	SndhArchive::Open(const char* sFilename)
@@ -99,8 +95,13 @@ bool	SndhArchive::Open(const char* sFilename)
 		if (m_size > 0)
 		{
 			m_progress = 0;
-			m_asyncDone = false;
-			m_asyncZipThread = new std::thread(AsyncBrowseArchiveEntry, (void*)this);
+
+			m_zipWorkersCount = JobSystem::GetHardwareWorkers(kMaxZipWorkers);
+			for (int w=0;w<m_zipWorkersCount;w++)
+				m_zipPerWorker[w] = zip_open(sFilename, 0, 'r');
+
+			m_jsBrowse.RunJobs(this, m_size, JobZipItemProcessing, m_zipWorkersCount);
+			m_asyncBrowse = true;
 
 			ret = true;
 		}
@@ -111,11 +112,8 @@ bool	SndhArchive::Open(const char* sFilename)
 void	SndhArchive::Close()
 {
 
-	if (m_asyncZipThread)
-	{
-		m_asyncZipThread->join();
-		m_asyncZipThread = NULL;
-	}
+	if (m_jsBrowse.Working())
+		m_jsBrowse.Join();
 
 	if (m_zipArchive)
 		zip_close(m_zipArchive);
@@ -156,24 +154,40 @@ void	SndhArchive::ImGuiDraw(SndhArchivePlayer& player)
 
 	if (ImGui::Begin("SNDH Archive"))
 	{
-
-		if (m_asyncDone)
+		if ( m_asyncBrowse )
 		{
-			m_asyncZipThread->join();
-			delete m_asyncZipThread;
-			m_asyncZipThread = NULL;
-			m_asyncDone = false;
+			if ( m_jsBrowse.Working() )
+			{
+				ImGui::Text("Parsing large SNDH ZIP archive...");
+				ImGui::SameLine();
+				ImGui::ProgressBar(float(m_progress)/100.f);
+			}
+			else
+			{
+				// loading just finished
+				m_jsBrowse.Join();
+				for (int t=0;t<m_zipWorkersCount;t++)
+					zip_close(m_zipPerWorker[t]);
+
+				// pack the list, removing not loaded items
+				const PlayListItem* r = m_list;
+				PlayListItem* w = m_list;
+				for (int i=0;i<m_size;i++)
+				{
+					if (r->zipIndex >= 0)
+						*w++ = *r;
+					r++;
+				}
+				m_size = int(w - m_list);
+				m_firstSearchFocus = true;
+				qsort((void *)m_list, (size_t)m_size, sizeof(PlayListItem), fEntrySort);
+				RebuildFilterList();
+				m_asyncBrowse = false;
+			}
 		}
 
-		if ((m_asyncZipThread) && (!m_asyncDone))
+		if ( !m_asyncBrowse )
 		{
-			ImGui::Text("Parsing large SNDH ZIP archive...");
-			ImGui::SameLine();
-			ImGui::ProgressBar(float(m_progress)/100.f);
-		}
-		else
-		{
-
 			if (IsOpen())
 			{
 				ImGui::Text("Search:");

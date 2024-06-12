@@ -93,6 +93,9 @@
     <ClCompile Include="SndhArchivePlayer\WavWriter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\jobSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SndhArchivePlayer\SndhArchive.h">
@@ -174,6 +177,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="SndhArchivePlayer\WavWriter.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SndhArchivePlayer\jobSystem.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
