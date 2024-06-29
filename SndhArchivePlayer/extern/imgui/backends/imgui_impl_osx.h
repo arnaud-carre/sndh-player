@@ -10,14 +10,21 @@
 //  [X] Platform: OSX clipboard is supported within core Dear ImGui (no specific code in this backend).
 //  [X] Platform: Gamepad support. Enabled with 'io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad'.
 //  [X] Platform: IME support.
-//  [X] Platform: Multi-viewport / platform windows.
+//  [x] Platform: Multi-viewport / platform windows.
+// Issues:
+//  [ ] Platform: Multi-viewport: Window size not correctly reported when enabling io.ConfigViewportsNoDecoration
+//  [ ] Platform: Multi-viewport: ParentViewportID not honored, and so io.ConfigViewportsNoDefaultParent has no effect (minor).
 
 // You can use unmodified imgui_impl_* files in your project. See examples/ folder for examples of using this.
 // Prefer including the entire imgui/ repository into your project (either as a copy or as a submodule), and only build the backends you need.
-// If you are new to Dear ImGui, read documentation from the docs/ folder + read the top of imgui.cpp.
-// Read online: https://github.com/ocornut/imgui/tree/master/docs
+// Learn about Dear ImGui:
+// - FAQ                  https://dearimgui.com/faq
+// - Getting Started      https://dearimgui.com/getting-started
+// - Documentation        https://dearimgui.com/docs (same as your local docs/ folder).
+// - Introduction, links and more at the top of imgui.cpp
 
 #include "imgui.h"      // IMGUI_IMPL_API
+#ifndef IMGUI_DISABLE
 
 #ifdef __OBJC__
 
@@ -44,3 +51,5 @@ IMGUI_IMPL_API void     ImGui_ImplOSX_NewFrame(void* _Nullable view);
 
 #endif
 #endif
+
+#endif // #ifndef IMGUI_DISABLE
