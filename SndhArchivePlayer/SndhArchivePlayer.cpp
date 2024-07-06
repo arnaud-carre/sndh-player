@@ -95,10 +95,6 @@ void	SndhArchivePlayer::DrawPlayList()
 }
 
 
-
-
-static bool drawOscillo = true;
-
 void	ImDrawOscillo(const int16_t* audio, int count, const char* winName)
 {
 	const float dpiScale = 1.0f;
@@ -233,9 +229,9 @@ void	ImDrawOscilloVoice(const uint32_t* audio, int count, int index, const char*
 
 			ImU32 rPos = 0;
 			ImU32 rStep = (count << 16) / w;
+			const float ooW = 1.f / float(w);
 			for (int i = 0; i < w; i++)
 			{
-				float x = (float)i / float(w);
 				float y = 0.f;
 				if (audio)
 				{
@@ -243,7 +239,7 @@ void	ImDrawOscilloVoice(const uint32_t* audio, int count, int index, const char*
 					y = float(sv * (1.0f / 256.f));
 					rPos += rStep;
 				}
-				waveform[i] = ImLerp(inRect.Min, inRect.Max, ImVec2(x, 0.5f - y));
+				waveform[i] = ImLerp(inRect.Min, inRect.Max, ImVec2(float(i)*ooW, 0.5f - y));
 			}
 
 			{
@@ -262,7 +258,7 @@ void	ImDrawOscilloVoice(const uint32_t* audio, int count, int index, const char*
 void ImDrawOscillo4Voices(const uint32_t* audio, int count)
 {
 
-	if (ImGui::Begin("Emulation", NULL, 0))
+	if (ImGui::Begin(kWndEmulation, NULL, 0))
 	{
 		ImVec2 totalSize = ImGui::GetContentRegionAvail();
 		ImDrawOscilloVoice(audio, count, 0, "Ym Voice A", ImVec2(totalSize.x*0.5f, totalSize.y * 0.5f));
@@ -339,8 +335,8 @@ void	SndhArchivePlayer::UpdateImGui()
 
 		static char foos[8] = {};
 
-		ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
-		ImGui::Begin("Song Info");                          // Create a window called "Hello, world!" and append into it.
+//		ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
+		ImGui::Begin(kWndSongInfo);
 //				ImGui::InputText("mytxt", foos, sizeof(foos));
 
 //		if (ImGui::BeginTable("song", 2, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoBordersInBody))
@@ -372,11 +368,6 @@ void	SndhArchivePlayer::UpdateImGui()
 					ImGui::TextUnformatted(info.musicAuthor);
 
 				ImGui::TableNextColumn();
-				ImGui::TextUnformatted("Tick rate:");
-				ImGui::TableNextColumn();
-				ImGui::Text("%d Hz", info.playerTickRate);
-
-				ImGui::TableNextColumn();
 				ImGui::TextUnformatted("Sub-tune:");
 				ImGui::TableNextColumn();
 				int dir = 0;
@@ -388,6 +379,9 @@ void	SndhArchivePlayer::UpdateImGui()
 				if (ImGui::ArrowButton("next", ImGuiDir_Right))
 					dir = 1;
 
+				ImGui::SameLine();
+				ImGui::Text("(%d Hz)", info.playerTickRate);
+
 				if (dir)
 				{
 					int newSubsong = m_currentSubSong + dir;
@@ -397,33 +391,10 @@ void	SndhArchivePlayer::UpdateImGui()
 					if (newSubsong != m_currentSubSong)
 						StartSubsong(newSubsong);
 				}
-
 				ImGui::EndTable();
-
 				m_sndh.DrawGui(info.musicName);
-
-//				ImGui::Slider
-
 			}
-
-			//				ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-	/*
-			ImGui::Checkbox("Oscillo", &drawOscillo);      // Edit bools storing our window open/close state
-			ImGui::Checkbox("Another Window", &show_another_window);
-
-			ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-			ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-			ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-			if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-				counter++;
-			ImGui::SameLine();
-			ImGui::Text("counter = %d", counter);
-	*/
-	//		ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-
 		}
-
 
 		{
 			static char sBuf[128];
@@ -451,7 +422,7 @@ void	SndhArchivePlayer::UpdateImGui()
 
 		if (ImGui::BeginPopupModal("About", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			DrawTextCentered("SNDH Archive Player v0.75");
+			DrawTextCentered("SNDH Archive Player v0.76");
 			ImGui::Separator();
 			extern void OsOpenInShell(const char* path);
 
@@ -480,9 +451,6 @@ void	SndhArchivePlayer::UpdateImGui()
 
 			ImGui::Text("\n\n");
 
-			//static int unused_i = 0;
-			//ImGui::Combo("Combo", &unused_i, "Delete\0Delete harder\0");
-
 			if (CenteredButton("Ok", 6.0f))
 			{
 				ImGui::CloseCurrentPopup();
@@ -490,36 +458,27 @@ void	SndhArchivePlayer::UpdateImGui()
 			ImGui::SetItemDefaultFocus();
 			ImGui::EndPopup();
 		}
-
-
-
-//		ImGui::SliderInt("Default Duration (min)", &gDefaultDurationInMin, 1, 30);
-
-//		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 		ImGui::End();
 	}
 
-	if (drawOscillo)
-	{
-		uint32_t* debugAudio = NULL;
-		const int16_t* display = m_sndh.GetDisplaySampleData(kLatencySampleCount, &debugAudio);
-		ImDrawOscillo(display, kLatencySampleCount,"Oscilloscope");
-		ImDrawOscillo4Voices(debugAudio, kLatencySampleCount);
-	}
+	uint32_t* debugAudio = nullptr;
+	const int16_t* display = m_sndh.GetDisplaySampleData(kLatencySampleCount, &debugAudio);
+	ImDrawOscillo(display, kLatencySampleCount,kWndAudioOut);
+	ImDrawOscillo4Voices(debugAudio, kLatencySampleCount);
 
 	// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-/*
-	show_demo_window = true;
- 	if (show_demo_window)
- 		ImGui::ShowDemoWindow(&show_demo_window);
-*/
+//	show_demo_window = true;
+// 	if (show_demo_window)
+// 		ImGui::ShowDemoWindow(&show_demo_window);
+
 	static MemoryEditor mem_edit;
 	mem_edit.ReadOnly = true;
 	int fsize;
 	const void* rdata = m_sndh.GetRawData(fsize);
-	mem_edit.DrawWindow("File Viewer", (void*)rdata, fsize);
+	mem_edit.DrawWindow(kWndFileViewer, (void*)rdata, fsize);
 
 	DrawPlayList();
+
 
 	ImGui::PopStyleVar();
 

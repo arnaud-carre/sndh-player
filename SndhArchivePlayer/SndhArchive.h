@@ -75,9 +75,11 @@ private:
 	struct zip_t* m_zipPerWorker[kMaxZipWorkers];
 	JobSystem m_jsBrowse;
 	static bool JobZipItemProcessing(void* user, int itemId, int workerId);
+	static bool JobZipItemComplete(void* user, int workerId);
 	bool LoadZipEntry(int itemId, int workerId);
+	bool LoadZipEnd();
 	int m_zipWorkersCount;
-	std::atomic<bool> m_asyncBrowse;
+	bool m_asyncBrowse;
 	std::atomic<int> m_progress;
 	bool m_firstSearchFocus;
 

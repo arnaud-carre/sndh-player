@@ -6,6 +6,13 @@
 
 class SndhArchive;
 
+
+static const char*	kWndSongInfo = "Song Info";
+static const char*	kWndAudioOut = "Audio Out";
+static const char*	kWndSndhArchive = "SNDH Archive";
+static const char*	kWndFileViewer = "File Viewer";
+static const char*	kWndEmulation = "Emulation";
+
 class SndhArchivePlayer
 {
 public:

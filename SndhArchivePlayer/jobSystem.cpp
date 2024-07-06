@@ -7,6 +7,7 @@
 JobSystem::JobSystem()
 {
 	m_runningWorkers = 0;
+	m_running = false;
 }
 
 int JobSystem::GetHardwareWorkerCount()
@@ -42,12 +43,14 @@ int	JobSystem::RunJobs(void* userContext, int itemCount, processingFunction func
 
 	m_userContext = userContext;
 	m_itemCount = itemCount;
+	m_itemProceed = 0;
 	m_itemIndex = 0;
 	m_itemSucceedCount = 0;
 	m_processingFunction = func;
 	m_completeFunction = completeFunc;
 
 	m_runningWorkers = workersCount;
+	m_running = true;
 
 	for (int t = 0; t < workersCount; t++)
 		m_workers[t] = new std::thread([this,t] { Start(t); });
@@ -73,31 +76,27 @@ int JobSystem::Join()
 
 }
 
-bool JobSystem::Working() const
-{
-	if (0 == m_runningWorkers)
-		return false;
-
-	return (m_itemIndex < m_itemCount);
-}
-
 // Grab jobs as fast as possible
 void JobSystem::Start(int workerId)
 {
 	for (;;)
 	{
 		const int id = m_itemIndex.fetch_add(1);
-
 		if (id < m_itemCount)
 		{
 			if (m_processingFunction(m_userContext, id, workerId))
 				m_itemSucceedCount.fetch_add(1);
+
+			const int proceed = m_itemProceed.fetch_add(1) + 1;
+			if ( m_itemCount == proceed)
+			{
+				// if it's very last one element, run the complete function
+				if (m_completeFunction)
+					m_completeFunction(m_userContext, workerId);
+				m_running = false;
+			}
 		}
-
-		if ((id == m_itemCount) && ( m_completeFunction ))
-			m_completeFunction(m_userContext, workerId);
-
-		if (id >= m_itemCount)
+		else
 			break;
 	}
 }

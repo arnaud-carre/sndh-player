@@ -24,6 +24,12 @@ bool SndhArchive::JobZipItemProcessing(void* user, int itemId, int workerId)
 	return snd->LoadZipEntry(itemId, workerId);
 }
 
+bool SndhArchive::JobZipItemComplete(void* user, int workerId)
+{
+	SndhArchive* snd = (SndhArchive*)user;
+	return snd->LoadZipEnd();
+}
+
 bool SndhArchive::LoadZipEntry(int itemId, int workerId)
 {
 	bool ret = false;
@@ -66,6 +72,27 @@ bool SndhArchive::LoadZipEntry(int itemId, int workerId)
 	return ret;
 }
 
+bool SndhArchive::LoadZipEnd()
+{
+	for (int t=0;t<m_zipWorkersCount;t++)
+		zip_close(m_zipPerWorker[t]);
+
+	// pack the list, removing not loaded items
+	const PlayListItem* r = m_list;
+	PlayListItem* w = m_list;
+	for (int i=0;i<m_size;i++)
+	{
+		if (r->zipIndex >= 0)
+			*w++ = *r;
+		r++;
+	}
+	m_size = int(w - m_list);
+	m_firstSearchFocus = true;
+	qsort((void *)m_list, (size_t)m_size, sizeof(PlayListItem), fEntrySort);
+	RebuildFilterList();
+	return true;
+}
+
 bool	SndhArchive::Open(const char* sFilename)
 {
 	Close();
@@ -102,8 +129,8 @@ bool	SndhArchive::Open(const char* sFilename)
 			for (int w=0;w<m_zipWorkersCount;w++)
 				m_zipPerWorker[w] = zip_open(sFilename, 0, 'r');
 
-			m_jsBrowse.RunJobs(this, m_size, JobZipItemProcessing, nullptr, m_zipWorkersCount);
 			m_asyncBrowse = true;
+			m_jsBrowse.RunJobs(this, m_size, JobZipItemProcessing, JobZipItemComplete, m_zipWorkersCount);
 
 			ret = true;
 		}
@@ -114,7 +141,7 @@ bool	SndhArchive::Open(const char* sFilename)
 void	SndhArchive::Close()
 {
 
-	if (m_jsBrowse.Working())
+	if (m_jsBrowse.Running())
 		m_jsBrowse.Join();
 
 	if (m_zipArchive)
@@ -154,11 +181,11 @@ void OsOpenInShell(const char* path)
 void	SndhArchive::ImGuiDraw(SndhArchivePlayer& player)
 {
 
-	if (ImGui::Begin("SNDH Archive"))
+	if (ImGui::Begin(kWndSndhArchive))
 	{
 		if ( m_asyncBrowse )
 		{
-			if ( m_jsBrowse.Working() )
+			if ( m_jsBrowse.Running() )
 			{
 				ImGui::Text("Parsing large SNDH ZIP archive...");
 				ImGui::SameLine();
@@ -168,22 +195,6 @@ void	SndhArchive::ImGuiDraw(SndhArchivePlayer& player)
 			{
 				// loading just finished
 				m_jsBrowse.Join();
-				for (int t=0;t<m_zipWorkersCount;t++)
-					zip_close(m_zipPerWorker[t]);
-
-				// pack the list, removing not loaded items
-				const PlayListItem* r = m_list;
-				PlayListItem* w = m_list;
-				for (int i=0;i<m_size;i++)
-				{
-					if (r->zipIndex >= 0)
-						*w++ = *r;
-					r++;
-				}
-				m_size = int(w - m_list);
-				m_firstSearchFocus = true;
-				qsort((void *)m_list, (size_t)m_size, sizeof(PlayListItem), fEntrySort);
-				RebuildFilterList();
 				m_asyncBrowse = false;
 			}
 		}
@@ -223,11 +234,10 @@ void	SndhArchive::ImGuiDraw(SndhArchivePlayer& player)
 				if (ImGui::BeginTable("table_advanced", 4, flags))
 				{
 					ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
-					ImGui::TableSetupColumn("Author", ImGuiTableColumnFlags_DefaultSort | ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoHide, 120.0f, 0);
-					ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, 0.0f, 1);
-					ImGui::TableSetupColumn("Duration", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, 2);
-					ImGui::TableSetupColumn("Sub-Song", ImGuiTableColumnFlags_PreferSortDescending, 0.0f, 3);
-
+					ImGui::TableSetupColumn("Author", ImGuiTableColumnFlags_WidthStretch, 40.0f);
+					ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch,40.0f);
+					ImGui::TableSetupColumn("Duration", ImGuiTableColumnFlags_WidthStretch,10.f);
+					ImGui::TableSetupColumn("Sub-Song", ImGuiTableColumnFlags_WidthStretch,10.f);
 					ImGui::TableHeadersRow();
 
 					// Demonstrate using clipper for large vertical lists

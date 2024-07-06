@@ -29,9 +29,9 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
 {
     // Create application window
     //ImGui_ImplWin32_EnableDpiAwareness();
-    WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, L"ImGui Example", nullptr };
+    WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), LoadIconA(hInst, "sndh_player"), nullptr, nullptr, nullptr, L"ImGui Example", nullptr };
     ::RegisterClassExW(&wc);
-    HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"SNDH-Archive Player v0.75", WS_OVERLAPPEDWINDOW, 100, 100, 800, 800, nullptr, nullptr, wc.hInstance, nullptr);
+    HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"SNDH-Archive Player v0.76", WS_OVERLAPPEDWINDOW, 100, 100, 800, 800, nullptr, nullptr, wc.hInstance, nullptr);
 
     // Initialize Direct3D
     if (!CreateDeviceD3D(hwnd))
@@ -49,25 +49,23 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
-    //io.ConfigViewportsNoAutoMerge = true;
-    //io.ConfigViewportsNoTaskBarIcon = true;
-    //io.ConfigViewportsNoDefaultParent = true;
-    //io.ConfigDockingAlwaysTabBar = true;
-    //io.ConfigDockingTransparentPayload = true;
-    //io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts;     // FIXME-DPI: Experimental. THIS CURRENTLY DOESN'T WORK AS EXPECTED. DON'T USE IN USER APP!
-    //io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleViewports; // FIXME-DPI: Experimental.
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
+	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
+	//io.ConfigViewportsNoAutoMerge = true;
+	//io.ConfigViewportsNoTaskBarIcon = true;
+	//io.ConfigViewportsNoDefaultParent = true;
+	//io.ConfigDockingAlwaysTabBar = true;
+	//io.ConfigDockingTransparentPayload = true;
+	//io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts;     // FIXME-DPI: Experimental. THIS CURRENTLY DOESN'T WORK AS EXPECTED. DON'T USE IN USER APP!
+	io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleViewports; // FIXME-DPI: Experimental.
+	ImGui::StyleColorsClassic();
 
-    // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
-    //ImGui::StyleColorsLight();
 
     // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
     ImGuiStyle& style = ImGui::GetStyle();
-    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+//    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
     {
         style.WindowRounding = 0.0f;
         style.Colors[ImGuiCol_WindowBg].w = 1.0f;
@@ -99,6 +97,8 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
 		gApp.Startup();
 
 		DragAcceptFiles(hwnd, TRUE);
+
+		bool dockingSetupDone = false;
 
 		// Main loop
 		bool done = false;
@@ -141,8 +141,31 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
 			ImGui_ImplWin32_NewFrame();
 			ImGui::NewFrame();
 
-			//		ImGui::DockSpaceOverViewport(NULL, (ImGuiDockNodeFlags_NoWindowMenuButton | ImGuiDockNodeFlags_NoResize | ImGuiDockNodeFlags_NoCloseButton | ImGuiDockNodeFlags_NoDocking | ImGuiDockNodeFlags_NoDockingSplitMe | ImGuiDockNodeFlags_NoDockingSplitOther));
-			ImGui::DockSpaceOverViewport(NULL, 0);
+			ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_NoUndocking | ImGuiDockNodeFlags_NoWindowMenuButton);
+			if ( !dockingSetupDone )
+			{
+				ImGui::DockBuilderRemoveNode(dockspace_id); // Clear out existing layout
+				ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_PassthruCentralNode); // Add empty node
+				ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
+				ImGuiID dock_main_id   = dockspace_id; // This variable will track the document node, however we are not using it here as we aren't docking anything into it.
+				ImGuiID dock_id_up     = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Up,    0.25f, nullptr, &dock_main_id);
+				ImGuiID dock_id_up_left;
+				ImGuiID dock_id_up_right;
+				ImGui::DockBuilderSplitNode(dock_id_up, ImGuiDir_Left,  0.5f, &dock_id_up_left, &dock_id_up_right);
+				ImGuiID dock_id_middle;
+				ImGuiID dock_id_down;
+				ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Up,    0.75f, &dock_id_middle, &dock_id_down);
+
+				// dock all windows to each pannel
+				ImGui::DockBuilderDockWindow(kWndSongInfo, dock_id_up_left);
+				ImGui::DockBuilderDockWindow(kWndAudioOut, dock_id_up_right);
+				ImGui::DockBuilderDockWindow(kWndSndhArchive, dock_id_middle);
+				ImGui::DockBuilderDockWindow(kWndFileViewer, dock_id_middle);
+				ImGui::DockBuilderDockWindow(kWndEmulation, dock_id_down);
+				ImGui::DockBuilderFinish(dockspace_id);
+
+				dockingSetupDone = true;
+			}
 
 
 			gApp.UpdateImGui();
@@ -154,13 +177,6 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
 			g_pd3dDeviceContext->OMSetRenderTargets(1, &g_mainRenderTargetView, nullptr);
 			g_pd3dDeviceContext->ClearRenderTargetView(g_mainRenderTargetView, clear_color_with_alpha);
 			ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-
-			// Update and Render additional Platform Windows
-			if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-			{
-				ImGui::UpdatePlatformWindows();
-				ImGui::RenderPlatformWindowsDefault();
-			}
 
 			if (DXGI_STATUS_OCCLUDED == g_pSwapChain->Present(1, 0))
 			{

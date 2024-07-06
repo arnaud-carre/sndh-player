@@ -16,7 +16,7 @@ public:
 					completeFunction completeFunc,
 					int workersCount);
 
-	bool Working() const;
+	bool Running() const { return m_running; }
 	int Join();
 
 	static int GetHardwareWorkerCount();
@@ -30,6 +30,8 @@ private:
 	int m_itemCount;
 	std::atomic<int> m_itemIndex;
 	std::atomic<int> m_itemSucceedCount;
+	std::atomic<int> m_itemProceed;
+	std::atomic<bool> m_running;
 	processingFunction m_processingFunction;
 	completeFunction m_completeFunction;
 };
