@@ -8,25 +8,33 @@ class JobSystem
 public:
 	JobSystem();
 
-	typedef bool (*processingFunction)(void* firstItem, int index, int workerId);
-	int	RunJobs(void* items,
+	typedef bool (*processingFunction)(void* userContext, int index, int workerId);
+	typedef bool (*completeFunction)(void* userContext, int workerId);
+	int	RunJobs(void* userContext,
 					int itemCount,
-					processingFunction func,
-					int workersCount = 0);
+					processingFunction jobFunc,
+					completeFunction completeFunc,
+					int workersCount);
 
 	bool Working() const;
 	int Join();
 
-	static int GetHardwareWorkers(int maxWorkers=64);
+	static int GetHardwareWorkerCount();
 
 private:
 	void	Start(int workerId);
 	int m_runningWorkers;
 	std::thread* m_workers[kMaxWorkers];
 
-	void* m_items;
+	void* m_userContext;
 	int m_itemCount;
 	std::atomic<int> m_itemIndex;
 	std::atomic<int> m_itemSucceedCount;
 	processingFunction m_processingFunction;
+	completeFunction m_completeFunction;
 };
+
+
+
+
+
