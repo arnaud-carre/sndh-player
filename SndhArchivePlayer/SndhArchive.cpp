@@ -96,11 +96,13 @@ bool	SndhArchive::Open(const char* sFilename)
 		{
 			m_progress = 0;
 
-			m_zipWorkersCount = JobSystem::GetHardwareWorkers(kMaxZipWorkers);
+			m_zipWorkersCount = JobSystem::GetHardwareWorkerCount();
+			if (m_zipWorkersCount > kMaxZipWorkers)
+				m_zipWorkersCount = kMaxZipWorkers;
 			for (int w=0;w<m_zipWorkersCount;w++)
 				m_zipPerWorker[w] = zip_open(sFilename, 0, 'r');
 
-			m_jsBrowse.RunJobs(this, m_size, JobZipItemProcessing, m_zipWorkersCount);
+			m_jsBrowse.RunJobs(this, m_size, JobZipItemProcessing, nullptr, m_zipWorkersCount);
 			m_asyncBrowse = true;
 
 			ret = true;

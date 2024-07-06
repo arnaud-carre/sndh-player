@@ -9,17 +9,17 @@ JobSystem::JobSystem()
 	m_runningWorkers = 0;
 }
 
-int JobSystem::GetHardwareWorkers(int maxWorkers)
+int JobSystem::GetHardwareWorkerCount()
 {
 	int count = std::thread::hardware_concurrency();
 	if ( 0 == count )
 		count = 1;
-	if (count > maxWorkers)
-		count = maxWorkers;
+	if (count > kMaxWorkers)
+		count = kMaxWorkers;
 	return count;
 }
 
-int	JobSystem::RunJobs(void* items, int itemCount, processingFunction func, int workersCount)
+int	JobSystem::RunJobs(void* userContext, int itemCount, processingFunction func, completeFunction completeFunc, int workersCount)
 {
 	m_itemSucceedCount = 0;
 
@@ -40,11 +40,12 @@ int	JobSystem::RunJobs(void* items, int itemCount, processingFunction func, int 
 
 //	clock_t t0 = clock();
 
-	m_items = items;
+	m_userContext = userContext;
 	m_itemCount = itemCount;
 	m_itemIndex = 0;
 	m_itemSucceedCount = 0;
 	m_processingFunction = func;
+	m_completeFunction = completeFunc;
 
 	m_runningWorkers = workersCount;
 
@@ -86,10 +87,17 @@ void JobSystem::Start(int workerId)
 	for (;;)
 	{
 		const int id = m_itemIndex.fetch_add(1);
+
+		if (id < m_itemCount)
+		{
+			if (m_processingFunction(m_userContext, id, workerId))
+				m_itemSucceedCount.fetch_add(1);
+		}
+
+		if ((id == m_itemCount) && ( m_completeFunction ))
+			m_completeFunction(m_userContext, workerId);
+
 		if (id >= m_itemCount)
 			break;
-
-		if (m_processingFunction(m_items, id, workerId))
-			m_itemSucceedCount.fetch_add(1);
 	}
 }
