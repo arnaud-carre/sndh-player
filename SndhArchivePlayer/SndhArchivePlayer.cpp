@@ -422,7 +422,7 @@ void	SndhArchivePlayer::UpdateImGui()
 
 		if (ImGui::BeginPopupModal("About", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			DrawTextCentered("SNDH Archive Player v0.77");
+			DrawTextCentered("SNDH Archive Player v0.78");
 			ImGui::Separator();
 			extern void OsOpenInShell(const char* path);
 
