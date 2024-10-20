@@ -1,17 +1,24 @@
 #include <assert.h>
 #include <string.h>
+#include <filesystem>
 #include "AsyncSndhStream.h"
 #include "imgui.h"
 #include "WavWriter.h"
+#include "SndhArchive.h"
 
 #pragma	comment(lib,"winmm.lib")
 
-AsyncSndhStream::AsyncSndhStream()
-{
-	m_audioBuffer = NULL;
-	m_audioDebugBuffer = NULL;
-	m_bLoaded = false;
-	m_asyncInfo.thread = NULL;
+static std::string AddExtension(std::string_view filename, std::string_view extension) {
+	std::string result(filename);
+
+	// Remove trailing spaces
+	while (!result.empty() && std::isspace(result.back())) {
+		result.pop_back();
+	}
+
+	result += extension;
+
+	return result;
 }
 
 AsyncSndhStream::~AsyncSndhStream()
@@ -149,6 +156,7 @@ bool AsyncSndhStream::StartSubsong(int subSongId, int durationByDefaultInSec)
 	m_asyncInfo.fillPos = m_replayRate;
 	m_paused = false;
 	m_saved = false;
+	m_rawSaved = false;
 	m_asyncInfo.thread = new std::thread(sAsyncSndhWorkerThread, (void*)this);
 
 	// start the replay
@@ -241,9 +249,8 @@ const int16_t* AsyncSndhStream::GetDisplaySampleData(int sampleCount, uint32_t**
 	return m_audioBuffer + posInSample;
 }
 
-void	AsyncSndhStream::DrawGui(const char* musicName)
+void	AsyncSndhStream::DrawGui(const char* musicName, const SndhArchive& archive)
 {
-
 	bool change = false;
 
 	if (m_paused)
@@ -272,19 +279,47 @@ void	AsyncSndhStream::DrawGui(const char* musicName)
 
 	if (musicName)
 	{
-		char sFilename[_MAX_PATH];
-		sprintf_s(sFilename, "%s.wav", musicName);
+		if (m_currentPath.empty())
+		{
+			std::string archiveFilename = archive.GetFilename();
+			m_currentPath = std::filesystem::path(archiveFilename).parent_path();
+		}
+
+		std::string rawFilename = AddExtension(musicName, ".snd");
+
 		char dispName[_MAX_PATH];
+		int rawSize = m_asyncInfo.sndh.GetRawDataSize();
+		float rawSizeInMb = rawSize / (1024.f);
+		sprintf_s(dispName, m_rawSaved ? "\"%s\" SND saved (%0.2f KiB)" : "Save \"%s\" (%0.2f KiB)", rawFilename.c_str(), rawSizeInMb);
+
+		ImGui::BeginDisabled(m_rawSaved);
+		if (ImGui::Button(dispName))
+		{
+			m_selectedFile = rawFilename;
+			m_currentEntries.clear();
+			for (const auto& entry : std::filesystem::directory_iterator(m_currentPath))
+			{
+				m_currentEntries.push_back(entry);
+			}
+
+			m_showFileSelector = true;
+		}
+		ImGui::EndDisabled();
+
+		ImGui::SameLine();
+
+		std::string filename = AddExtension(musicName, ".wav");
 		uint32_t sizeInMiB = (m_audioBufferLen * sizeof(int16_t) + (1 << 20) - 1) >> 20;
 		if ( m_saved )
-			sprintf_s(dispName, "\"%s\" saved", sFilename);
+			sprintf_s(dispName, "\"%s\" saved", filename.c_str());
 		else
-			sprintf_s(dispName, "Save \"%s\" (%d MiB)", sFilename, sizeInMiB);
+			sprintf_s(dispName, "Save \"%s\" (%d MiB)", filename.c_str(), sizeInMiB);
+
 		ImGui::BeginDisabled(m_saved);
 		if (ImGui::Button(dispName))
 		{
 			WavWriter wv;
-			if (wv.Open(sFilename, m_replayRate, 1))
+			if (wv.Open(filename.c_str(), m_replayRate, 1))
 			{
 				wv.AddAudioData(m_audioBuffer, m_audioBufferLen);
 				wv.Close();
@@ -295,6 +330,11 @@ void	AsyncSndhStream::DrawGui(const char* musicName)
 	}
 
 	ImGui::EndDisabled();
+
+	if (m_showFileSelector)
+	{
+		DrawFileSelector();
+	}
 }
 
 const void* AsyncSndhStream::GetRawData(int& fileSize) const
@@ -314,3 +354,108 @@ void AsyncSndhStream::Pause(bool pause)
 		waveOutRestart(m_waveOutHandle);
 }
 
+void AsyncSndhStream::DrawFileSelector()
+{
+	ImGui::SetNextWindowPos(ImVec2(350, 150), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
+
+	if (ImGui::Begin("File Selector", &m_showFileSelector)) 
+	{
+		ImGui::Text("Current Path: %s", m_currentPath.string().c_str());
+
+		// Go up button
+		if (ImGui::Button("..")) 
+		{
+			m_currentPath = m_currentPath.parent_path();
+			m_currentEntries.clear();
+			for (const auto& entry : std::filesystem::directory_iterator(m_currentPath))
+			{
+				m_currentEntries.push_back(entry);
+			}
+		}
+
+		ImGui::SameLine();
+
+		// File name input
+		static char fileNameBuffer[256] = "";
+		if (std::strlen(fileNameBuffer) == 0 && m_selectedFile.size() > 0)
+		{
+			strcpy_s(fileNameBuffer, m_selectedFile.c_str());
+		}
+
+		ImGui::InputText("File Name", fileNameBuffer, IM_ARRAYSIZE(fileNameBuffer));
+
+		// Directory and file list
+		ImGui::BeginChild("Files", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()), true);
+		for (const auto& entry : m_currentEntries)
+		{
+			const auto& path = entry.path();
+			auto relativePath = path.filename();
+			if (entry.is_directory()) 
+			{
+				ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 0, 255));
+				if (ImGui::Selectable(relativePath.string().c_str(), false, ImGuiSelectableFlags_AllowDoubleClick)) 
+				{
+					if (ImGui::IsMouseDoubleClicked(0)) 
+					{
+						m_currentPath /= relativePath;
+						m_currentEntries.clear();
+						for (const auto& newEntry : std::filesystem::directory_iterator(m_currentPath))
+						{
+							m_currentEntries.push_back(newEntry);
+						}
+					}
+				}
+				ImGui::PopStyleColor();
+			}
+			else 
+			{
+				if (ImGui::Selectable(relativePath.string().c_str(), false)) 
+				{
+					strcpy_s(fileNameBuffer, relativePath.string().c_str());
+				}
+			}
+		}
+		ImGui::EndChild();
+
+		// Save button
+		if (ImGui::Button("Save"))
+		{
+			if (strlen(fileNameBuffer) > 0)
+			{
+				m_selectedFile = (m_currentPath / fileNameBuffer).string();
+				m_showFileSelector = false;
+				fileNameBuffer[0] = '\0';
+
+				FILE* file = nullptr;
+#if defined(_MSC_VER) && _MSC_VER >= 1400
+				errno_t err = fopen_s(&file, m_selectedFile.c_str(), "wb");
+				if (err != 0)
+					file = nullptr;
+#else
+				file = fopen(m_selectedFile.c_str(), "wb");
+#endif
+
+				// Could be a bit smarter and use this for both raw and wav saving.
+				// Also it wouldn't hurt to confirm overwrite.
+				if (file)
+				{
+					int fileSize;
+					const void* rawData = GetRawData(fileSize);
+					fwrite(rawData, 1, fileSize, file);
+					fclose(file);
+					m_rawSaved = true;
+				}
+			}
+		}
+
+		ImGui::SameLine();
+
+		if (ImGui::Button("Cancel"))
+		{
+			m_showFileSelector = false;
+			fileNameBuffer[0] = '\0';
+		}
+	}
+	ImGui::End();
+}

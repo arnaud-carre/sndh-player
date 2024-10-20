@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <thread>
 #include <atomic>
+#include <string>
 #include "imgui_internal.h"
 #include "extern/zip/src/zip.h"
 #include "jobSystem.h"
@@ -25,6 +26,7 @@ public:
 	void	ImGuiDraw(SndhArchivePlayer& player);
 	bool	IsOpen() const { return m_zipArchive != NULL; }
 	bool	IsOpening() const { return m_asyncBrowse; }
+	std::string GetFilename() const { return IsOpen() ? m_filename : std::string(""); }
 
 private:
 	struct PlayListItem
@@ -80,6 +82,7 @@ private:
 	bool LoadZipEnd();
 	int m_zipWorkersCount;
 	bool m_asyncBrowse;
+	std::string m_filename;
 	std::atomic<int> m_progress;
 	bool m_firstSearchFocus;
 
