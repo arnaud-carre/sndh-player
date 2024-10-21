@@ -101,6 +101,8 @@ bool	SndhArchive::Open(const char* sFilename)
 	m_zipArchive = zip_open(sFilename, 0, 'r');
 	if (m_zipArchive)
 	{
+		m_filename = std::string(sFilename);
+
 		int entryCount = int(zip_entries_total(m_zipArchive));
 		m_list = (PlayListItem*)malloc(entryCount * sizeof(PlayListItem));
 		memset(m_list, 0, entryCount * sizeof(PlayListItem));
@@ -135,6 +137,11 @@ bool	SndhArchive::Open(const char* sFilename)
 			ret = true;
 		}
 	}
+	else
+	{
+		m_filename = std::string();
+	}
+
 	return ret;
 }
 

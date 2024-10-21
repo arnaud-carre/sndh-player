@@ -392,7 +392,7 @@ void	SndhArchivePlayer::UpdateImGui()
 						StartSubsong(newSubsong);
 				}
 				ImGui::EndTable();
-				m_sndh.DrawGui(info.musicName);
+				m_sndh.DrawGui(info.musicName, gArchive);
 			}
 		}
 
