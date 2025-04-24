@@ -4835,8 +4835,10 @@ static wchar_t *str2wstr(const char *str) {
   return wstr;
 }
 
-static FILE *mz_fopen(const char *pFilename, const char *pMode) {
+static FILE *mz_fopen(const char *pFilename, const char *pMode)
+{
   FILE *pFile = NULL;
+#if 0
   wchar_t *wFilename = str2wstr(pFilename);
   wchar_t *wMode = str2wstr(pMode);
 
@@ -4847,7 +4849,9 @@ static FILE *mz_fopen(const char *pFilename, const char *pMode) {
 #endif
   free(wFilename);
   free(wMode);
-
+#else
+  pFile = fopen(pFilename, pMode);
+#endif
   return pFile;
 }
 

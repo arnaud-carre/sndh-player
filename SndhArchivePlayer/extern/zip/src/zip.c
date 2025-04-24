@@ -8,7 +8,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 #define __STDC_WANT_LIB_EXT1__ 1
-
+#define _CRT_SECURE_NO_WARNINGS
 #include <errno.h>
 #include <sys/stat.h>
 #include <time.h>
