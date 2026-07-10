@@ -52,6 +52,7 @@ private:
 	uint32_t*	m_audioDebugBuffer;
 	uint32_t 	m_audioBufferLen;
 	uint32_t	m_replayRate;
+	uint32_t	m_exactSongSamples;
 	bool		m_paused;
 	bool		m_saved;
 

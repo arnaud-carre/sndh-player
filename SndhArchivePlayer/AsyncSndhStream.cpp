@@ -104,19 +104,26 @@ bool AsyncSndhStream::StartSubsong(int subSongId, int durationByDefaultInSec)
 
 	if (info.playerTickCount > 0)
 	{
-		m_lenInSec = info.playerTickCount / info.playerTickRate;
+		// Exact sample count from the SNDH v2.2 "frames" tag, used for playback/WAV end-of-song
+		m_exactSongSamples = info.playerTickCount * info.samplePerTick;
+
+		// Round up to the next whole second for the ImGui slider range
+		m_lenInSec = (info.playerTickCount + info.playerTickRate - 1) / info.playerTickRate;
 		if (m_lenInSec <= 0)
 			m_lenInSec = 1;
 	}
 	else
+	{
+		// No length tag: fall back to the default duration, playing the full buffer
 		m_lenInSec = durationByDefaultInSec;
+		m_exactSongSamples = m_lenInSec * m_replayRate;
+	}
 
 	assert(m_lenInSec >= 1);
-	
+
 	// keep reasonable buffer len
-	assert(uint64_t(m_lenInSec)*uint64_t(m_replayRate)*sizeof(int16_t) < 0x7fffffff);
-	
 	m_audioBufferLen = m_lenInSec * m_replayRate;
+	assert(uint64_t(m_audioBufferLen) * sizeof(int16_t) < 0x7fffffff);
 
 	WAVEFORMATEX	pcmwf;
 	pcmwf.wFormatTag = WAVE_FORMAT_PCM;
@@ -138,7 +145,7 @@ bool AsyncSndhStream::StartSubsong(int subSongId, int durationByDefaultInSec)
 
 	m_waveHeader.dwFlags = 0; // WHDR_BEGINLOOP | WHDR_ENDLOOP;
 	m_waveHeader.lpData = (LPSTR)m_audioBuffer;
-	m_waveHeader.dwBufferLength = m_audioBufferLen * sizeof(int16_t);
+	m_waveHeader.dwBufferLength = m_exactSongSamples * sizeof(int16_t);
 	m_waveHeader.dwBytesRecorded = 0;
 	m_waveHeader.dwUser = 0;
 	m_waveHeader.dwLoops = -1;
@@ -184,11 +191,15 @@ int AsyncSndhStream::GetReplayPosInSec() const
 	MMTIME mmt;
 	mmt.wType = TIME_SAMPLES;
 	if (MMSYSERR_NOERROR != waveOutGetPosition(m_waveOutHandle, &mmt, sizeof(MMTIME)))
-		return 0;
+		return playOffsetInSec;
 
-	const uint32_t posInSample = mmt.u.sample;
-	const uint32_t posInSec = posInSample / m_replayRate;
-	return int(posInSec) + playOffsetInSec;
+	uint32_t posInSample = mmt.u.sample + (playOffsetInSec * m_replayRate);
+
+	// Clip so the reported position never overshoots the exact song length
+	if (posInSample > m_exactSongSamples)
+		posInSample = m_exactSongSamples;
+
+	return int(posInSample / m_replayRate);
 }
 
 void AsyncSndhStream::SetReplayPosInSec(int pos)
@@ -211,7 +222,7 @@ void AsyncSndhStream::SetReplayPosInSec(int pos)
 
 	m_waveHeader.dwFlags = 0; // WHDR_BEGINLOOP | WHDR_ENDLOOP;
 	m_waveHeader.lpData = (LPSTR)(m_audioBuffer + spos);
-	m_waveHeader.dwBufferLength = (m_audioBufferLen - spos)*sizeof(int16_t);
+	m_waveHeader.dwBufferLength = (m_exactSongSamples - spos)*sizeof(int16_t);
 	m_waveHeader.dwBytesRecorded = 0;
 	m_waveHeader.dwUser = 0;
 	m_waveHeader.dwLoops = -1;
@@ -289,7 +300,11 @@ void	AsyncSndhStream::DrawGui(const char* musicName)
 			WavWriter wv;
 			if (wv.Open(sFilename, m_replayRate, 1))
 			{
-				wv.AddAudioData(m_audioBuffer, m_audioBufferLen);
+				uint32_t exactSampleLen = m_exactSongSamples;
+				if (exactSampleLen == 0 || exactSampleLen > m_audioBufferLen)
+					exactSampleLen = m_audioBufferLen;
+
+				wv.AddAudioData(m_audioBuffer, exactSampleLen);
 				wv.Close();
 				m_saved = true;
 			}
