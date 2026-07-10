@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include <thread>
 #include <atomic>
+#include <random>
+#include <ctime>
 #include "imgui_internal.h"
 #include "extern/zip/src/zip.h"
 #include "jobSystem.h"
@@ -25,6 +27,56 @@ public:
 	void	ImGuiDraw(SndhArchivePlayer& player);
 	bool	IsOpen() const { return m_zipArchive != NULL; }
 	bool	IsOpening() const { return m_asyncBrowse; }
+
+	// Returns the zipIndex following currentZipIndex in the filtered list, or -1 if last/not found
+	int GetNextFilteredZipIndex(int currentZipIndex) const
+	{
+		for (int i = 0; i < m_filterdSize - 1; ++i)
+		{
+			if (m_filteredList[i].zipIndex == currentZipIndex)
+				return m_filteredList[i + 1].zipIndex;
+		}
+		return -1;
+	}
+
+	// Returns the zipIndex preceding currentZipIndex in the filtered list, or -1 if first/not found
+	int GetPrevFilteredZipIndex(int currentZipIndex) const
+	{
+		for (int i = 1; i < m_filterdSize; ++i)
+		{
+			if (m_filteredList[i].zipIndex == currentZipIndex)
+				return m_filteredList[i - 1].zipIndex;
+		}
+		return -1;
+	}
+
+	// Picks a random track (and random subsong, if it has several) from the filtered list
+	void GetRandomFilteredSong(int& outZipIndex, int& outSubsong) const
+	{
+		if (m_filterdSize <= 0)
+		{
+			outZipIndex = -1;
+			outSubsong = 1;
+			return;
+		}
+
+		static std::mt19937 rng(static_cast<unsigned int>(std::time(nullptr)));
+		std::uniform_int_distribution<int> fileDist(0, m_filterdSize - 1);
+		const int randomRow = fileDist(rng);
+
+		outZipIndex = m_filteredList[randomRow].zipIndex;
+
+		const int subsongCount = m_filteredList[randomRow].subsongCount;
+		if (subsongCount > 1)
+		{
+			std::uniform_int_distribution<int> subDist(1, subsongCount);
+			outSubsong = subDist(rng);
+		}
+		else
+		{
+			outSubsong = 1;
+		}
+	}
 
 private:
 	struct PlayListItem

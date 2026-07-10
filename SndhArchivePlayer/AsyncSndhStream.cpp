@@ -12,6 +12,8 @@ AsyncSndhStream::AsyncSndhStream()
 	m_audioDebugBuffer = NULL;
 	m_bLoaded = false;
 	m_asyncInfo.thread = NULL;
+	m_playMode = PlayMode_Single;
+	m_advanceNext = false;
 }
 
 AsyncSndhStream::~AsyncSndhStream()
@@ -81,6 +83,30 @@ void AsyncSndhStream::AsyncWorkerFunction()
 		m_asyncInfo.fillPos += todo;
 
 		m_asyncInfo.progress = (m_asyncInfo.fillPos * 100) / m_audioBufferLen;
+	}
+
+	// Poll for end-of-song here (rather than in DrawGui) so Continuous/Random advance
+	// even while the window is unfocused, where ImGui rendering is throttled.
+	while (!m_asyncInfo.forceQuit)
+	{
+		::Sleep(50);
+
+		const PlayMode mode = m_playMode;
+		if (m_paused || (mode != PlayMode_Continuous && mode != PlayMode_Random))
+			continue;
+
+		MMTIME mmt;
+		mmt.wType = TIME_SAMPLES;
+		if (MMSYSERR_NOERROR != waveOutGetPosition(m_waveOutHandle, &mmt, sizeof(MMTIME)))
+			continue;
+
+		const uint32_t pos = mmt.u.sample + (uint32_t)playOffsetInSec * m_replayRate;
+		if (pos < m_exactSongSamples)
+			continue;
+
+		m_advanceNext = true;
+		m_paused = true;
+		break;
 	}
 }
 
@@ -267,7 +293,7 @@ void	AsyncSndhStream::DrawGui(const char* musicName)
 
 	if (change)
 	{
-		m_paused ^= true;
+		m_paused = !m_paused;
 		Pause(m_paused);
 	}
 	ImGui::SameLine();
@@ -277,11 +303,33 @@ void	AsyncSndhStream::DrawGui(const char* musicName)
 	sprintf_s(sLen, "%d:%02d", m_lenInSec / 60, m_lenInSec % 60);
 	static int pos;
 	pos = GetReplayPosInSec();
+
 	char sPos[64];
 	sprintf_s(sPos, "%d:%02d", pos / 60, pos % 60);
-	if (ImGui::SliderInt(sLen, &pos, 0, m_lenInSec, sPos))
+
+	// Leave room on the right for the length text and the play-mode button
+	ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x - 110.0f);
+	if (ImGui::SliderInt("##TimeSlider", &pos, 0, m_lenInSec, sPos))
 	{
 		SetReplayPosInSec(pos);
+	}
+	ImGui::PopItemWidth();
+
+	ImGui::SameLine();
+	ImGui::Text("%s", sLen);
+
+	ImGui::SameLine();
+
+	// Cycles Single -> Loop -> Continuous -> Random
+	const char* modeLabels[] = { "[ ]", "[L]", "[C]", "[R]" };
+	if (ImGui::Button(modeLabels[m_playMode]))
+	{
+		m_playMode = static_cast<PlayMode>((m_playMode + 1) % PlayMode_Count);
+	}
+	if (ImGui::IsItemHovered())
+	{
+		const char* tooltips[] = { "Mode: Single Track", "Mode: Loop Current", "Mode: Continuous Play", "Mode: Random Shuffle" };
+		ImGui::SetTooltip("%s", tooltips[m_playMode]);
 	}
 
 	if (musicName)
@@ -313,6 +361,20 @@ void	AsyncSndhStream::DrawGui(const char* musicName)
 	}
 
 	ImGui::EndDisabled();
+
+	// Loop mode only: seamless restart when song ends (Continuous/Random are handled
+	// by the background worker thread so they work even when the app is unfocused)
+	if (m_playMode == PlayMode_Loop && !m_paused)
+	{
+		MMTIME mmt;
+		mmt.wType = TIME_SAMPLES;
+		if (MMSYSERR_NOERROR == waveOutGetPosition(m_waveOutHandle, &mmt, sizeof(MMTIME)))
+		{
+			const uint32_t currentPosInSamples = mmt.u.sample + (playOffsetInSec * m_replayRate);
+			if (currentPosInSamples >= m_exactSongSamples)
+				SetReplayPosInSec(0);
+		}
+	}
 }
 
 const void* AsyncSndhStream::GetRawData(int& fileSize) const

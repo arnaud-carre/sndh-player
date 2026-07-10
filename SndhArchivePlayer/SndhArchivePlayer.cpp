@@ -72,6 +72,8 @@ void	SndhArchivePlayer::PlayZipEntry(SndhArchive& sndhArchive, int zipIndex)
 	{
 		if (0 == zip_entry_openbyindex(zipArchive, zipIndex))
 		{
+			m_currentZipIndex = zipIndex;
+
 			size_t size = zip_entry_size(zipArchive);
 			void* unpack = calloc(1, size);
 
@@ -370,7 +372,9 @@ void	SndhArchivePlayer::UpdateImGui()
 				ImGui::TableNextColumn();
 				ImGui::TextUnformatted("Sub-tune:");
 				ImGui::TableNextColumn();
+
 				int dir = 0;
+
 				if (ImGui::ArrowButton("prev", ImGuiDir_Left))
 					dir = -1;
 				ImGui::SameLine();
@@ -382,17 +386,87 @@ void	SndhArchivePlayer::UpdateImGui()
 				ImGui::SameLine();
 				ImGui::Text("(%d Hz)", info.playerTickRate);
 
+				// Continuous/Random signaled that the current song has ended
+				if (m_sndh.ShouldAdvanceNext())
+					dir = 1;
+
+				// Set when we need to load a different archive entry rather than
+				// just switching sub-song within the currently loaded file
+				int pendingNextZipIndex = -1;
+				int targetSubsongOnLoad = 1;
+
 				if (dir)
 				{
 					int newSubsong = m_currentSubSong + dir;
-					if (newSubsong < 1) newSubsong = 1;
-					if (newSubsong > m_sndh.GetSubsongCount())
-						newSubsong = m_sndh.GetSubsongCount();
-					if (newSubsong != m_currentSubSong)
+
+					// Random mode always shuffles to a new file when moving forward,
+					// whether triggered by the user or by natural end-of-song
+					const bool forceRandomFileSkip = (dir == 1 && m_sndh.GetPlayMode() == AsyncSndhStream::PlayMode_Random);
+
+					if (newSubsong < 1)
+					{
+						int prevZipIndex = gArchive.GetPrevFilteredZipIndex(m_currentZipIndex);
+						if (prevZipIndex != -1)
+							pendingNextZipIndex = prevZipIndex;
+						else
+							newSubsong = 1;
+					}
+					else if (newSubsong > m_sndh.GetSubsongCount() || forceRandomFileSkip)
+					{
+						if (m_sndh.GetPlayMode() == AsyncSndhStream::PlayMode_Random)
+						{
+							int randZipIdx = -1;
+							int randSubsongIdx = 1;
+							gArchive.GetRandomFilteredSong(randZipIdx, randSubsongIdx);
+
+							if (randZipIdx != -1)
+							{
+								pendingNextZipIndex = randZipIdx;
+								targetSubsongOnLoad = randSubsongIdx;
+							}
+							else
+							{
+								newSubsong = m_sndh.GetSubsongCount();
+							}
+						}
+						else
+						{
+							int nextZipIndex = gArchive.GetNextFilteredZipIndex(m_currentZipIndex);
+							if (nextZipIndex != -1)
+							{
+								pendingNextZipIndex = nextZipIndex;
+								targetSubsongOnLoad = 1;
+							}
+							else
+							{
+								newSubsong = m_sndh.GetSubsongCount();
+							}
+						}
+					}
+
+					// Only switch sub-songs inside the current file if we aren't swapping physical files
+					if (pendingNextZipIndex == -1 && newSubsong != m_currentSubSong)
+					{
 						StartSubsong(newSubsong);
+					}
 				}
+
 				ImGui::EndTable();
-				m_sndh.DrawGui(info.musicName);
+
+				if (pendingNextZipIndex == -1)
+				{
+					m_sndh.DrawGui(info.musicName);
+				}
+				else
+				{
+					PlayZipEntry(gArchive, pendingNextZipIndex);
+
+					// A random pick may target a specific sub-song rather than the default one
+					if (targetSubsongOnLoad > 1)
+					{
+						StartSubsong(targetSubsongOnLoad);
+					}
+				}
 			}
 		}
 

@@ -29,10 +29,11 @@ public:
 private:
 	bool	StartSubsong(int subsong);
 	void	DrawPlayList();
-	bool show_demo_window = false;
-	bool show_another_window = false;
+	bool	show_demo_window = false;
+	bool	show_another_window = false;
 
 	AsyncSndhStream	m_sndh;
-	int			m_currentSubSong;
+	int		m_currentSubSong;
+	int		m_currentZipIndex = -1;
 
 };
