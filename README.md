@@ -5,6 +5,7 @@ ATARI-ST SNDH ZIP Archive music browser/player by [Leonard/Oxygene](https://twit
 
 # Versions
 
+- v1.02 : Thanks to @gdommergue : Add a 4-state play mode button (Single / Loop / Continuous / Random), Exact song length fix
 - v1.01 : fix sndh less than 1 sec replay ; fix half volume in some digidrum (ie synthdream 2) ; removed strdup/free usage in AtariAudio ; Added MIT license file
 - v1.00 : sndh2.2 song len support and official AtariAudio v1.00
 - v0.80 : fix minizip library when dealing with weird zip path name
