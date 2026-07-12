@@ -1,4 +1,4 @@
-# SNDH-Archive-Player v1.01
+# SNDH-Archive-Player v1.02
 ATARI-ST SNDH ZIP Archive music browser/player by [Leonard/Oxygene](https://twitter.com/leonard_coder)
 
 ![image info](./thumbnail.png)
