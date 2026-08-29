@@ -1,5 +1,5 @@
 /*--------------------------------------------------------------------
-	Atari Audio Library v1.01
+	Atari Audio Library v1.02
 	Small & accurate ATARI-ST audio emulation
 	by Arnaud Carré aka Leonard/Oxygene
 	@leonard_coder
@@ -146,6 +146,8 @@ bool	SndhFile::Load(const void* rawSndhFile, int sndhFileSize, uint32_t hostRepl
 				{
 					assert(m_subSongCount > 0);
 					read8 += 4;
+					if (uintptr_t(read8) & 1)
+						read8++;
 					for (int i = 0; i < m_subSongCount; i++)
 					{
 						int lenInSec = Read16(read8);
