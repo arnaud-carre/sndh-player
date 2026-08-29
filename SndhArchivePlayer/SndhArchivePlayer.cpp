@@ -496,24 +496,19 @@ void	SndhArchivePlayer::UpdateImGui()
 
 		if (ImGui::BeginPopupModal("About", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			DrawTextCentered("SNDH Archive Player v1.02");
+			DrawTextCentered("SNDH Archive Player v" SNDH_ARCHIVE_PLAYER_VERSION);
 			ImGui::Separator();
 			extern void OsOpenInShell(const char* path);
 
 			ImGui::Text("\n");
 			DrawTextCentered("Accurate & fast ATARI SNDH player");
 			DrawTextCentered("Written by Leonard/Oxygene");
-			if (CenteredButton("Twitter"))
-			{
-				OsOpenInShell("https://twitter.com/leonard_coder");
-			}
 			ImGui::Text("\n");
 
-			DrawTextCentered("Powered by AtariAudio library");
-			DrawTextCentered("and DearImGui!");
+			DrawTextCentered("Powered by AtariAudio library v" ATARI_AUDIO_VERSION);
 			if (CenteredButton("GitHub Repository"))
 			{
-				OsOpenInShell("https://github.com/arnaud-carre/sndh-player");
+				OsOpenInShell("https://github.com/arnaud-carre/sndh-player/tree/main/AtariAudio");
 			}
 			ImGui::Text("\n");
 			DrawTextCentered("You can also use awesome Web player");

@@ -1,5 +1,7 @@
 #pragma once
 
+#define	SNDH_ARCHIVE_PLAYER_VERSION	"1.03"
+
 #include <stdint.h>
 #include "../AtariAudio/AtariAudio.h"
 #include "AsyncSndhStream.h"
