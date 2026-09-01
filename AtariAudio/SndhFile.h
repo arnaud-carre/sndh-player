@@ -1,5 +1,5 @@
 /*--------------------------------------------------------------------
-	Atari Audio Library v1.02
+	Atari Audio Library v1.03
 	Small & accurate ATARI-ST audio emulation
 	Arnaud Carré aka Leonard/Oxygene
 	@leonard_coder
@@ -24,6 +24,8 @@ public:
 		int samplePerTick;
 		const char* musicName;
 		const char* musicAuthor;
+		const char* ripper;
+		const char* converter;
 		const char* year;
 	};
 
@@ -58,6 +60,8 @@ private:
 	bool	m_bLoaded;
 	const char*	m_Title;
 	const char*	m_Author;
+	const char* m_Ripper;
+	const char* m_Converter;
 	const char*	m_sYear;
 	const void*	m_rawBuffer;
 	int		m_rawSize;
