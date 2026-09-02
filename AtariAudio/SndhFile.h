@@ -1,5 +1,5 @@
 /*--------------------------------------------------------------------
-	Atari Audio Library v1.03
+	Atari Audio Library v1.04
 	Small & accurate ATARI-ST audio emulation
 	Arnaud Carré aka Leonard/Oxygene
 	@leonard_coder
@@ -37,6 +37,7 @@ public:
 	int		GetDefaultSubsong() const { return m_defaultSubSong; }
 	bool	GetSubsongInfo(int subSongId, SubSongInfo& out) const;
 	bool	InitSubSong(int subSongId);
+	int 	FastForward(int framesToSkip);
 
 	/*
 	 * Main audio rendering function.
