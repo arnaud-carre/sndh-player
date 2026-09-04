@@ -1,0 +1,3 @@
+[submodule "AtariAudio"]
+	path = AtariAudio
+	url = https://github.com/arnaud-carre/AtariAudio
