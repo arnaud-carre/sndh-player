@@ -503,13 +503,14 @@ void	SndhArchivePlayer::UpdateImGui()
 			ImGui::Text("\n");
 			DrawTextCentered("Accurate & fast ATARI SNDH player");
 			DrawTextCentered("Written by Leonard/Oxygene");
+			if (CenteredButton("GitHub Repository"))
+				OsOpenInShell("https://github.com/arnaud-carre/sndh-player");
 			ImGui::Text("\n");
 
 			DrawTextCentered("Powered by AtariAudio library v" ATARI_AUDIO_VERSION);
 			if (CenteredButton("GitHub Repository"))
-			{
-				OsOpenInShell("https://github.com/arnaud-carre/sndh-player/tree/main/AtariAudio");
-			}
+				OsOpenInShell("https://github.com/arnaud-carre/AtariAudio");
+
 			ImGui::Text("\n");
 			DrawTextCentered("You can also use awesome Web player");
 			DrawTextCentered("written by Oxbab/Oxygene");
