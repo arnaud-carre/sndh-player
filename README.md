@@ -1,10 +1,11 @@
-# SNDH-Archive-Player v1.04
+# SNDH-Archive-Player v1.05
 ATARI-ST SNDH ZIP Archive music browser/player by [Leonard/Oxygene](https://twitter.com/leonard_coder)
 
 ![image info](./thumbnail.png)
 
 # Versions
 
+- v1.05 : use AtariAudio lib v1.06
 - v1.04 : Now AtariAudio library has its own repository (and SndhArchivePlayer is using GIT submodule)
 - v1.03 : bump to AtariAudio library 1.02
 - v1.02 : Thanks to @gdommergue : Add a 4-state play mode button (Single / Loop / Continuous / Random), Exact song length fix
