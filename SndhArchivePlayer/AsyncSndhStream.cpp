@@ -79,7 +79,7 @@ void AsyncSndhStream::AsyncWorkerFunction()
 		if (m_asyncInfo.fillPos + todo > m_audioBufferLen)
 			todo = m_audioBufferLen - m_asyncInfo.fillPos;
 
-		m_asyncInfo.sndh.AudioRender(m_audioBuffer + m_asyncInfo.fillPos, todo, m_audioDebugBuffer + m_asyncInfo.fillPos);
+		m_asyncInfo.sndh.AudioRenderWithVisualInfos(m_audioBuffer + m_asyncInfo.fillPos, todo, m_audioDebugBuffer + m_asyncInfo.fillPos);
 		m_asyncInfo.fillPos += todo;
 
 		m_asyncInfo.progress = (m_asyncInfo.fillPos * 100) / m_audioBufferLen;
@@ -178,7 +178,7 @@ bool AsyncSndhStream::StartSubsong(int subSongId, int durationByDefaultInSec)
 	waveOutPrepareHeader(m_waveOutHandle, &m_waveHeader, sizeof(WAVEHDR));
 
 	// Generate first second of music
-	m_asyncInfo.sndh.AudioRender(m_audioBuffer, m_replayRate, m_audioDebugBuffer);
+	m_asyncInfo.sndh.AudioRenderWithVisualInfos(m_audioBuffer, m_replayRate, m_audioDebugBuffer);
 
 	// launch worker thread to generate
 	m_asyncInfo.forceQuit = false;

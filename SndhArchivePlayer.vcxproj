@@ -19,14 +19,15 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AtariAudio\AtariMachine.cpp" />
-    <ClCompile Include="AtariAudio\external\ice_24.c" />
-    <ClCompile Include="AtariAudio\external\Musashi\m68kcpu.c" />
-    <ClCompile Include="AtariAudio\external\Musashi\m68kops.c" />
-    <ClCompile Include="AtariAudio\Mk68901.cpp" />
-    <ClCompile Include="AtariAudio\SndhFile.cpp" />
-    <ClCompile Include="AtariAudio\SteDac.cpp" />
-    <ClCompile Include="AtariAudio\ym2149c.cpp" />
+    <ClCompile Include="AtariAudio\src\AtariMachine.cpp" />
+    <ClCompile Include="AtariAudio\src\external\ice_24.c" />
+    <ClCompile Include="AtariAudio\src\external\Musashi\m68kcpu.c" />
+    <ClCompile Include="AtariAudio\src\external\Musashi\m68kops.c" />
+    <ClCompile Include="AtariAudio\src\Mk68901.cpp" />
+    <ClCompile Include="AtariAudio\src\SndhFile.cpp" />
+    <ClCompile Include="AtariAudio\src\SteDac.cpp" />
+    <ClCompile Include="AtariAudio\src\timedb.cpp" />
+    <ClCompile Include="AtariAudio\src\ym2149c.cpp" />
     <ClCompile Include="SndhArchivePlayer\AsyncSndhStream.cpp" />
     <ClCompile Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_dx11.cpp" />
     <ClCompile Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_win32.cpp" />
@@ -43,18 +44,20 @@
     <ClCompile Include="SndhArchivePlayer\WavWriter.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AtariAudio\AtariAudio.h" />
-    <ClInclude Include="AtariAudio\AtariMachine.h" />
-    <ClInclude Include="AtariAudio\external\ice_24.h" />
-    <ClInclude Include="AtariAudio\external\Musashi\m68k.h" />
-    <ClInclude Include="AtariAudio\external\Musashi\m68kconf.h" />
-    <ClInclude Include="AtariAudio\external\Musashi\m68kcpu.h" />
-    <ClInclude Include="AtariAudio\external\Musashi\m68kops.h" />
-    <ClInclude Include="AtariAudio\Mk68901.h" />
-    <ClInclude Include="AtariAudio\SndhFile.h" />
-    <ClInclude Include="AtariAudio\SteDac.h" />
-    <ClInclude Include="AtariAudio\ym2149c.h" />
-    <ClInclude Include="AtariAudio\ym2149_tables.h" />
+    <ClInclude Include="AtariAudio\src\AtariAudio.h" />
+    <ClInclude Include="AtariAudio\src\AtariMachine.h" />
+    <ClInclude Include="AtariAudio\src\external\ice_24.h" />
+    <ClInclude Include="AtariAudio\src\external\Musashi\m68k.h" />
+    <ClInclude Include="AtariAudio\src\external\Musashi\m68kconf.h" />
+    <ClInclude Include="AtariAudio\src\external\Musashi\m68kcpu.h" />
+    <ClInclude Include="AtariAudio\src\external\Musashi\m68kops.h" />
+    <ClInclude Include="AtariAudio\src\external\timedb.inc.h" />
+    <ClInclude Include="AtariAudio\src\Mk68901.h" />
+    <ClInclude Include="AtariAudio\src\SndhFile.h" />
+    <ClInclude Include="AtariAudio\src\SteDac.h" />
+    <ClInclude Include="AtariAudio\src\timedb.h" />
+    <ClInclude Include="AtariAudio\src\ym2149c.h" />
+    <ClInclude Include="AtariAudio\src\ym2149_tables.h" />
     <ClInclude Include="SndhArchivePlayer\AsyncSndhStream.h" />
     <ClInclude Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_dx11.h" />
     <ClInclude Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_win32.h" />

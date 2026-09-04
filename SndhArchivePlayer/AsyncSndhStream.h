@@ -4,7 +4,7 @@
 #include <mmsystem.h>
 #include <thread>
 #include <atomic>
-#include "../AtariAudio/AtariAudio.h"
+#include "../AtariAudio/src/AtariAudio.h"
 
 class AsyncSndhStream
 {

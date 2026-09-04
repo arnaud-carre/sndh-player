@@ -4,7 +4,7 @@
 #include "imgui_impl_dx11.h"
 #include "imgui_internal.h"
 #include "imgui_memory_editor.h"
-#include "../AtariAudio/AtariAudio.h"
+#include "../AtariAudio/src/AtariAudio.h"
 #include "SndhArchivePlayer.h"
 #include "SndhArchive.h"
 #include "AsyncSndhStream.h"
