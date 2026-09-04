@@ -118,6 +118,8 @@ bool AsyncSndhStream::StartSubsong(int subSongId, int durationByDefaultInSec)
 
 	CloseSubsong();
 
+	m_asyncInfo.sndh.SetDefaultSongDuration(durationByDefaultInSec);
+
 	SndhFile::SubSongInfo info;
 	if (!m_asyncInfo.sndh.GetSubsongInfo(subSongId, info))
 		return false;

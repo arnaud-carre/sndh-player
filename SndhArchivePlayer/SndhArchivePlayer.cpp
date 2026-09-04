@@ -508,7 +508,7 @@ void	SndhArchivePlayer::UpdateImGui()
 			ImGui::Text("\n");
 
 			DrawTextCentered("Powered by AtariAudio library v" ATARI_AUDIO_VERSION);
-			if (CenteredButton("GitHub Repository"))
+			if (CenteredButton("AtariAudio Repository"))
 				OsOpenInShell("https://github.com/arnaud-carre/AtariAudio");
 
 			ImGui::Text("\n");
