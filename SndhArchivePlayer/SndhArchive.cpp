@@ -50,18 +50,18 @@ bool SndhArchive::LoadZipEntry(int itemId, int workerId)
 		{
 			const char* fname = zip_entry_name(zip);
 			SndhFile sndhFile;
-			if (sndhFile.Load(unpack, int(size), 44100))		// dummy host replay rate
+			if (sndhFile.Load(unpack, int(size), kHostReplayRate))		// dummy host replay rate
 			{
-				SndhFile::SubSongInfo info;
-				if (sndhFile.GetSubsongInfo(sndhFile.GetDefaultSubsong(), info))
-				{
-					item.author = info.musicAuthor ? _strdup(info.musicAuthor) : _strdup("Not defined");
-					item.title = info.musicName ? _strdup(info.musicName) : _strdup(fname);
-					item.duration = info.playerTickCount / info.playerTickRate;
-					item.year = NULL;
-					item.subsongCount = info.subsongCount;
-					ret = true;
-				}
+				const SndhFile::SongInfo& si = sndhFile.GetSongInfo();
+				item.author = si.musicAuthor ? _strdup(si.musicAuthor) : _strdup("Not defined");
+				item.title = si.musicName ? _strdup(si.musicName) : _strdup(fname);
+				uint32_t totalLenMs = 0;
+				for (int s = 0; s < si.subsongCount; s++)
+					totalLenMs += sndhFile.GetSubsongDurationMs(s + 1);
+				item.duration = totalLenMs / 1000;
+				item.year = nullptr;
+				item.subsongCount = si.subsongCount;
+				ret = true;
 			}
 		}
 		free(unpack);
