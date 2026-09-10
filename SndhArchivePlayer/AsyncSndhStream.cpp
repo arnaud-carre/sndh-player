@@ -82,8 +82,7 @@ void AsyncSndhStream::AsyncWorkerFunction()
 		if (m_asyncInfo.fillPos + todo > m_exactSongSamples)
 			todo = m_exactSongSamples - m_asyncInfo.fillPos;
 
-//		m_asyncInfo.sndh->AudioRenderWithVisualInfos(m_audioBuffer + m_asyncInfo.fillPos, todo, m_audioDebugBuffer + m_asyncInfo.fillPos);
-		m_asyncInfo.sndh->AudioRender(m_audioBuffer + m_asyncInfo.fillPos, todo);
+		m_asyncInfo.sndh->AudioRenderWithVisualInfos(m_audioBuffer + m_asyncInfo.fillPos, todo, m_audioDebugBuffer + m_asyncInfo.fillPos);
 		m_asyncInfo.fillPos += todo;
 	}
 
@@ -161,8 +160,7 @@ bool AsyncSndhStream::StartSubsong(int subSongId, int durationByDefaultInSec)
 
 	// Generate first second of music
 	const uint32_t firstChunkSize = (m_exactSongSamples >= m_replayRate) ? m_replayRate : m_exactSongSamples;
-//	m_asyncInfo.sndh->AudioRenderWithVisualInfos(m_audioBuffer, firstChunkSize, m_audioDebugBuffer);
-	m_asyncInfo.sndh->AudioRender(m_audioBuffer, firstChunkSize);
+	m_asyncInfo.sndh->AudioRenderWithVisualInfos(m_audioBuffer, firstChunkSize, m_audioDebugBuffer);
 
 	// launch worker thread to generate
 	m_asyncInfo.forceQuit = false;
