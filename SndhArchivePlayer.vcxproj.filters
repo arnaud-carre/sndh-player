@@ -102,6 +102,15 @@
     <ClCompile Include="AtariAudio\src\external\Musashi\m68kops.cpp">
       <Filter>Source Files\AtariAudio\external\Musashi</Filter>
     </ClCompile>
+    <ClCompile Include="AtariAudio\src\AtariAudioRenderer.cpp">
+      <Filter>Source Files\AtariAudio</Filter>
+    </ClCompile>
+    <ClCompile Include="AtariAudio\src\YmRenderer.cpp">
+      <Filter>Source Files\AtariAudio</Filter>
+    </ClCompile>
+    <ClCompile Include="AtariAudio\src\external\lzh.cpp">
+      <Filter>Source Files\AtariAudio\external</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SndhArchivePlayer\SndhArchive.h">
@@ -193,6 +202,15 @@
     </ClInclude>
     <ClInclude Include="AtariAudio\src\SndhRenderer.h">
       <Filter>Source Files\AtariAudio</Filter>
+    </ClInclude>
+    <ClInclude Include="AtariAudio\src\AtariAudioRenderer.h">
+      <Filter>Source Files\AtariAudio</Filter>
+    </ClInclude>
+    <ClInclude Include="AtariAudio\src\YmRenderer.h">
+      <Filter>Source Files\AtariAudio</Filter>
+    </ClInclude>
+    <ClInclude Include="AtariAudio\src\external\lzh.h">
+      <Filter>Source Files\AtariAudio\external</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

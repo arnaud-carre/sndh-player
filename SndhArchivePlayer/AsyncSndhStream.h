@@ -37,7 +37,7 @@ public:
 	void	DrawGui(const char* musicName);
 
 	static void sAsyncSndhWorkerThread(void* a);
-	const SndhRenderer* GetSndhFile() const { return m_asyncInfo.sndh; }
+	const AtariAudioRenderer* GetSndhFile() const { return m_asyncInfo.sndh; }
 
 private:
 	void SetReplayPosInSec(int pos);
@@ -49,7 +49,7 @@ private:
 		std::atomic <uint32_t> fillPos;
 		std::thread*	thread;
 		std::atomic<bool> forceQuit;
-		SndhRenderer* sndh;
+		AtariAudioRenderer* sndh;
 	};
 
 	std::atomic<int> playOffsetInSec;

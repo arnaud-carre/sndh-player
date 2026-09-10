@@ -19,8 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AtariAudio\src\AtariAudioRenderer.cpp" />
     <ClCompile Include="AtariAudio\src\AtariMachine.cpp" />
     <ClCompile Include="AtariAudio\src\external\ice_24.c" />
+    <ClCompile Include="AtariAudio\src\external\lzh.cpp" />
     <ClCompile Include="AtariAudio\src\external\Musashi\m68k.cpp" />
     <ClCompile Include="AtariAudio\src\external\Musashi\m68kcpu.cpp" />
     <ClCompile Include="AtariAudio\src\external\Musashi\m68kops.cpp" />
@@ -29,6 +31,7 @@
     <ClCompile Include="AtariAudio\src\SteDac.cpp" />
     <ClCompile Include="AtariAudio\src\timedb.cpp" />
     <ClCompile Include="AtariAudio\src\ym2149c.cpp" />
+    <ClCompile Include="AtariAudio\src\YmRenderer.cpp" />
     <ClCompile Include="SndhArchivePlayer\AsyncSndhStream.cpp" />
     <ClCompile Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_dx11.cpp" />
     <ClCompile Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_win32.cpp" />
@@ -46,8 +49,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AtariAudio\src\AtariAudio.h" />
+    <ClInclude Include="AtariAudio\src\AtariAudioRenderer.h" />
     <ClInclude Include="AtariAudio\src\AtariMachine.h" />
     <ClInclude Include="AtariAudio\src\external\ice_24.h" />
+    <ClInclude Include="AtariAudio\src\external\lzh.h" />
     <ClInclude Include="AtariAudio\src\external\Musashi\m68k.h" />
     <ClInclude Include="AtariAudio\src\external\Musashi\m68kconf.h" />
     <ClInclude Include="AtariAudio\src\external\Musashi\m68kcpu.h" />
@@ -59,6 +64,7 @@
     <ClInclude Include="AtariAudio\src\timedb.h" />
     <ClInclude Include="AtariAudio\src\ym2149c.h" />
     <ClInclude Include="AtariAudio\src\ym2149_tables.h" />
+    <ClInclude Include="AtariAudio\src\YmRenderer.h" />
     <ClInclude Include="SndhArchivePlayer\AsyncSndhStream.h" />
     <ClInclude Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_dx11.h" />
     <ClInclude Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_win32.h" />

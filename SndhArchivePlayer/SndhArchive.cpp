@@ -49,20 +49,20 @@ bool SndhArchive::LoadZipEntry(int itemId, int workerId)
 		if (depackSize == size)
 		{
 			const char* fname = zip_entry_name(zip);
-			SndhRenderer* sr = SndhRenderer::Create(unpack, uint32_t(size), kHostReplayRate);		// dummy host replay rate
+			AtariAudioRenderer* sr = AtariAudioRenderer::Create(unpack, uint32_t(size), kHostReplayRate);		// dummy host replay rate
 			if (sr)		// dummy host replay rate
 			{
-				const SndhRenderer::SongInfo& si = sr->GetSongInfo();
+				const AtariAudioRenderer::SongInfo& si = sr->GetSongInfo();
 				item.author = si.musicAuthor ? _strdup(si.musicAuthor) : _strdup("Not defined");
 				item.title = si.musicName ? _strdup(si.musicName) : _strdup(fname);
-				uint32_t totalLenMs = 0;
+				uint32_t totalLenSample = 0;
 				for (int s = 0; s < si.subsongCount; s++)
-					totalLenMs += sr->GetSubsongDurationMs(s + 1);
-				item.duration = totalLenMs / 1000;
+					totalLenSample += sr->GetSubsongDurationSample(s + 1);
+				item.duration = totalLenSample / kHostReplayRate;
 				item.year = nullptr;
 				item.subsongCount = si.subsongCount;
 				ret = true;
-				SndhRenderer::Destroy(sr);
+				AtariAudioRenderer::Destroy(sr);
 			}
 		}
 		free(unpack);

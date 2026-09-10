@@ -29,7 +29,7 @@ SndhArchivePlayer::~SndhArchivePlayer()
 bool	SndhArchivePlayer::StartSubsong(int subsong)
 {
 	bool ret = false;
-	const SndhRenderer* sf = m_sndh.GetSndhFile();
+	const AtariAudioRenderer* sf = m_sndh.GetSndhFile();
 	if ((subsong >= 1) && (subsong <= sf->GetSongInfo().subsongCount))
 	{
 		if (m_sndh.StartSubsong(subsong, gDefaultDurationInMin*60))
@@ -344,7 +344,7 @@ void	SndhArchivePlayer::UpdateImGui()
 
 //		if (ImGui::BeginTable("song", 2, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoBordersInBody))
 
-		const SndhRenderer* sf = m_sndh.GetSndhFile();
+		const AtariAudioRenderer* sf = m_sndh.GetSndhFile();
 		if (sf)	// if sndh file isn't loaded, subsongCount would be 0
 		{
 			const SndhRenderer::SongInfo& info = sf->GetSongInfo();
@@ -352,7 +352,7 @@ void	SndhArchivePlayer::UpdateImGui()
 			{
 				ImGui::TableSetupColumn("info", ImGuiTableColumnFlags_WidthFixed, 80.0f);
 
-				const uint32_t len = sf->GetSubsongDurationMs(m_currentSubSong) / 1000;
+				const uint32_t len = sf->GetSubsongDurationSample(m_currentSubSong) / kHostReplayRate;
 
 				int dir = 0;
 				ImGui::TableNextColumn();
@@ -546,8 +546,8 @@ void	SndhArchivePlayer::UpdateImGui()
 	if (m_sndh.GetSndhFile())
 	{
 		const SndhRenderer::SongInfo& si = m_sndh.GetSndhFile()->GetSongInfo();
-		rdata = si.rawBinaryPlayer;
-		rdatasize = si.rawBinaryPlayerSize;
+		rdata = si.rawBinaryData;
+		rdatasize = si.rawBinaryDataSize;
 	}
 	mem_edit.DrawWindow(kWndFileViewer, (void*)rdata, rdatasize);
 
