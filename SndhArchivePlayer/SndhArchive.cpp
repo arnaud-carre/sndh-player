@@ -53,8 +53,8 @@ bool SndhArchive::LoadZipEntry(int itemId, int workerId)
 			if (sr)		// dummy host replay rate
 			{
 				const AtariAudioRenderer::SongInfo& si = sr->GetSongInfo();
-				item.author = si.musicAuthor ? _strdup(si.musicAuthor) : _strdup("Not defined");
-				item.title = si.musicName ? _strdup(si.musicName) : _strdup(fname);
+				item.author = si.musicAuthor[0] ? _strdup(si.musicAuthor) : _strdup("Not defined");
+				item.title = si.musicName[0] ? _strdup(si.musicName) : _strdup(fname);
 				uint32_t totalLenSample = 0;
 				for (int s = 0; s < si.subsongCount; s++)
 					totalLenSample += sr->GetSubsongDurationSample(s + 1);
