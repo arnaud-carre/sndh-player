@@ -1,6 +1,6 @@
 #pragma once
 
-#define	SNDH_ARCHIVE_PLAYER_VERSION	"1.09"
+#define	SNDH_ARCHIVE_PLAYER_VERSION	"1.10"
 
 #include <stdint.h>
 #include "../AtariAudio/src/AtariAudio.h"

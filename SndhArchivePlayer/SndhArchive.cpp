@@ -291,7 +291,7 @@ void	SndhArchive::ImGuiDraw(SndhArchivePlayer& player)
 			}
 			else
 			{
-				ImGui::Text("Please drop a large SNDH Archive .zip file here!");
+				ImGui::Text("You can directly drop a large ZIP Archive full of thousand of SNDH or YM files here!");
 				if (ImGui::Button("(you can get some from https://sndh.atari.org/download.php)"))
 				{
 					OsOpenInShell("https://sndh.atari.org/download.php");

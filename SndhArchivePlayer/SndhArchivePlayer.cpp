@@ -494,12 +494,12 @@ void	SndhArchivePlayer::UpdateImGui()
 
 		if (ImGui::BeginPopupModal("About", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			DrawTextCentered("SNDH Archive Player v" SNDH_ARCHIVE_PLAYER_VERSION);
+			DrawTextCentered("SNDH & YM Archive Player v" SNDH_ARCHIVE_PLAYER_VERSION);
 			ImGui::Separator();
 			extern void OsOpenInShell(const char* path);
 
 			ImGui::Text("\n");
-			DrawTextCentered("Accurate & fast ATARI SNDH player");
+			DrawTextCentered("Accurate & fast ATARI SNDH & YM player");
 			DrawTextCentered("Written by Leonard/Oxygene");
 			if (CenteredButton("GitHub Repository"))
 				OsOpenInShell("https://github.com/arnaud-carre/sndh-player");
