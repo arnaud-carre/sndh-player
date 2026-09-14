@@ -1,7 +1,9 @@
 # SNDH and YM Archive Player v1.11
 ATARI-ST SNDH & YM ZIP Archive music browser/player by [Leonard/Oxygene](https://twitter.com/leonard_coder)
 
-You can directly drop a large ZIP archive full of thousand of SNDH or YM files in the player! (get a [100MiB SNDH archive here!](https://sndh.atari.org/download.php))
+You can directly drop a large ZIP archive full of thousands of SNDH and YM files into the player! (Get a [100 MiB SNDH archive here!](https://sndh.atari.org/download.php))
+
+This player also supports immediate seeking in any .sndh or .ym file by clicking on the time bar
 
 Powered by [AtariAudio](https://github.com/arnaud-carre/AtariAudio)
 
@@ -39,14 +41,13 @@ Powered by [AtariAudio](https://github.com/arnaud-carre/AtariAudio)
 - v0.20 : SNDH music are time seekable! enjoy!
 - v0.10 : first version
 
-# Simple AtariAudio library
-
-if you need to add SNDH music in your own code just use the simple [AtariAudio library](https://github.com/arnaud-carre/AtariAudio). It doesn't need any external lib, and should compile on tiny plaform (doesn't even need float support). 
-
 # Why?
 While having fun writing a YM7 format player on embeded device, I started to re-write my 30 years old ym2149 emulation (StSound). The new emulation is more accurate and source code is really simple.
-To be able to properly test new emulatior (ym2149, mfp & STE DAC), I wrote a SNDH player (using great Musashi 68k emulator) to listen to thousands of SNDH files from sndh.atari.org.
-You can use this library to play SNDH in your own player. Everything is in AtariAudio/ directory
+To be able to properly test new emulatior (ym2149, mfp & STE DAC), I wrote a this player (using great Musashi 68k emulator) to listen to thousands of atari files from sndh.atari.org.
+
+# Simple AtariAudio library
+
+if you need to add Atari .sndh or .ym music in your own code just use the simple [AtariAudio library](https://github.com/arnaud-carre/AtariAudio). It doesn't need any external lib, and should compile on tiny plaform (doesn't even need float support). 
 
 # Drop single large ZIP file and enjoy
 Just drop the latest 100MiB SNDH ZIP archive file downloaded from awesome [SNDH-YM2149 Archive website](https://sndh.atari.org/download.php) and start to browse & play!
