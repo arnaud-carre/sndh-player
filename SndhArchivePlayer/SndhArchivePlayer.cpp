@@ -382,13 +382,8 @@ void	SndhArchivePlayer::UpdateImGui()
 
 			// Flèche compacte
 			if (ImGui::ArrowButton("##details_arrow", dir))
-			{
 				showDetails = !showDetails;
-			}
-/*
-			if (ImGui::IsItemHovered())
-				ImGui::SetTooltip(showDetails ? "Hide details" : "Show details");
-*/
+
 			ImGui::SameLine();
 
 			if (ImGui::BeginTable("song", 2, ImGuiTableFlags_SizingFixedFit))

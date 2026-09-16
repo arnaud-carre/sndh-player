@@ -27,6 +27,7 @@ public:
 	bool	LoadNewMusic(const char* sFilename);
 	void	Shutdown();
 	void	PlayZipEntry(SndhArchive& sndhArchive, int zipIndex);
+	int 	GetPlayingZipEntry() const { return m_currentZipIndex; };
 
 private:
 	bool	StartSubsong(int subsong);

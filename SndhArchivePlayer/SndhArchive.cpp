@@ -244,7 +244,7 @@ void	SndhArchive::ImGuiDraw(SndhArchivePlayer& player)
 					// Demonstrate using clipper for large vertical lists
 					ImGuiListClipper clipper;
 					clipper.Begin(count);
-					static int selectedZipIndex = -1;
+					int selectedZipIndex = player.GetPlayingZipEntry();
 					while (clipper.Step())
 					{
 						for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; row++)
