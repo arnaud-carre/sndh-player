@@ -347,27 +347,111 @@ void	SndhArchivePlayer::UpdateImGui()
 		const AtariAudioRenderer* sf = m_sndh.GetSndhFile();
 		if (sf)	// if sndh file isn't loaded, subsongCount would be 0
 		{
+			static bool showDetails = false;
 			const SndhRenderer::SongInfo& info = sf->GetSongInfo();
-			if (ImGui::BeginTable("song", 2, ImGuiTableFlags_NoBordersInBody))
+
+/*
+			// Optionnel : Survol avec bulle d'aide
+			if (ImGui::IsItemHovered()) {
+				ImGui::SetTooltip(showDetails ? "Masquer les détails" : "Afficher plus de détails");
+			}
+			*/
+/*
+			// 3. Affichage conditionnel des détails (aucun TreePop requis !)
+			if (showDetails) {
+				ImGui::Separator(); // Petite ligne de séparation propre
+    
+				// Un tableau léger pour aligner proprement les informations
+				if (ImGui::BeginTable("details_table", 2, ImGuiTableFlags_SizingFixedFit)) {
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::TextDisabled("Année :");
+					ImGui::TableNextColumn(); ImGui::Text("%s", info.year);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::TextDisabled("Système :");
+					ImGui::TableNextColumn(); ImGui::Text("%s", info.converter);
+
+					ImGui::EndTable();
+				}
+				ImGui::Separator();
+			}
+			*/
+
+			// 2. Première ligne : Petite flèche + texte "Détails" juste à côté
+			ImGuiDir dir = showDetails ? ImGuiDir_Down : ImGuiDir_Right;
+
+			// Flèche compacte
+			if (ImGui::ArrowButton("##details_arrow", dir))
+			{
+				showDetails = !showDetails;
+			}
+/*
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip(showDetails ? "Hide details" : "Show details");
+*/
+			ImGui::SameLine();
+
+			if (ImGui::BeginTable("song", 2, ImGuiTableFlags_SizingFixedFit))
 			{
 				ImGui::TableSetupColumn("info", ImGuiTableColumnFlags_WidthFixed, 80.0f);
 
 				const uint32_t len = sf->GetSubsongDurationSample(m_currentSubSong) / kHostReplayRate;
 
 				int dir = 0;
+
 				ImGui::TableNextColumn();
-				ImGui::TextUnformatted("Song name:");
+				ImGui::TextDisabled("Song name:");
 				ImGui::TableNextColumn();
 				ImGui::Text("%s (%d:%02d)", info.musicName, len / 60, len % 60);
 
 				ImGui::TableNextColumn();
-				ImGui::TextUnformatted("Author:");
+				ImGui::TextDisabled("Author:");
 				ImGui::TableNextColumn();
-				if (info.year)
+				if ((info.year[0]) && (!showDetails))
 					ImGui::Text("%s (%s)", info.musicAuthor, info.year);
 				else
 					ImGui::TextUnformatted(info.musicAuthor);
+				ImGui::TableNextColumn();
 
+				if (showDetails)
+				{
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::TextDisabled("File type:");
+					ImGui::TableNextColumn(); ImGui::Text("%s", info.fileFormat);
+					if (info.fileType == AtariAudioRenderer::eFileType::eSndh)
+					{
+						ImGui::TableNextRow();
+						ImGui::TableNextColumn(); ImGui::TextDisabled("Year:");
+						ImGui::TableNextColumn(); ImGui::Text("%s", info.year);
+						ImGui::TableNextRow();
+						ImGui::TableNextColumn(); ImGui::TextDisabled("Converter:");
+						ImGui::TableNextColumn(); ImGui::Text("%s", info.converter);
+						ImGui::TableNextRow();
+						ImGui::TableNextColumn(); ImGui::TextDisabled("Ripper:");
+						ImGui::TableNextColumn(); ImGui::Text("%s", info.ripper);
+					}
+					else
+					{
+						ImGui::TableNextRow();
+						ImGui::TableNextColumn(); ImGui::TextDisabled("Comment:");
+						ImGui::TableNextColumn(); ImGui::Text("%s", info.converter);
+					}
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::TextDisabled("Player rate:");
+					ImGui::TableNextColumn(); ImGui::Text("%d Hz", info.playerTickRate);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::TextDisabled("YM2149 Clock:");
+					ImGui::TableNextColumn(); ImGui::Text("%d Hz", info.ym2149Clock);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::TextDisabled("File size:");
+					ImGui::TableNextColumn(); ImGui::Text("%d bytes", info.rawBinaryDataSize);
+				}
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Separator();
+				ImGui::TableNextColumn(); ImGui::Separator();
+
+				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
 				ImGui::TextUnformatted("Sub-tune:");
 				ImGui::TableNextColumn();
@@ -450,7 +534,17 @@ void	SndhArchivePlayer::UpdateImGui()
 				}
 
 				ImGui::EndTable();
+				ImGui::Separator();
 
+/*
+				if (ImGui::TreeNode("Details"))
+				{
+					ImGui::Text("Year: %s", info.year);
+					ImGui::Text("Comment: %s", info.converter);
+  
+					ImGui::TreePop(); // MUST be called if TreeNode returns true!
+				}
+				*/
 				if (pendingNextZipIndex == -1)
 				{
 					m_sndh.DrawGui(info.musicName);
