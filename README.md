@@ -1,4 +1,4 @@
-# SNDH and YM Archive Player v1.12
+# SNDH and YM Archive Player v1.13
 ATARI-ST SNDH & YM ZIP Archive music browser/player by [Leonard/Oxygene](https://twitter.com/leonard_coder)
 
 You can directly drop a large ZIP archive full of thousands of SNDH and YM files into the player! (Get a [100 MiB SNDH archive here!](https://sndh.atari.org/download.php))
@@ -11,6 +11,7 @@ Powered by [AtariAudio](https://github.com/arnaud-carre/AtariAudio)
 
 # Versions
 
+- v1.13 : Use AtariAudio 1.24
 - v1.12 : Use AtariAudio 1.23
 - v1.11 : Use AtariAudio 1.22
 - v1.10 : Now supports both .sndh and .ym files! (thanks to AtariAudio 1.20)
