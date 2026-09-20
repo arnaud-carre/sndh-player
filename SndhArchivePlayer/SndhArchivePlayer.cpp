@@ -388,16 +388,20 @@ void	SndhArchivePlayer::UpdateImGui()
 
 			if (ImGui::BeginTable("song", 2, ImGuiTableFlags_SizingFixedFit))
 			{
-				ImGui::TableSetupColumn("info", ImGuiTableColumnFlags_WidthFixed, 80.0f);
+//				ImGui::TableSetupColumn("info", ImGuiTableColumnFlags_WidthFixed, 80.0f);
 
-				const uint32_t len = sf->GetSubsongDurationSample(m_currentSubSong) / kHostReplayRate;
+				const uint32_t lenSample = sf->GetSubsongDurationSample(m_currentSubSong);
+				const uint32_t lenMs = sf->SampleToMs(lenSample);
 
 				int dir = 0;
 
 				ImGui::TableNextColumn();
 				ImGui::TextDisabled("Song name:");
 				ImGui::TableNextColumn();
-				ImGui::Text("%s (%d:%02d)", info.musicName, len / 60, len % 60);
+				if (!showDetails)
+					ImGui::Text("%s (%d:%02d)", info.musicName, (lenMs/1000) / 60, (lenMs/1000) % 60);
+				else
+					ImGui::Text("%s", info.musicName);
 
 				ImGui::TableNextColumn();
 				ImGui::TextDisabled("Author:");
@@ -411,34 +415,40 @@ void	SndhArchivePlayer::UpdateImGui()
 				if (showDetails)
 				{
 					ImGui::TableNextRow();
-					ImGui::TableNextColumn(); ImGui::TextDisabled("File type:");
+					ImGui::TableNextColumn(); ImGui::TextDisabled("Duration");
+					ImGui::TableNextColumn(); ImGui::Text("%d:%02d.%03d", (lenMs/1000) / 60, (lenMs/1000) % 60, lenMs%1000);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::TextDisabled("File type");
 					ImGui::TableNextColumn(); ImGui::Text("%s", info.fileFormat);
 					if (info.fileType == AtariAudioRenderer::eFileType::eSndh)
 					{
 						ImGui::TableNextRow();
-						ImGui::TableNextColumn(); ImGui::TextDisabled("Year:");
+						ImGui::TableNextColumn(); ImGui::TextDisabled("Year");
 						ImGui::TableNextColumn(); ImGui::Text("%s", info.year);
 						ImGui::TableNextRow();
-						ImGui::TableNextColumn(); ImGui::TextDisabled("Converter:");
+						ImGui::TableNextColumn(); ImGui::TextDisabled("Converter");
 						ImGui::TableNextColumn(); ImGui::Text("%s", info.converter);
 						ImGui::TableNextRow();
-						ImGui::TableNextColumn(); ImGui::TextDisabled("Ripper:");
+						ImGui::TableNextColumn(); ImGui::TextDisabled("Ripper");
 						ImGui::TableNextColumn(); ImGui::Text("%s", info.ripper);
 					}
 					else
 					{
 						ImGui::TableNextRow();
-						ImGui::TableNextColumn(); ImGui::TextDisabled("Comment:");
+						ImGui::TableNextColumn(); ImGui::TextDisabled("Comment");
 						ImGui::TableNextColumn(); ImGui::Text("%s", info.converter);
 					}
 					ImGui::TableNextRow();
-					ImGui::TableNextColumn(); ImGui::TextDisabled("Player rate:");
-					ImGui::TableNextColumn(); ImGui::Text("%d Hz", info.playerTickRate);
+					ImGui::TableNextColumn(); ImGui::TextDisabled("Player rate");
+					ImGui::TableNextColumn(); ImGui::Text("%dHz", info.playerTickRate);
 					ImGui::TableNextRow();
-					ImGui::TableNextColumn(); ImGui::TextDisabled("YM2149 Clock:");
-					ImGui::TableNextColumn(); ImGui::Text("%d Hz", info.ym2149Clock);
+					ImGui::TableNextColumn(); ImGui::TextDisabled("YM2149 Clock");
+					ImGui::TableNextColumn(); ImGui::Text("%.3fMHz", float(info.ym2149Clock)/1000000.f);
 					ImGui::TableNextRow();
-					ImGui::TableNextColumn(); ImGui::TextDisabled("File size:");
+					ImGui::TableNextColumn(); ImGui::TextDisabled("Output Rate");
+					ImGui::TableNextColumn(); ImGui::Text("%.1fkHz", float(info.hostReplayRate)/1000.f);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::TextDisabled("Data size");
 					ImGui::TableNextColumn(); ImGui::Text("%d bytes", info.rawBinaryDataSize);
 				}
 
