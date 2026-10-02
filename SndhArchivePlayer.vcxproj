@@ -34,8 +34,8 @@
     <ClCompile Include="AtariAudio\src\ym2149c.cpp" />
     <ClCompile Include="AtariAudio\src\YmRenderer.cpp" />
     <ClCompile Include="SndhArchivePlayer\AsyncSndhStream.cpp" />
-    <ClCompile Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_dx11.cpp" />
-    <ClCompile Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_win32.cpp" />
+    <ClCompile Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_glfw.cpp" />
     <ClCompile Include="SndhArchivePlayer\extern\imgui\imgui.cpp" />
     <ClCompile Include="SndhArchivePlayer\extern\imgui\imgui_demo.cpp" />
     <ClCompile Include="SndhArchivePlayer\extern\imgui\imgui_draw.cpp" />
@@ -43,6 +43,69 @@
     <ClCompile Include="SndhArchivePlayer\extern\imgui\imgui_widgets.cpp" />
     <ClCompile Include="SndhArchivePlayer\extern\zip\src\zip.c" />
     <ClCompile Include="SndhArchivePlayer\jobSystem.cpp" />
+    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\context.c">
+      <PreprocessorDefinitions>_GLFW_WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\init.c">
+      <PreprocessorDefinitions>_GLFW_WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\input.c">
+      <PreprocessorDefinitions>_GLFW_WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\monitor.c">
+      <PreprocessorDefinitions>_GLFW_WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\platform.c">
+      <PreprocessorDefinitions>_GLFW_WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\vulkan.c">
+      <PreprocessorDefinitions>_GLFW_WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\window.c">
+      <PreprocessorDefinitions>_GLFW_WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\egl_context.c">
+      <PreprocessorDefinitions>_GLFW_WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\osmesa_context.c">
+      <PreprocessorDefinitions>_GLFW_WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\null_init.c">
+      <PreprocessorDefinitions>_GLFW_WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\null_monitor.c">
+      <PreprocessorDefinitions>_GLFW_WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\null_window.c">
+      <PreprocessorDefinitions>_GLFW_WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\null_joystick.c">
+      <PreprocessorDefinitions>_GLFW_WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\win32_module.c">
+      <PreprocessorDefinitions>_GLFW_WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\win32_time.c">
+      <PreprocessorDefinitions>_GLFW_WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\win32_thread.c">
+      <PreprocessorDefinitions>_GLFW_WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\win32_init.c">
+      <PreprocessorDefinitions>_GLFW_WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\win32_joystick.c">
+      <PreprocessorDefinitions>_GLFW_WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\win32_monitor.c">
+      <PreprocessorDefinitions>_GLFW_WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\win32_window.c">
+      <PreprocessorDefinitions>_GLFW_WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\wgl_context.c">
+      <PreprocessorDefinitions>_GLFW_WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
     <ClCompile Include="SndhArchivePlayer\main.cpp" />
     <ClCompile Include="SndhArchivePlayer\SndhArchive.cpp" />
     <ClCompile Include="SndhArchivePlayer\SndhArchivePlayer.cpp" />
@@ -68,8 +131,9 @@
     <ClInclude Include="AtariAudio\src\ym2149_tables.h" />
     <ClInclude Include="AtariAudio\src\YmRenderer.h" />
     <ClInclude Include="SndhArchivePlayer\AsyncSndhStream.h" />
-    <ClInclude Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_dx11.h" />
-    <ClInclude Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_win32.h" />
+    <ClInclude Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_opengl3.h" />
+    <ClInclude Include="SndhArchivePlayer\extern\glfw\include\GLFW\glfw3.h" />
+    <ClInclude Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_glfw.h" />
     <ClInclude Include="SndhArchivePlayer\extern\imgui\imconfig.h" />
     <ClInclude Include="SndhArchivePlayer\extern\imgui\imgui.h" />
     <ClInclude Include="SndhArchivePlayer\extern\imgui\imgui_internal.h" />
@@ -179,13 +243,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\SndhArchivePlayer\extern\imgui\backends;$(SolutionDir)\SndhArchivePlayer\extern\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\SndhArchivePlayer\extern\imgui\backends;$(SolutionDir)\SndhArchivePlayer\extern\glfw\include;$(SolutionDir)\SndhArchivePlayer\extern\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);d3d11.lib</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);opengl32.lib;gdi32.lib;shell32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -196,16 +261,17 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\SndhArchivePlayer\extern\imgui\backends;$(SolutionDir)\SndhArchivePlayer\extern\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\SndhArchivePlayer\extern\imgui\backends;$(SolutionDir)\SndhArchivePlayer\extern\glfw\include;$(SolutionDir)\SndhArchivePlayer\extern\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);d3d11.lib</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);opengl32.lib;gdi32.lib;shell32.lib</AdditionalDependencies>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
