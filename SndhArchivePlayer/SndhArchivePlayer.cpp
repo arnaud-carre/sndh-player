@@ -581,7 +581,7 @@ void	SndhArchivePlayer::UpdateImGui()
 
 		{
 			static char sBuf[128];
-			sprintf_s(sBuf, "Default duration: %d min", gDefaultDurationInMin);
+			sprintf(sBuf, "Default duration: %d min", gDefaultDurationInMin);
 			if (ImGui::Button(sBuf))
 				ImGui::OpenPopup("my_select_popup");
 			if (ImGui::BeginPopup("my_select_popup"))
