@@ -1,4 +1,4 @@
-name: Windows x64 build
+name: Windows and macOS build
 
 on:
   push:
@@ -10,11 +10,12 @@ permissions:
 
 jobs:
   build:
-    name: Windows x64 (${{ matrix.configuration }})
-    runs-on: windows-2022
+    name: ${{ matrix.os }} (${{ matrix.configuration }})
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        os: [windows-2022, macos-latest]
         configuration: [Debug, Release]
 
     steps:
@@ -24,8 +25,13 @@ jobs:
           submodules: recursive
           persist-credentials: false
 
-      - name: Configure
+      - name: Configure Windows x64
+        if: runner.os == 'Windows'
         run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+
+      - name: Configure macOS
+        if: runner.os == 'macOS'
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.configuration }}
 
       - name: Build
         run: cmake --build build --config ${{ matrix.configuration }} --parallel
