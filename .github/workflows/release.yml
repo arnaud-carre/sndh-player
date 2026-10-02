@@ -1,0 +1,56 @@
+name: release
+
+on:
+  push:
+    tags:
+      - '**'
+
+permissions:
+  contents: read
+
+jobs:
+  macos-intel:
+    name: macOS Intel Release
+    if: github.event.created == true
+    runs-on: macos-15-intel
+    permissions:
+      contents: write
+    concurrency:
+      group: release-${{ github.ref }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Configure macOS Intel
+        run: >-
+          cmake -S . -B build -G "Unix Makefiles"
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_OSX_ARCHITECTURES=x86_64
+          -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Package executable
+        run: |
+          test -x build/SndhArchivePlayer
+          zip -j SndhPlayer-macOS-intel.zip build/SndhArchivePlayer
+          unzip -l SndhPlayer-macOS-intel.zip
+
+      - name: Publish GitHub Release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" SndhPlayer-macOS-intel.zip --clobber
+          else
+            gh release create "$RELEASE_TAG" SndhPlayer-macOS-intel.zip \
+              --verify-tag --title "$RELEASE_TAG" --generate-notes
+          fi
