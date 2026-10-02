@@ -10,12 +10,20 @@ permissions:
 
 jobs:
   build:
-    name: ${{ matrix.os }} (${{ matrix.configuration }})
-    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.platform.name }} (${{ matrix.configuration }})
+    runs-on: ${{ matrix.platform.runner }}
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2022, macos-latest]
+        platform:
+          - name: Windows x64
+            runner: windows-2022
+          - name: macOS ARM64
+            runner: macos-latest
+            architecture: arm64
+          - name: macOS Intel x64
+            runner: macos-15-intel
+            architecture: x86_64
         configuration: [Debug, Release]
 
     steps:
@@ -31,7 +39,7 @@ jobs:
 
       - name: Configure macOS
         if: runner.os == 'macOS'
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.configuration }}
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.configuration }} -DCMAKE_OSX_ARCHITECTURES=${{ matrix.platform.architecture }} -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0
 
       - name: Build
         run: cmake --build build --config ${{ matrix.configuration }} --parallel
