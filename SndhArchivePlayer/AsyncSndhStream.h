@@ -1,10 +1,9 @@
 #pragma once
 #include <stdint.h>
-#include <windows.h>
-#include <mmsystem.h>
 #include <thread>
 #include <atomic>
 #include "../AtariAudio/src/AtariAudio.h"
+#include "AudioStream.h"
 
 static const int kHostReplayRate = 48000;
 
@@ -53,8 +52,7 @@ private:
 	};
 
 	std::atomic<int> playOffsetInSec;
-	HWAVEOUT	m_waveOutHandle;
-	WAVEHDR		m_waveHeader;
+	AudioStream m_audioStream;
 	int16_t*	m_audioBuffer;
 	uint32_t*	m_audioDebugBuffer;
 	uint32_t	m_replayRate;

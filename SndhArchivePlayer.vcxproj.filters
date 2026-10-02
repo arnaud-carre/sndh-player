@@ -180,6 +180,9 @@
     <ClCompile Include="AtariAudio\src\Blitter.cpp">
       <Filter>Source Files\AtariAudio</Filter>
     </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\AudioStream.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SndhArchivePlayer\SndhArchive.h">
@@ -286,6 +289,9 @@
     </ClInclude>
     <ClInclude Include="AtariAudio\src\Blitter.h">
       <Filter>Source Files\AtariAudio</Filter>
+    </ClInclude>
+    <ClInclude Include="SndhArchivePlayer\AudioStream.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

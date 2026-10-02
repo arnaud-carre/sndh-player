@@ -4,7 +4,6 @@
 #include "imgui.h"
 #include "WavWriter.h"
 
-#pragma	comment(lib,"winmm.lib")
 
 static const uint32_t kMaxSongDurationSample = 60 * 60*kHostReplayRate;		// clamp max pre-rendering music time to 1 hour
 
@@ -46,9 +45,7 @@ void AsyncSndhStream::CloseSubsong()
 
 	if (m_audioBuffer)
 	{
-		waveOutUnprepareHeader(m_waveOutHandle, &m_waveHeader, sizeof(WAVEHDR));
-		waveOutReset(m_waveOutHandle);
-		waveOutClose(m_waveOutHandle);
+		m_audioStream.Stop();
 
 		free(m_audioBuffer);
 		free(m_audioDebugBuffer);
@@ -87,7 +84,7 @@ void AsyncSndhStream::AsyncWorkerFunction()
 		m_asyncInfo.sndh->AudioRenderWithVisualInfos(m_audioBuffer + m_asyncInfo.fillPos, todo, m_audioDebugBuffer + m_asyncInfo.fillPos);
 		m_asyncInfo.fillPos += todo;
 	}
-
+	#if 0
 	// Poll for end-of-song here (rather than in DrawGui) so Continuous/Random advance
 	// even while the window is unfocused, where ImGui rendering is throttled.
 	while (!m_asyncInfo.forceQuit)
@@ -111,6 +108,8 @@ void AsyncSndhStream::AsyncWorkerFunction()
 		m_paused = true;
 		break;
 	}
+	// TODO[arnaud]
+	#endif
 }
 
 bool AsyncSndhStream::StartSubsong(int subSongId, int durationByDefaultInSec)
@@ -146,22 +145,10 @@ bool AsyncSndhStream::StartSubsong(int subSongId, int durationByDefaultInSec)
 	pcmwf.nAvgBytesPerSec = pcmwf.nSamplesPerSec * pcmwf.nBlockAlign;
 	pcmwf.cbSize = 0;
 
-	MMRESULT hr = waveOutOpen(&m_waveOutHandle, WAVE_MAPPER, &pcmwf, 0, 0, 0);
-	if (hr != MMSYSERR_NOERROR)
-		return false;
-
 	assert(NULL == m_audioBuffer);
 	assert(NULL == m_audioDebugBuffer);
 	m_audioBuffer = (int16_t*)malloc(m_exactSongSamples*sizeof(int16_t));
 	m_audioDebugBuffer = (uint32_t*)malloc(m_exactSongSamples*sizeof(uint32_t));
-
-	m_waveHeader.dwFlags = 0; // WHDR_BEGINLOOP | WHDR_ENDLOOP;
-	m_waveHeader.lpData = (LPSTR)m_audioBuffer;
-	m_waveHeader.dwBufferLength = m_exactSongSamples * sizeof(int16_t);
-	m_waveHeader.dwBytesRecorded = 0;
-	m_waveHeader.dwUser = 0;
-	m_waveHeader.dwLoops = -1;
-	waveOutPrepareHeader(m_waveOutHandle, &m_waveHeader, sizeof(WAVEHDR));
 
 	// Generate first second of music
 	const uint32_t firstChunkSize = (m_exactSongSamples >= m_replayRate) ? m_replayRate : m_exactSongSamples;
@@ -176,7 +163,8 @@ bool AsyncSndhStream::StartSubsong(int subSongId, int durationByDefaultInSec)
 
 	// start the replay
 	playOffsetInSec = 0;
-	waveOutWrite(m_waveOutHandle, &m_waveHeader, sizeof(WAVEHDR));
+
+	m_audioStream.Start(m_audioBuffer, m_exactSongSamples, m_replayRate);
 
 	return true;
 }
@@ -186,18 +174,13 @@ int AsyncSndhStream::GetReplayPosInSec() const
 	if (NULL == m_audioBuffer)
 		return 0;
 
-	MMTIME mmt;
-	mmt.wType = TIME_SAMPLES;
-	if (MMSYSERR_NOERROR != waveOutGetPosition(m_waveOutHandle, &mmt, sizeof(MMTIME)))
-		return playOffsetInSec;
-
-	uint32_t posInSample = mmt.u.sample + (playOffsetInSec * m_replayRate);
+	uint32_t posSample = m_audioStream.GetSpeakerPositionSample();
 
 	// Clip so the reported position never overshoots the exact song length
-	if (posInSample > m_exactSongSamples)
-		posInSample = m_exactSongSamples;
+	if (posSample > m_exactSongSamples)
+		posSample = m_exactSongSamples;
 
-	return int(posInSample / m_replayRate);
+	return int(posSample / m_replayRate);
 }
 
 void AsyncSndhStream::SetReplayPosInSec(int pos)
@@ -209,25 +192,9 @@ void AsyncSndhStream::SetReplayPosInSec(int pos)
 	if (spos >= m_exactSongSamples)
 		return;
 
-	// Stupid Microsoft WaveOut API doesn't have "SetPosition"!!! So stop replay, create a new block and start it
-	waveOutUnprepareHeader(m_waveOutHandle, &m_waveHeader, sizeof(WAVEHDR));
-	waveOutReset(m_waveOutHandle);
-
-	playOffsetInSec = pos;
-
-	m_waveHeader.dwFlags = 0; // WHDR_BEGINLOOP | WHDR_ENDLOOP;
-	m_waveHeader.lpData = (LPSTR)(m_audioBuffer + spos);
-	m_waveHeader.dwBufferLength = (m_exactSongSamples - spos)*sizeof(int16_t);
-	m_waveHeader.dwBytesRecorded = 0;
-	m_waveHeader.dwUser = 0;
-	m_waveHeader.dwLoops = -1;
-	waveOutPrepareHeader(m_waveOutHandle, &m_waveHeader, sizeof(WAVEHDR));
-
-	// start replay
-	waveOutWrite(m_waveOutHandle, &m_waveHeader, sizeof(WAVEHDR));
+	m_audioStream.SetPositionSample(spos);
 
 	m_paused = false;
-
 }
 
 const int16_t* AsyncSndhStream::GetDisplaySampleData(int sampleCount, uint32_t** ppDebugView) const
@@ -235,12 +202,8 @@ const int16_t* AsyncSndhStream::GetDisplaySampleData(int sampleCount, uint32_t**
 	if (NULL == m_audioBuffer)
 		return NULL;
 
-	MMTIME mmt;
-	mmt.wType = TIME_SAMPLES;
-	if (MMSYSERR_NOERROR != waveOutGetPosition(m_waveOutHandle, &mmt, sizeof(MMTIME)))
-		return NULL;
+	const uint32_t posInSample = m_audioStream.GetSpeakerPositionSample();
 
-	const uint32_t posInSample = mmt.u.sample + playOffsetInSec * m_replayRate;
 	if (posInSample + sampleCount > m_exactSongSamples)
 		return NULL;
 
@@ -328,6 +291,7 @@ void	AsyncSndhStream::DrawGui(const char* musicName)
 
 	ImGui::EndDisabled();
 
+	#if 0
 	// Loop mode only: seamless restart when song ends (Continuous/Random are handled
 	// by the background worker thread so they work even when the app is unfocused)
 	if (m_playMode == PlayMode_Loop && !m_paused)
@@ -341,6 +305,7 @@ void	AsyncSndhStream::DrawGui(const char* musicName)
 				SetReplayPosInSec(0);
 		}
 	}
+	#endif
 }
 
 void AsyncSndhStream::Pause(bool pause)
@@ -348,9 +313,6 @@ void AsyncSndhStream::Pause(bool pause)
 	if (NULL == m_audioBuffer)
 		return;
 
-	if ( pause )
-		waveOutPause(m_waveOutHandle);
-	else
-		waveOutRestart(m_waveOutHandle);
+	m_audioStream.SetPause(pause);
 }
 

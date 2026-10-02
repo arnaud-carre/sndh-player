@@ -34,6 +34,7 @@
     <ClCompile Include="AtariAudio\src\ym2149c.cpp" />
     <ClCompile Include="AtariAudio\src\YmRenderer.cpp" />
     <ClCompile Include="SndhArchivePlayer\AsyncSndhStream.cpp" />
+    <ClCompile Include="SndhArchivePlayer\AudioStream.cpp" />
     <ClCompile Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_opengl3.cpp" />
     <ClCompile Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_glfw.cpp" />
     <ClCompile Include="SndhArchivePlayer\extern\imgui\imgui.cpp" />
@@ -131,6 +132,7 @@
     <ClInclude Include="AtariAudio\src\ym2149_tables.h" />
     <ClInclude Include="AtariAudio\src\YmRenderer.h" />
     <ClInclude Include="SndhArchivePlayer\AsyncSndhStream.h" />
+    <ClInclude Include="SndhArchivePlayer\AudioStream.h" />
     <ClInclude Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_opengl3.h" />
     <ClInclude Include="SndhArchivePlayer\extern\glfw\include\GLFW\glfw3.h" />
     <ClInclude Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_glfw.h" />
