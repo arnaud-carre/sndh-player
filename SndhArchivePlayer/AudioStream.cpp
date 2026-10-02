@@ -2,13 +2,18 @@
 #include <stdint.h>
 #include "AudioStream.h"
 
-#ifdef _WIN32
-#pragma	comment(lib,"winmm.lib")
-
 AudioStream::AudioStream()
 {
 	m_pcmBuffer = nullptr;
 }
+
+AudioStream::~AudioStream()
+{
+	Stop();
+}
+
+#ifdef _WIN32
+#pragma	comment(lib,"winmm.lib")
 
 bool AudioStream::Start(const int16_t* pcmBuffer, uint32_t sampleCount, uint32_t replayRate)
 {

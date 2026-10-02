@@ -11,6 +11,7 @@ class	AudioStream
 public:
 
 	AudioStream();
+	~AudioStream();
 
 	bool Start(const int16_t* pcmBuffer, uint32_t sampleCount, uint32_t replayRate);
 	bool SetPause(bool pause);
