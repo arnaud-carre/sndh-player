@@ -289,20 +289,24 @@ void	SndhArchivePlayer::DropFile(const char* sFilename)
 		loadOk = LoadNewMusic(sFilename);
 	}
 
+	#if _WIN32	// toto[arnaud]
 	if (loadOk)
 	{
 		WritePrivateProfileStringA("SNDH-Archive-Player", "ArchiveFile", sFilename, ".\\SNDH_Archive.ini");
 	}
+	#endif
 }
 
 void	SndhArchivePlayer::Startup()
 {
-	char sFilename[_MAX_PATH];
+	#if _WIN32	// toto[arnaud]
+	char sFilename[kMAX_PATH];
 	DWORD nc = GetPrivateProfileStringA("SNDH-Archive-Player", "ArchiveFile", "", sFilename, _MAX_PATH, ".\\SNDH_Archive.ini");
 	if (nc > 0)
 	{
 		DropFile(sFilename);
 	}
+	#endif
 }
 
 static void DrawTextCentered(const char* text)

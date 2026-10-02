@@ -115,9 +115,15 @@ private:
 	{
 		const PlayListItem* a = (const PlayListItem*)arg1;
 		const PlayListItem* b = (const PlayListItem*)arg2;
+		#if _WIN32
 		int r = _stricmp(a->author, b->author);
 		if ( 0 == r )
 			r = _stricmp(a->title, b->title);
+		#else
+		int r = strcasecmp(a->author, b->author);
+		if ( 0 == r )
+			r = strcasecmp(a->title, b->title);
+		#endif
 		return r;
 	}
 

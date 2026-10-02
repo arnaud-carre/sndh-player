@@ -1,9 +1,10 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <assert.h>
+#include <stdlib.h>
 #include <string.h>
 #include "AsyncSndhStream.h"
 #include "imgui.h"
 #include "WavWriter.h"
-
 
 static const uint32_t kMaxSongDurationSample = 60 * 60*kHostReplayRate;		// clamp max pre-rendering music time to 1 hour
 
@@ -136,15 +137,6 @@ bool AsyncSndhStream::StartSubsong(int subSongId, int durationByDefaultInSec)
 	// keep reasonable buffer len
 	assert(uint64_t(m_exactSongSamples) * sizeof(int16_t) < 0x7fffffff);
 
-	WAVEFORMATEX	pcmwf;
-	pcmwf.wFormatTag = WAVE_FORMAT_PCM;
-	pcmwf.nChannels = 1;
-	pcmwf.wBitsPerSample = 16;
-	pcmwf.nBlockAlign = pcmwf.nChannels * pcmwf.wBitsPerSample / 8;
-	pcmwf.nSamplesPerSec = m_replayRate;
-	pcmwf.nAvgBytesPerSec = pcmwf.nSamplesPerSec * pcmwf.nBlockAlign;
-	pcmwf.cbSize = 0;
-
 	assert(NULL == m_audioBuffer);
 	assert(NULL == m_audioDebugBuffer);
 	m_audioBuffer = (int16_t*)malloc(m_exactSongSamples*sizeof(int16_t));
@@ -233,12 +225,12 @@ void	AsyncSndhStream::DrawGui(const char* musicName)
 	ImGui::BeginDisabled(m_asyncInfo.fillPos < m_exactSongSamples);
 	uint32_t lenInSec = m_exactSongSamples / m_replayRate;
 	char sLen[64];
-	sprintf_s(sLen, "%d:%02d", lenInSec / 60, lenInSec % 60);
+	sprintf(sLen, "%d:%02d", lenInSec / 60, lenInSec % 60);
 	static int pos;
 	pos = GetReplayPosInSec();
 
 	char sPos[64];
-	sprintf_s(sPos, "%d:%02d", pos / 60, pos % 60);
+	sprintf(sPos, "%d:%02d", pos / 60, pos % 60);
 
 	// Leave room on the right for the length text and the play-mode button
 	ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x - 110.0f);
@@ -267,14 +259,14 @@ void	AsyncSndhStream::DrawGui(const char* musicName)
 
 	if (musicName)
 	{
-		char sFilename[_MAX_PATH];
-		sprintf_s(sFilename, "%s.wav", musicName);
-		char dispName[_MAX_PATH];
+		char sFilename[kMAX_PATH];
+		sprintf(sFilename, "%s.wav", musicName);
+		char dispName[kMAX_PATH];
 		uint32_t sizeInMiB = (m_exactSongSamples * sizeof(int16_t) + (1 << 20) - 1) >> 20;
 		if ( m_saved )
-			sprintf_s(dispName, "\"%s\" saved", sFilename);
+			sprintf(dispName, "\"%s\" saved", sFilename);
 		else
-			sprintf_s(dispName, "Save \"%s\" (%d MiB)", sFilename, sizeInMiB);
+			sprintf(dispName, "Save \"%s\" (%d MiB)", sFilename, sizeInMiB);
 		ImGui::BeginDisabled(m_saved);
 		if (ImGui::Button(dispName))
 		{

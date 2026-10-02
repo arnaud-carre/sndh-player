@@ -6,6 +6,7 @@
 #include "AudioStream.h"
 
 static const int kHostReplayRate = 48000;
+static const int kMAX_PATH = 1024;
 
 class AsyncSndhStream
 {
