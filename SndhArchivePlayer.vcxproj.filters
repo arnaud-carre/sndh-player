@@ -111,6 +111,9 @@
     <ClCompile Include="AtariAudio\src\external\ice_24.cpp">
       <Filter>Source Files\AtariAudio\external</Filter>
     </ClCompile>
+    <ClCompile Include="AtariAudio\src\Blitter.cpp">
+      <Filter>Source Files\AtariAudio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SndhArchivePlayer\SndhArchive.h">
@@ -211,6 +214,9 @@
     </ClInclude>
     <ClInclude Include="AtariAudio\src\external\lzh.h">
       <Filter>Source Files\AtariAudio\external</Filter>
+    </ClInclude>
+    <ClInclude Include="AtariAudio\src\Blitter.h">
+      <Filter>Source Files\AtariAudio</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -384,6 +384,16 @@ void	SndhArchivePlayer::UpdateImGui()
 			if (ImGui::ArrowButton("##details_arrow", dir))
 				showDetails = !showDetails;
 
+			if (ImGui::IsItemHovered())
+			{
+				const char* tooltips[] = { "Mode: Single Track", "Mode: Loop Current", "Mode: Continuous Play", "Mode: Random Shuffle" };
+				if ( showDetails )
+					ImGui::SetTooltip("Hide details");
+				else
+					ImGui::SetTooltip("Show details");
+			}
+
+
 			ImGui::SameLine();
 
 			if (ImGui::BeginTable("song", 2, ImGuiTableFlags_SizingFixedFit))

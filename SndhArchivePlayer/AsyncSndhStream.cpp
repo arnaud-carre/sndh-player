@@ -6,6 +6,8 @@
 
 #pragma	comment(lib,"winmm.lib")
 
+static const uint32_t kMaxSongDurationSample = 60 * 60*kHostReplayRate;		// clamp max pre-rendering music time to 1 hour
+
 AsyncSndhStream::AsyncSndhStream()
 {
 	m_audioBuffer = nullptr;
@@ -128,6 +130,9 @@ bool AsyncSndhStream::StartSubsong(int subSongId, int durationByDefaultInSec)
 		// No length tag: fall back to the default duration, playing the full buffer
 		m_exactSongSamples = durationByDefaultInSec * m_replayRate;
 	}
+
+	if (m_exactSongSamples > kMaxSongDurationSample)
+		m_exactSongSamples = kMaxSongDurationSample;
 
 	// keep reasonable buffer len
 	assert(uint64_t(m_exactSongSamples) * sizeof(int16_t) < 0x7fffffff);
