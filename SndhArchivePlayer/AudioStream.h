@@ -24,6 +24,11 @@ public:
 	bool SetPositionSample(uint32_t posSample);
 	bool Stop();
 
+	#ifdef _WIN32
+	#else
+	bool InternalRenderCallback(AudioUnitRenderActionFlags* actionFlags, const AudioTimeStamp* timeStamp, UInt32 busNumber, UInt32 requestedFrames, AudioBufferList* ioData);
+	#endif
+
 private:
 	const int16_t* m_pcmBuffer;
 	uint32_t m_pcmSampleCount;
@@ -35,7 +40,6 @@ private:
 	WAVEHDR		m_waveHeader;
 #else
 	static OSStatus RenderCallback(void* refCon, AudioUnitRenderActionFlags* actionFlags, const AudioTimeStamp* timeStamp, UInt32 busNumber, UInt32 requestedFrames, AudioBufferList* ioData);
-	bool InternalRenderCallback(AudioUnitRenderActionFlags* actionFlags, const AudioTimeStamp* timeStamp, UInt32 busNumber, UInt32 requestedFrames, AudioBufferList* ioData);
 
 	size_t m_writePos;
 	AudioUnit m_audioUnit;
