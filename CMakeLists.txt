@@ -105,7 +105,7 @@ if(WIN32)
 elseif(APPLE)
     target_link_libraries(SndhArchivePlayer PRIVATE
         "-framework Cocoa" "-framework IOKit"
-        "-framework CoreFoundation" "-framework OpenGL"
+        "-framework CoreFoundation" "-framework OpenGL" "-framework AudioToolbox"
     )
 endif()
 
