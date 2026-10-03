@@ -1,3 +1,10 @@
+//-----------------------------------------------------------------
+//
+//	SndhArchivePlayer - play large zip archive of sndh or ym files
+//	Windows & macOS
+//	by Arnaud Carré aka Leonard/Oxygene (@leonard_coder)
+//
+//-----------------------------------------------------------------
 #include "SndhArchivePlayer.h"
 #include "SndhArchive.h"
 #include "jobSystem.h"
@@ -30,6 +37,15 @@ bool SndhArchive::JobZipItemComplete(void* user, int workerId)
 	return snd->LoadZipEnd();
 }
 
+static char* mp_strdup(const char* s)
+{
+	#if _WIN32
+	return _strdup(s);
+	#else
+	return strdup(s);
+	#endif
+}
+
 bool SndhArchive::LoadZipEntry(int itemId, int workerId)
 {
 	bool ret = false;
@@ -53,8 +69,8 @@ bool SndhArchive::LoadZipEntry(int itemId, int workerId)
 			if (sr)		// dummy host replay rate
 			{
 				const AtariAudioRenderer::SongInfo& si = sr->GetSongInfo();
-				item.author = si.musicAuthor[0] ? _strdup(si.musicAuthor) : _strdup("Not defined");
-				item.title = si.musicName[0] ? _strdup(si.musicName) : _strdup(fname);
+				item.author = si.musicAuthor[0] ? mp_strdup(si.musicAuthor) : mp_strdup("Not defined");
+				item.title = si.musicName[0] ? mp_strdup(si.musicName) : mp_strdup(fname);
 				uint32_t totalLenSample = 0;
 				for (int s = 0; s < si.subsongCount; s++)
 					totalLenSample += sr->GetSubsongDurationSample(s + 1);

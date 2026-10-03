@@ -1,12 +1,19 @@
+//-----------------------------------------------------------------
+//
+//	SndhArchivePlayer - play large zip archive of sndh or ym files
+//	Windows & macOS
+//	by Arnaud Carré aka Leonard/Oxygene (@leonard_coder)
+//
+//-----------------------------------------------------------------
 #pragma once
 #include <stdint.h>
-#include <windows.h>
-#include <mmsystem.h>
 #include <thread>
 #include <atomic>
 #include "../AtariAudio/src/AtariAudio.h"
+#include "AudioStream.h"
 
 static const int kHostReplayRate = 48000;
+static const int kMAX_PATH = 1024;
 
 class AsyncSndhStream
 {
@@ -32,7 +39,8 @@ public:
 	int GetReplayPosInSec() const;
 	const int16_t* GetDisplaySampleData(int sampleCount, uint32_t** ppDebugView = NULL) const;
 	PlayMode GetPlayMode() const { return m_playMode; }
-	bool ShouldAdvanceNext() { bool ret = m_advanceNext; m_advanceNext = false; return ret; }
+	bool SubsongReachedEnd() const { return m_audioStream.IsEndReached(); }
+	void SetReplayPosInSec(int pos);
 
 	void	DrawGui(const char* musicName);
 
@@ -40,7 +48,6 @@ public:
 	const AtariAudioRenderer* GetSndhFile() const { return m_asyncInfo.sndh; }
 
 private:
-	void SetReplayPosInSec(int pos);
 	void CloseSubsong();
 	void AsyncWorkerFunction();
 
@@ -53,8 +60,7 @@ private:
 	};
 
 	std::atomic<int> playOffsetInSec;
-	HWAVEOUT	m_waveOutHandle;
-	WAVEHDR		m_waveHeader;
+	AudioStream m_audioStream;
 	int16_t*	m_audioBuffer;
 	uint32_t*	m_audioDebugBuffer;
 	uint32_t	m_replayRate;
@@ -62,7 +68,6 @@ private:
 	std::atomic<bool> m_paused;
 	bool		m_saved;
 	std::atomic<PlayMode> m_playMode;
-	std::atomic<bool> m_advanceNext;
 
 	AsyncInfo m_asyncInfo;
 };

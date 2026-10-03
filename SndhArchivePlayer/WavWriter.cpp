@@ -1,3 +1,10 @@
+//-----------------------------------------------------------------
+//
+//	SndhArchivePlayer - play large zip archive of sndh or ym files
+//	Windows & macOS
+//	by Arnaud Carré aka Leonard/Oxygene (@leonard_coder)
+//
+//-----------------------------------------------------------------
 #define	_CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <stdlib.h>
