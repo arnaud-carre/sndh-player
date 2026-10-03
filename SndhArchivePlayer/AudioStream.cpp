@@ -175,7 +175,7 @@ static OSStatus RenderCallback(
 {
 
 	AudioStream& as = *static_cast<AudioStream*>(refCon);
-	bool ret = as.InternalRendererCallback(actionFlags, timeStamp, busNumber, requestedFrames, ioData);
+	bool ret = as.InternalRenderCallback(actionFlags, timeStamp, busNumber, requestedFrames, ioData);
 	return ret ? noErr : kAudio_ParamError;
 }
 
