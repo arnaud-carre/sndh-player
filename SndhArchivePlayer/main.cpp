@@ -1,3 +1,10 @@
+//-----------------------------------------------------------------
+//
+//	SndhArchivePlayer - play large zip archive of sndh or ym files
+//	Windows & macOS
+//	by Arnaud Carré aka Leonard/Oxygene (@leonard_coder)
+//
+//-----------------------------------------------------------------
 // Dear ImGui application using GLFW windowing and OpenGL 3 rendering.
 #include "imgui.h"
 #include "imgui_impl_glfw.h"

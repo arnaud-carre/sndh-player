@@ -1,3 +1,10 @@
+//-----------------------------------------------------------------
+//
+//	SndhArchivePlayer - play large zip archive of sndh or ym files
+//	Windows & macOS
+//	by Arnaud Carré aka Leonard/Oxygene (@leonard_coder)
+//
+//-----------------------------------------------------------------
 #include "SndhArchivePlayer.h"
 #include "SndhArchive.h"
 #include "jobSystem.h"
