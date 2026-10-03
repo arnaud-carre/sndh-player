@@ -134,14 +134,19 @@ bool AudioStream::InternalRenderCallback(AudioUnitRenderActionFlags* actionFlags
 
     AudioBuffer& buffer = ioData->mBuffers[0];
 
+
     if (!buffer.mData || buffer.mDataByteSize < bytes)
         return false;
 
-    const size_t available = m_pcmSampleCount - m_writePos;
+	const size_t writePos = m_writePos.load();
+    const size_t available = m_pcmSampleCount - writePos;
     const size_t copiedFrames = std::min(size_t(requestedFrames), available);
 
-    if (copiedFrames > 0)
-        std::memcpy(buffer.mData, m_pcmBuffer + m_writePos, copiedFrames * sizeof(int16_t));
+	if (copiedFrames > 0)
+	{
+		std::memcpy(buffer.mData, m_pcmBuffer + writePos, copiedFrames * sizeof(int16_t));
+		m_writePos.store(writePos + copiedFrames);
+	}
 
     // Fill the rest with silence, including after end of track.
     if (copiedFrames < requestedFrames)
@@ -152,7 +157,6 @@ bool AudioStream::InternalRenderCallback(AudioUnitRenderActionFlags* actionFlags
     }
 
     buffer.mDataByteSize = static_cast<UInt32>(requestedFrames*sizeof(int16_t));
-    m_writePos += copiedFrames;
 
     if (copiedFrames == 0)
         *actionFlags |= kAudioUnitRenderAction_OutputIsSilence;
@@ -245,6 +249,7 @@ bool AudioStream::Start(const int16_t* pcmBuffer, uint32_t sampleCount, uint32_t
 				m_pcmSampleCount = sampleCount;
 				m_playOffsetSample = 0;
 				m_replayRate = replayRate;
+				m_writePos = 0;
 
 				status = AudioOutputUnitStart(m_audioUnit);
 				if (noErr == status)
@@ -282,7 +287,15 @@ bool AudioStream::Stop()
 
 uint32_t AudioStream::GetSpeakerPositionSample() const
 {
-	return 0;
+
+	if (nullptr == m_pcmBuffer)
+		return 0;
+
+	uint32_t rpos = uint32_t(m_writePos.load());
+	if (rpos >= m_pcmSampleCount)
+		return 0;
+	
+	return rpos;
 }
 
 bool AudioStream::SetPositionSample(uint32_t posSample)

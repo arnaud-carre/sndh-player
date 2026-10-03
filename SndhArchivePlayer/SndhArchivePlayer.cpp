@@ -306,6 +306,8 @@ void	SndhArchivePlayer::Startup()
 	{
 		DropFile(sFilename);
 	}
+	#else
+	DropFile("sndh2026_lf.zip");
 	#endif
 }
 

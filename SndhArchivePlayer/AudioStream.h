@@ -41,7 +41,7 @@ private:
 #else
 	static OSStatus RenderCallback(void* refCon, AudioUnitRenderActionFlags* actionFlags, const AudioTimeStamp* timeStamp, UInt32 busNumber, UInt32 requestedFrames, AudioBufferList* ioData);
 
-	size_t m_writePos;
+	std::atomic<size_t> m_writePos;
 	AudioUnit m_audioUnit;
 #endif
 
