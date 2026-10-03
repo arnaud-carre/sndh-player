@@ -2,11 +2,6 @@
 #include <stdint.h>
 #include "AudioStream.h"
 
-AudioStream::AudioStream()
-{
-	m_pcmBuffer = nullptr;
-}
-
 AudioStream::~AudioStream()
 {
 	Stop();
@@ -14,6 +9,11 @@ AudioStream::~AudioStream()
 
 #ifdef _WIN32
 #pragma	comment(lib,"winmm.lib")
+
+AudioStream::AudioStream()
+{
+	m_pcmBuffer = nullptr;
+}
 
 bool AudioStream::Start(const int16_t* pcmBuffer, uint32_t sampleCount, uint32_t replayRate)
 {
@@ -117,13 +117,166 @@ bool AudioStream::SetPause(bool pause)
 
 #else		// _WIN32
 
+AudioStream::AudioStream()
+{
+	m_pcmBuffer = nullptr;
+	m_audioUnit = nullptr;
+}
+
+
+bool AudioStream::InternalRenderCallback(AudioUnitRenderActionFlags* actionFlags, const AudioTimeStamp* timeStamp, UInt32 busNumber, UInt32 requestedFrames, AudioBufferList* ioData)
+{
+    // Our configured format is mono, with one buffer.
+    const size_t bytes = size_t(requestedFrames) * sizeof(int16_t);
+
+    if (!ioData || ioData->mNumberBuffers != 1)
+        return false;
+
+    AudioBuffer& buffer = ioData->mBuffers[0];
+
+    if (!buffer.mData || buffer.mDataByteSize < bytes)
+        return false;
+
+    const size_t available = m_pcmSampleCount - m_writePos;
+    const size_t copiedFrames = std::min(size_t(requestedFrames), available);
+
+    if (copiedFrames > 0)
+        std::memcpy(buffer.mData, m_pcmBuffer + m_writePos, copiedFrames * sizeof(int16_t));
+
+    // Fill the rest with silence, including after end of track.
+    if (copiedFrames < requestedFrames)
+    {
+        int16_t* destination = static_cast<int16_t*>(buffer.mData);
+        const size_t copiedBytes = copiedFrames * sizeof(int16_t);
+        std::memset(destination + copiedFrames, 0, (requestedFrames-copiedFrames)*sizeof(int16_t));
+    }
+
+    buffer.mDataByteSize = static_cast<UInt32>(requestedFrames*sizeof(int16_t));
+    m_writePos += copiedFrames;
+
+    if (copiedFrames == 0)
+        *actionFlags |= kAudioUnitRenderAction_OutputIsSilence;
+
+    // timeStamp can later anchor your playback presentation timeline.
+    (void)timeStamp;
+    (void)busNumber;
+
+    return true;
+}
+
+
+static OSStatus RenderCallback(
+    void* refCon,
+    AudioUnitRenderActionFlags* actionFlags,
+    const AudioTimeStamp* timeStamp,
+    UInt32 busNumber,
+    UInt32 requestedFrames,
+    AudioBufferList* ioData)
+{
+
+	AudioStream& as = *static_cast<AudioStream*>(refCon);
+	bool ret = as.InternalRendererCallback(actionFlags, timeStamp, busNumber, requestedFrames, ioData);
+	return ret ? noErr : kAudio_ParamError;
+}
+
 bool AudioStream::Start(const int16_t* pcmBuffer, uint32_t sampleCount, uint32_t replayRate)
 {
-	return false;
+	bool ret = false;
+
+	assert(nullptr == m_pcmBuffer);
+	if (m_pcmBuffer)
+		return false;
+
+	AudioComponentDescription description{};
+	description.componentType = kAudioUnitType_Output;
+	description.componentSubType = kAudioUnitSubType_DefaultOutput;
+	description.componentManufacturer = kAudioUnitManufacturer_Apple;
+
+    AudioComponent component = AudioComponentFindNext(nullptr, &description);
+
+	if (!component)
+		return false;
+
+	OSStatus status = AudioComponentInstanceNew(component, &m_audioUnit);
+    if (status != noErr)
+        return false;
+
+    // Cleanup if any subsequent setup step fails.
+    auto fail = [&](OSStatus error)
+    {
+        AudioComponentInstanceDispose(m_audioUnit);
+        m_audioUnit = nullptr;
+        return false;
+    };
+
+    AudioStreamBasicDescription format{};
+    format.mSampleRate = double(replayRate);
+    format.mFormatID = kAudioFormatLinearPCM;
+    format.mFormatFlags =
+        kAudioFormatFlagIsSignedInteger |
+        kAudioFormatFlagIsPacked |
+        kAudioFormatFlagsNativeEndian;
+    format.mBytesPerPacket = sizeof(int16_t);
+    format.mFramesPerPacket = 1;
+    format.mBytesPerFrame = sizeof(int16_t);
+    format.mChannelsPerFrame = 1;
+    format.mBitsPerChannel = 16;
+
+	status = AudioUnitSetProperty(	m_audioUnit,
+									kAudioUnitProperty_StreamFormat,
+									kAudioUnitScope_Input,
+									0,
+									&format,
+									sizeof(format));
+	if (noErr == status)
+	{
+
+		AURenderCallbackStruct callback{};
+		callback.inputProc = RenderCallback;
+		callback.inputProcRefCon = this;
+
+		status = AudioUnitSetProperty(m_audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &callback, sizeof(callback));
+		if (noErr == status)
+		{
+			status = AudioUnitInitialize(m_audioUnit);
+			if (noErr == status)
+			{
+				m_pcmBuffer = pcmBuffer;
+				m_pcmSampleCount = sampleCount;
+				m_playOffsetSample = 0;
+				m_replayRate = replayRate;
+
+				status = AudioOutputUnitStart(m_audioUnit);
+				if (noErr == status)
+				{
+					ret = true;
+				}
+				else
+				{
+					AudioUnitUninitialize(m_audioUnit);
+					m_pcmBuffer = nullptr;
+				}
+			}
+		}
+	}
+
+	return ret;
 }
+
 
 bool AudioStream::Stop()
 {
+	if (m_pcmBuffer)
+	{
+		OSStatus status = AudioOutputUnitStop(m_audioUnit);
+		if (status == noErr)
+		{
+			AudioUnitUninitialize(m_audioUnit);
+			AudioComponentInstanceDispose(m_audioUnit);
+			m_pcmBuffer = nullptr;
+			return true;
+		}
+	}
 	return false;
 }
 

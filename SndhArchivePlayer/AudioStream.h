@@ -4,6 +4,11 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <mmsystem.h>
+#else
+#include <AudioToolbox/AudioToolbox.h>
+#include <algorithm>
+#include <cstdint>
+#include <cstring>
 #endif
 
 class	AudioStream
@@ -28,6 +33,12 @@ private:
 #ifdef _WIN32
 	HWAVEOUT	m_waveOutHandle;
 	WAVEHDR		m_waveHeader;
+#else
+	static OSStatus RenderCallback(void* refCon, AudioUnitRenderActionFlags* actionFlags, const AudioTimeStamp* timeStamp, UInt32 busNumber, UInt32 requestedFrames, AudioBufferList* ioData);
+	bool InternalRenderCallback(AudioUnitRenderActionFlags* actionFlags, const AudioTimeStamp* timeStamp, UInt32 busNumber, UInt32 requestedFrames, AudioBufferList* ioData);
+
+	size_t m_writePos;
+	AudioUnit m_audioUnit;
 #endif
 
 };
