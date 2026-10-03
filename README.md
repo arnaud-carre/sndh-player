@@ -1,16 +1,19 @@
-# SNDH and YM Archive Player v1.15
+# SNDH and YM Archive Player v1.20
 ATARI-ST SNDH & YM ZIP Archive music browser/player by [Leonard/Oxygene](https://twitter.com/leonard_coder)
+
+**Now also runs on macOS!**
 
 You can directly drop a large ZIP archive full of thousands of SNDH and YM files into the player! (Get a [100 MiB SNDH archive here!](https://sndh.atari.org/download.php))
 
 This player also supports immediate seeking in any .sndh or .ym file by clicking on the time bar
 
-Powered by [AtariAudio](https://github.com/arnaud-carre/AtariAudio)
+Powered by my [AtariAudio](https://github.com/arnaud-carre/AtariAudio)
 
 ![image info](./thumbnail.png)
 
 # Versions
 
+- v1.20 : macOS version! Now runs on both Windows or macOS, with pre-build binaries!
 - v1.15 : Supports .sndh using STE blitter (ie BlitZwav demo by Cybernetics). Use AtariAudio 1.26
 - v1.14 : Added song details. Also use AtariAudio 1.25
 - v1.13 : Use AtariAudio 1.24
@@ -59,9 +62,7 @@ Just drop the latest 100MiB SNDH ZIP archive file downloaded from awesome [SNDH-
 [You can watch a running example here!](https://youtu.be/c0lH98TNtGg)
 
 # How to build
-This repo comes with a pre-build player (look at the GitHub Release section) but you can also compile the executable by your own. Easy way is to have a windows system, download latest "Visual Studio 2022 community" (it's free & awesome) and open SndhArchivePlayer.sln
-
-If you're still stuck in past century you can also create a makefile by yourself :)
+This repo comes with a pre-build players for Windows & macOS Arm (look at the GitHub Release section). You can also compile yourself using standard cmake.
 
 Enjoy!
 
