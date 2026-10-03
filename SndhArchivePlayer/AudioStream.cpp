@@ -165,7 +165,7 @@ bool AudioStream::InternalRenderCallback(AudioUnitRenderActionFlags* actionFlags
 }
 
 
-static OSStatus RenderCallback(
+static OSStatus sRenderCallback(
     void* refCon,
     AudioUnitRenderActionFlags* actionFlags,
     const AudioTimeStamp* timeStamp,
@@ -232,7 +232,7 @@ bool AudioStream::Start(const int16_t* pcmBuffer, uint32_t sampleCount, uint32_t
 	{
 
 		AURenderCallbackStruct callback{};
-		callback.inputProc = RenderCallback;
+		callback.inputProc = ::sRenderCallback;
 		callback.inputProcRefCon = this;
 
 		status = AudioUnitSetProperty(m_audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &callback, sizeof(callback));
