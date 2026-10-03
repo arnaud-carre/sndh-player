@@ -1,0 +1,114 @@
+name: release
+
+on:
+  push:
+    tags:
+      - '**'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.platform.name }} Release
+    if: github.event.created == true
+    runs-on: ${{ matrix.platform.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - name: Windows x64
+            runner: windows-2022
+            artifact: release-win64
+            archive: SndhArchivePlayer_win64.zip
+          - name: macOS ARM64
+            runner: macos-latest
+            artifact: release-macos-arm64
+            archive: SndhArchivePlayer_macOS.zip
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Configure Windows x64
+        if: runner.os == 'Windows'
+        run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+
+      - name: Configure macOS ARM64
+        if: runner.os == 'macOS'
+        run: >-
+          cmake -S . -B build -G "Unix Makefiles"
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_OSX_ARCHITECTURES=arm64
+          -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0
+
+      - name: Build Release
+        run: cmake --build build --config Release --parallel
+
+      - name: Package Windows executable and README
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $executable = 'build/Release/SndhArchivePlayer.exe'
+          if (-not (Test-Path -LiteralPath $executable)) {
+            throw 'Windows executable not found.'
+          }
+          Compress-Archive -LiteralPath $executable, 'README.md' -DestinationPath 'SndhArchivePlayer_win64.zip'
+
+      - name: Package macOS application and README
+        if: runner.os == 'macOS'
+        run: |
+          test -x build/SndhArchivePlayer.app/Contents/MacOS/SndhArchivePlayer
+          mkdir package
+          ditto build/SndhArchivePlayer.app package/SndhArchivePlayer.app
+          cp README.md package/README.md
+          ditto -c -k --sequesterRsrc package SndhArchivePlayer_macOS.zip
+          unzip -l SndhArchivePlayer_macOS.zip
+
+      - name: Upload release package
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.platform.artifact }}
+          path: ${{ matrix.platform.archive }}
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Publish tag release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: release-${{ github.ref }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Download release packages
+        uses: actions/download-artifact@v8
+        with:
+          pattern: release-*
+          path: release-assets
+          merge-multiple: true
+
+      - name: Publish GitHub Release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          test -f release-assets/SndhArchivePlayer_win64.zip
+          test -f release-assets/SndhArchivePlayer_macOS.zip
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" \
+              release-assets/SndhArchivePlayer_win64.zip \
+              release-assets/SndhArchivePlayer_macOS.zip --clobber
+          else
+            gh release create "$RELEASE_TAG" \
+              release-assets/SndhArchivePlayer_win64.zip \
+              release-assets/SndhArchivePlayer_macOS.zip \
+              --verify-tag --title "$RELEASE_TAG" --generate-notes
+          fi

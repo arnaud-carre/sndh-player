@@ -2,9 +2,6 @@ name: macos_intel
 
 on:
   workflow_dispatch:
-  push:
-    tags:
-      - '**'
 
 permissions:
   contents: read
