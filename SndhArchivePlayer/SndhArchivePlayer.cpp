@@ -29,7 +29,7 @@ bool SaveAppData(const char* keyName, const char* utf8Path)
 
 bool LoadAppData(const char* keyName,char* bufferOut, size_t size)
 {
-	DWORD nc = GetPrivateProfileStringA("SNDH-Archive-Player", keyName, "", bufferOut, DWORD(size), ".\\SNDH_Archive.ini");
+	DWORD nc = GetPrivateProfileStringA("SNDH-Archive-Player", "ArchiveFile", "", bufferOut, DWORD(size), ".\\SNDH_Archive.ini");
 	return (nc > 0);
 }
 
@@ -45,35 +45,23 @@ bool SaveAppData(const char* keyName, const char* utf8Path)
     if (!utf8Path)
         return false;
 
-    CFStringRef path = CFStringCreateWithCString(
-        kCFAllocatorDefault,
-        utf8Path,
-        kCFStringEncodingUTF8);
-
-    if (!path)
-        return false;
-
-    CFPreferencesSetAppValue(
-        CFSTR(keyName),
-        path,
-        PreferencesDomain());
-
+    CFStringRef key8 = CFStringCreateWithCString(kCFAllocatorDefault, keyName, kCFStringEncodingUTF8);
+    CFStringRef path = CFStringCreateWithCString(kCFAllocatorDefault, utf8Path, kCFStringEncodingUTF8);
+    CFPreferencesSetAppValue(key8, path, PreferencesDomain());
     CFRelease(path);
-
+    CFRelease(key8);
     return CFPreferencesAppSynchronize(PreferencesDomain());
 }
 
-LoadAppData(const char* keyName,char* buffer, size_t bufferSize)
+bool LoadAppData(const char* keyName,char* buffer, size_t bufferSize)
 {
     if (!buffer || bufferSize == 0)
         return false;
 
     buffer[0] = '\0';
 
-    CFPropertyListRef value = CFPreferencesCopyAppValue(
-        CFSTR(keyName),
-        PreferencesDomain());
-
+    CFStringRef key8 = CFStringCreateWithCString(kCFAllocatorDefault, keyName, kCFStringEncodingUTF8);
+    CFPropertyListRef value = CFPreferencesCopyAppValue(key8, PreferencesDomain());
     if (!value)
         return false;
 
@@ -81,13 +69,10 @@ LoadAppData(const char* keyName,char* buffer, size_t bufferSize)
 
     if (CFGetTypeID(value) == CFStringGetTypeID())
     {
-        success = CFStringGetCString(
-            static_cast<CFStringRef>(value),
-            buffer,
-            static_cast<CFIndex>(bufferSize),
-            kCFStringEncodingUTF8);
+        success = CFStringGetCString( static_cast<CFStringRef>(value), buffer, static_cast<CFIndex>(bufferSize), kCFStringEncodingUTF8);
     }
 
+    CFRelease(key8);
     CFRelease(value);
 
     if (!success)
