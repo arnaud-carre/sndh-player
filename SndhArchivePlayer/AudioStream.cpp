@@ -300,7 +300,13 @@ uint32_t AudioStream::GetSpeakerPositionSample() const
 
 bool AudioStream::SetPositionSample(uint32_t posSample)
 {
-	return false; 
+	bool ret = false;
+	if ((m_pcmBuffer) && (posSample < m_pcmSampleCount))
+	{
+		m_writePos.store(size_t(posSample));
+		ret = true;
+	}
+	return ret;
 }
 
 bool AudioStream::SetPause(bool pause)
