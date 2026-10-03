@@ -17,11 +17,6 @@ AudioStream::~AudioStream()
 #ifdef _WIN32
 #pragma	comment(lib,"winmm.lib")
 
-AudioStream::AudioStream()
-{
-	m_pcmBuffer = nullptr;
-}
-
 static void CALLBACK sWaveOutCallback(HWAVEOUT hwo,UINT msg,DWORD_PTR instance,DWORD_PTR param1,DWORD_PTR param2)
 {
     if (msg == WOM_DONE)
@@ -41,11 +36,9 @@ void AudioStream::WaveOutDoneCallback()
 	}
 }
 
-
 bool AudioStream::Start(const int16_t* pcmBuffer, uint32_t sampleCount, uint32_t replayRate)
 {
-	bool ret = false;
-	assert(NULL == m_pcmBuffer);
+	assert(nullptr == m_pcmBuffer);
 	m_replayRate = replayRate;
 	m_pcmSampleCount = sampleCount;
 	m_playOffsetSample = 0;
@@ -75,25 +68,21 @@ bool AudioStream::Start(const int16_t* pcmBuffer, uint32_t sampleCount, uint32_t
 	// start the replay
 	waveOutWrite(m_waveOutHandle, &m_waveHeader, sizeof(WAVEHDR));
 	m_pcmBuffer = pcmBuffer;
-	ret = true;
 
-	return ret;
+	return true;
 }
-
 
 bool AudioStream::Stop()
 {
-	bool ret = false;
 	if (m_pcmBuffer)
 	{
-		waveOutUnprepareHeader(m_waveOutHandle, &m_waveHeader, sizeof(WAVEHDR));
 		waveOutReset(m_waveOutHandle);
+		waveOutUnprepareHeader(m_waveOutHandle, &m_waveHeader, sizeof(WAVEHDR));
 		waveOutClose(m_waveOutHandle);
 		m_pcmBuffer = nullptr;
 		m_endReached.store(false);
 	}
-	ret = true;
-	return ret;
+	return true;
 }
 
 uint32_t AudioStream::GetSpeakerPositionSample() const
@@ -105,7 +94,6 @@ uint32_t AudioStream::GetSpeakerPositionSample() const
 		return 0;
 
 	posInSample = mmt.u.sample + m_playOffsetSample;
-
 	return posInSample;
 }
 
@@ -142,25 +130,20 @@ bool AudioStream::SetPositionSample(uint32_t posSample)
 
 bool AudioStream::SetPause(bool pause)
 {
-	bool ret = false;
 	if ( pause )
 		waveOutPause(m_waveOutHandle);
 	else
 		waveOutRestart(m_waveOutHandle);
-	return ret;
+	return true;
 }
 
 #else		// _WIN32
 
-AudioStream::AudioStream()
-{
-	m_pcmBuffer = nullptr;
-	m_audioUnit = nullptr;
-}
-
-
 bool AudioStream::InternalRenderCallback(AudioUnitRenderActionFlags* actionFlags, const AudioTimeStamp* timeStamp, UInt32 busNumber, UInt32 requestedFrames, AudioBufferList* ioData)
 {
+    (void)timeStamp;
+    (void)busNumber;
+
     // Our configured format is mono, with one buffer.
     const size_t bytes = size_t(requestedFrames) * sizeof(int16_t);
 
@@ -168,7 +151,6 @@ bool AudioStream::InternalRenderCallback(AudioUnitRenderActionFlags* actionFlags
         return false;
 
     AudioBuffer& buffer = ioData->mBuffers[0];
-
 
     if (!buffer.mData || buffer.mDataByteSize < bytes)
         return false;
@@ -199,23 +181,11 @@ bool AudioStream::InternalRenderCallback(AudioUnitRenderActionFlags* actionFlags
         *actionFlags |= kAudioUnitRenderAction_OutputIsSilence;
 	}
 
-    // timeStamp can later anchor your playback presentation timeline.
-    (void)timeStamp;
-    (void)busNumber;
-
     return true;
 }
 
-
-static OSStatus sRenderCallback(
-    void* refCon,
-    AudioUnitRenderActionFlags* actionFlags,
-    const AudioTimeStamp* timeStamp,
-    UInt32 busNumber,
-    UInt32 requestedFrames,
-    AudioBufferList* ioData)
+static OSStatus sRenderCallback(void* refCon, AudioUnitRenderActionFlags* actionFlags, const AudioTimeStamp* timeStamp, UInt32 busNumber, UInt32 requestedFrames, AudioBufferList* ioData)
 {
-
 	AudioStream& as = *static_cast<AudioStream*>(refCon);
 	bool ret = as.InternalRenderCallback(actionFlags, timeStamp, busNumber, requestedFrames, ioData);
 	return ret ? noErr : kAudio_ParamError;
@@ -304,7 +274,6 @@ bool AudioStream::Start(const int16_t* pcmBuffer, uint32_t sampleCount, uint32_t
 	return ret;
 }
 
-
 bool AudioStream::Stop()
 {
 	if (m_pcmBuffer)
@@ -323,7 +292,6 @@ bool AudioStream::Stop()
 
 uint32_t AudioStream::GetSpeakerPositionSample() const
 {
-
 	if (nullptr == m_pcmBuffer)
 		return 0;
 
@@ -337,7 +305,7 @@ uint32_t AudioStream::GetSpeakerPositionSample() const
 bool AudioStream::SetPositionSample(uint32_t posSample)
 {
 	bool ret = false;
-	if ((m_pcmBuffer) && (posSample < m_pcmSampleCount))
+	if ((m_pcmBuffer) && (posSample <= m_pcmSampleCount))
 	{
 		m_writePos.store(size_t(posSample));
 		ret = true;
@@ -347,7 +315,10 @@ bool AudioStream::SetPositionSample(uint32_t posSample)
 
 bool AudioStream::SetPause(bool pause)
 {
-	return false;
+	if ( pause )
+		AudioOutputUnitStop(m_audioUnit);
+	else
+		AudioOutputUnitStart(m_audioUnit);
+	return true;
 }
-
 #endif

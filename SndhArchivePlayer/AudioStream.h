@@ -23,7 +23,6 @@ class	AudioStream
 {
 public:
 
-	AudioStream();
 	~AudioStream();
 
 	bool Start(const int16_t* pcmBuffer, uint32_t sampleCount, uint32_t replayRate);
@@ -49,11 +48,10 @@ private:
 #ifdef _WIN32
 	HWAVEOUT	m_waveOutHandle;
 	WAVEHDR		m_waveHeader;
-	std::atomic<bool> m_seeking;
+	std::atomic<bool> m_seeking = false;
 #else
 	static OSStatus RenderCallback(void* refCon, AudioUnitRenderActionFlags* actionFlags, const AudioTimeStamp* timeStamp, UInt32 busNumber, UInt32 requestedFrames, AudioBufferList* ioData);
-
-	std::atomic<size_t> m_writePos;
+	std::atomic<size_t> m_writePos = 0;
 	AudioUnit m_audioUnit;
 #endif
 
