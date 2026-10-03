@@ -32,7 +32,8 @@ public:
 	int GetReplayPosInSec() const;
 	const int16_t* GetDisplaySampleData(int sampleCount, uint32_t** ppDebugView = NULL) const;
 	PlayMode GetPlayMode() const { return m_playMode; }
-	bool ShouldAdvanceNext() { bool ret = m_advanceNext; m_advanceNext = false; return ret; }
+	bool SubsongReachedEnd() const { return m_audioStream.IsEndReached(); }
+	void SetReplayPosInSec(int pos);
 
 	void	DrawGui(const char* musicName);
 
@@ -40,7 +41,6 @@ public:
 	const AtariAudioRenderer* GetSndhFile() const { return m_asyncInfo.sndh; }
 
 private:
-	void SetReplayPosInSec(int pos);
 	void CloseSubsong();
 	void AsyncWorkerFunction();
 
@@ -61,7 +61,6 @@ private:
 	std::atomic<bool> m_paused;
 	bool		m_saved;
 	std::atomic<PlayMode> m_playMode;
-	std::atomic<bool> m_advanceNext;
 
 	AsyncInfo m_asyncInfo;
 };

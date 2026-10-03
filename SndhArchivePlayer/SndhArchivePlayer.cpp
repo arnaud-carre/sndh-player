@@ -1,4 +1,8 @@
 #define _CRT_SECURE_NO_WARNINGS
+#ifndef _WIN32
+#include <CoreFoundation/CoreFoundation.h>
+#include <stddef.h>
+#endif
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "imgui_memory_editor.h"
@@ -15,6 +19,85 @@ static int gDefaultDurationInMin = 4;
 static	SndhArchive	gArchive;
 
 int16_t gOneSecondAudioBuffer[kHostReplayRate];
+
+#ifdef _WIN32
+bool SaveAppData(const char* keyName, const char* utf8Path)
+{
+	WritePrivateProfileStringA("SNDH-Archive-Player", keyName, utf8Path, ".\\SNDH_Archive.ini");
+	return true;
+}
+
+bool LoadAppData(const char* keyName,char* bufferOut, size_t size)
+{
+	DWORD nc = GetPrivateProfileStringA("SNDH-Archive-Player", keyName, "", bufferOut, DWORD(size), ".\\SNDH_Archive.ini");
+	return (nc > 0);
+}
+
+#else
+
+static CFStringRef PreferencesDomain()
+{
+    return CFSTR("com.arnaudcarre.SndhArchivePlayer");
+}
+
+bool SaveAppData(const char* keyName, const char* utf8Path)
+{
+    if (!utf8Path)
+        return false;
+
+    CFStringRef path = CFStringCreateWithCString(
+        kCFAllocatorDefault,
+        utf8Path,
+        kCFStringEncodingUTF8);
+
+    if (!path)
+        return false;
+
+    CFPreferencesSetAppValue(
+        CFSTR(keyName),
+        path,
+        PreferencesDomain());
+
+    CFRelease(path);
+
+    return CFPreferencesAppSynchronize(PreferencesDomain());
+}
+
+LoadAppData(const char* keyName,char* buffer, size_t bufferSize)
+{
+    if (!buffer || bufferSize == 0)
+        return false;
+
+    buffer[0] = '\0';
+
+    CFPropertyListRef value = CFPreferencesCopyAppValue(
+        CFSTR(keyName),
+        PreferencesDomain());
+
+    if (!value)
+        return false;
+
+    bool success = false;
+
+    if (CFGetTypeID(value) == CFStringGetTypeID())
+    {
+        success = CFStringGetCString(
+            static_cast<CFStringRef>(value),
+            buffer,
+            static_cast<CFIndex>(bufferSize),
+            kCFStringEncodingUTF8);
+    }
+
+    CFRelease(value);
+
+    if (!success)
+        buffer[0] = '\0';
+
+    return success;
+}
+#endif
+
+
 
 SndhArchivePlayer::SndhArchivePlayer()
 {
@@ -292,23 +375,16 @@ void	SndhArchivePlayer::DropFile(const char* sFilename)
 	#if _WIN32	// toto[arnaud]
 	if (loadOk)
 	{
-		WritePrivateProfileStringA("SNDH-Archive-Player", "ArchiveFile", sFilename, ".\\SNDH_Archive.ini");
+		SaveAppData("ArchiveFile", sFilename);
 	}
 	#endif
 }
 
 void	SndhArchivePlayer::Startup()
 {
-	#if _WIN32	// toto[arnaud]
 	char sFilename[kMAX_PATH];
-	DWORD nc = GetPrivateProfileStringA("SNDH-Archive-Player", "ArchiveFile", "", sFilename, _MAX_PATH, ".\\SNDH_Archive.ini");
-	if (nc > 0)
-	{
+	if (LoadAppData("ArchiveFile", sFilename, sizeof(sFilename)))
 		DropFile(sFilename);
-	}
-	#else
-	DropFile("sndh2026_lf.zip");
-	#endif
 }
 
 static void DrawTextCentered(const char* text)
@@ -487,8 +563,18 @@ void	SndhArchivePlayer::UpdateImGui()
 				ImGui::Text("(%d Hz)", info.playerTickRate);
 
 				// Continuous/Random signaled that the current song has ended
-				if (m_sndh.ShouldAdvanceNext())
-					dir = 1;
+				if (0 == dir)
+				{
+					if (m_sndh.SubsongReachedEnd())
+					{
+						if (m_sndh.GetPlayMode() == AsyncSndhStream::PlayMode::PlayMode_Loop)
+						{
+							m_sndh.SetReplayPosInSec(0);
+						}
+						else
+							dir = 1;
+					}
+				}
 
 				// Set when we need to load a different archive entry rather than
 				// just switching sub-song within the currently loaded file

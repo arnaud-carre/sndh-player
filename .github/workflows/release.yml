@@ -37,10 +37,10 @@ jobs:
       - name: Build
         run: cmake --build build --config Release --parallel
 
-      - name: Package executable
+      - name: Package application bundle
         run: |
-          test -x build/SndhArchivePlayer
-          zip -j SndhPlayer-macOS-intel.zip build/SndhArchivePlayer
+          test -x build/SndhArchivePlayer.app/Contents/MacOS/SndhArchivePlayer
+          ditto -c -k --sequesterRsrc --keepParent build/SndhArchivePlayer.app SndhPlayer-macOS-intel.zip
           unzip -l SndhPlayer-macOS-intel.zip
 
       - name: Upload manual build

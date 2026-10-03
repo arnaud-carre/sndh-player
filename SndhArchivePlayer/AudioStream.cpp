@@ -15,6 +15,26 @@ AudioStream::AudioStream()
 	m_pcmBuffer = nullptr;
 }
 
+static void CALLBACK sWaveOutCallback(HWAVEOUT hwo,UINT msg,DWORD_PTR instance,DWORD_PTR param1,DWORD_PTR param2)
+{
+    if (msg == WOM_DONE)
+    {
+		AudioStream* as = (AudioStream*)instance;
+		if ( as )
+			as->WaveOutDoneCallback();
+    }
+}
+
+void AudioStream::WaveOutDoneCallback()
+{
+	//only set end if we're not into WaveOutReset seeking phase
+	if (!m_seeking.load())
+	{
+		m_endReached.store(true);
+	}
+}
+
+
 bool AudioStream::Start(const int16_t* pcmBuffer, uint32_t sampleCount, uint32_t replayRate)
 {
 	bool ret = false;
@@ -22,6 +42,7 @@ bool AudioStream::Start(const int16_t* pcmBuffer, uint32_t sampleCount, uint32_t
 	m_replayRate = replayRate;
 	m_pcmSampleCount = sampleCount;
 	m_playOffsetSample = 0;
+	m_endReached = false;
 
 	WAVEFORMATEX	pcmwf;
 	pcmwf.wFormatTag = WAVE_FORMAT_PCM;
@@ -32,7 +53,7 @@ bool AudioStream::Start(const int16_t* pcmBuffer, uint32_t sampleCount, uint32_t
 	pcmwf.nAvgBytesPerSec = pcmwf.nSamplesPerSec * pcmwf.nBlockAlign;
 	pcmwf.cbSize = 0;
 
-	MMRESULT hr = waveOutOpen(&m_waveOutHandle, WAVE_MAPPER, &pcmwf, 0, 0, 0);
+	MMRESULT hr = waveOutOpen(&m_waveOutHandle, WAVE_MAPPER, &pcmwf, reinterpret_cast<DWORD_PTR>(&sWaveOutCallback), DWORD_PTR(this), CALLBACK_FUNCTION);
 	if (hr != MMSYSERR_NOERROR)
 		return false;
 
@@ -62,6 +83,7 @@ bool AudioStream::Stop()
 		waveOutReset(m_waveOutHandle);
 		waveOutClose(m_waveOutHandle);
 		m_pcmBuffer = nullptr;
+		m_endReached.store(false);
 	}
 	ret = true;
 	return ret;
@@ -76,6 +98,7 @@ uint32_t AudioStream::GetSpeakerPositionSample() const
 		return 0;
 
 	posInSample = mmt.u.sample + m_playOffsetSample;
+
 	return posInSample;
 }
 
@@ -84,9 +107,11 @@ bool AudioStream::SetPositionSample(uint32_t posSample)
 	bool ret = false;
 	if ((m_pcmBuffer) && (posSample < m_pcmSampleCount))
 	{
+		m_seeking.store(true);	// filter any incoming "WOM_DONE" callback
+
 		// Stupid Microsoft WaveOut API doesn't have "SetPosition"!!! So stop replay, create a new block and start it
-		waveOutUnprepareHeader(m_waveOutHandle, &m_waveHeader, sizeof(WAVEHDR));
 		waveOutReset(m_waveOutHandle);
+		waveOutUnprepareHeader(m_waveOutHandle, &m_waveHeader, sizeof(WAVEHDR));
 
 		m_playOffsetSample = posSample;
 
@@ -97,6 +122,9 @@ bool AudioStream::SetPositionSample(uint32_t posSample)
 		m_waveHeader.dwUser = 0;
 		m_waveHeader.dwLoops = -1;
 		waveOutPrepareHeader(m_waveOutHandle, &m_waveHeader, sizeof(WAVEHDR));
+
+		m_seeking.store(false);
+		m_endReached.store(false);
 
 		// start replay
 		waveOutWrite(m_waveOutHandle, &m_waveHeader, sizeof(WAVEHDR));
@@ -158,8 +186,11 @@ bool AudioStream::InternalRenderCallback(AudioUnitRenderActionFlags* actionFlags
 
     buffer.mDataByteSize = static_cast<UInt32>(requestedFrames*sizeof(int16_t));
 
-    if (copiedFrames == 0)
+	if (copiedFrames == 0)
+	{
+		m_endReached.store(true);
         *actionFlags |= kAudioUnitRenderAction_OutputIsSilence;
+	}
 
     // timeStamp can later anchor your playback presentation timeline.
     (void)timeStamp;
@@ -216,10 +247,7 @@ bool AudioStream::Start(const int16_t* pcmBuffer, uint32_t sampleCount, uint32_t
     AudioStreamBasicDescription format{};
     format.mSampleRate = double(replayRate);
     format.mFormatID = kAudioFormatLinearPCM;
-    format.mFormatFlags =
-        kAudioFormatFlagIsSignedInteger |
-        kAudioFormatFlagIsPacked |
-        kAudioFormatFlagsNativeEndian;
+    format.mFormatFlags = kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked | kAudioFormatFlagsNativeEndian;
     format.mBytesPerPacket = sizeof(int16_t);
     format.mFramesPerPacket = 1;
     format.mBytesPerFrame = sizeof(int16_t);
@@ -250,6 +278,7 @@ bool AudioStream::Start(const int16_t* pcmBuffer, uint32_t sampleCount, uint32_t
 				m_playOffsetSample = 0;
 				m_replayRate = replayRate;
 				m_writePos = 0;
+				m_endReached= false;
 
 				status = AudioOutputUnitStart(m_audioUnit);
 				if (noErr == status)
@@ -293,7 +322,7 @@ uint32_t AudioStream::GetSpeakerPositionSample() const
 
 	uint32_t rpos = uint32_t(m_writePos.load());
 	if (rpos >= m_pcmSampleCount)
-		return 0;
+		return m_pcmSampleCount;
 	
 	return rpos;
 }

@@ -103,6 +103,7 @@ if(WIN32)
         opengl32 user32 gdi32 shell32 imm32 winmm
     )
 elseif(APPLE)
+    set_target_properties(SndhArchivePlayer PROPERTIES MACOSX_BUNDLE TRUE)
     target_link_libraries(SndhArchivePlayer PRIVATE
         "-framework Cocoa" "-framework IOKit"
         "-framework CoreFoundation" "-framework OpenGL" "-framework AudioToolbox"
