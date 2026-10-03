@@ -21,12 +21,29 @@ static void GlfwErrorCallback(int error, const char* description)
 
 static float GetUiScale(GLFWwindow* window)
 {
+#ifdef __APPLE__
+    // Cocoa window coordinates are already in logical points.
+    return 1.0f;
+#else
     float xScale, yScale;
     glfwGetWindowContentScale(window, &xScale, &yScale);
     return xScale > 0.0f ? xScale : 1.0f;
+#endif
 }
 
-static void ApplyUiScale(float scale, const ImGuiStyle& baseStyle)
+static float GetFontPixelScale(GLFWwindow* window)
+{
+#ifdef __APPLE__
+    int windowWidth, windowHeight, framebufferWidth, framebufferHeight;
+    glfwGetWindowSize(window, &windowWidth, &windowHeight);
+    glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
+    if (windowWidth > 0 && framebufferWidth > 0)
+        return float(framebufferWidth) / float(windowWidth);
+#endif
+    return 1.0f;
+}
+
+static void ApplyUiScale(float scale, float fontPixelScale, const ImGuiStyle& baseStyle)
 {
     // Always start from the original style to avoid cumulative scaling.
     ImGui::GetStyle() = baseStyle;
@@ -36,9 +53,10 @@ static void ApplyUiScale(float scale, const ImGuiStyle& baseStyle)
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->Clear();
     ImFontConfig fontConfig;
-    fontConfig.SizePixels = 13.0f * scale;
+    fontConfig.SizePixels = 13.0f * scale * fontPixelScale;
     io.FontDefault = io.Fonts->AddFontDefault(&fontConfig);
-    io.FontGlobalScale = 1.0f;
+    // Keep the logical font size independent of Retina framebuffer density.
+    io.FontGlobalScale = 1.0f / fontPixelScale;
 }
 
 static void DropFilesCallback(GLFWwindow*, int count, const char** paths)
@@ -97,7 +115,8 @@ int main()
     style.Colors[ImGuiCol_WindowBg].w = 1.0f;
     const ImGuiStyle baseStyle = style;
     float uiScale = GetUiScale(window);
-    ApplyUiScale(uiScale, baseStyle);
+    float fontPixelScale = GetFontPixelScale(window);
+    ApplyUiScale(uiScale, fontPixelScale, baseStyle);
 
     // Let ImGui install and chain the GLFW keyboard, mouse, and focus callbacks.
     const bool platformInitialized = ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -126,10 +145,11 @@ int main()
 
         // Rebuild between frames when moving monitors or changing DPI settings.
         const float newUiScale = GetUiScale(window);
-        if (fabsf(newUiScale - uiScale) > 0.001f)
+        const float newFontPixelScale = GetFontPixelScale(window);
+        if (fabsf(newUiScale - uiScale) > 0.001f || fabsf(newFontPixelScale - fontPixelScale) > 0.001f)
         {
             ImGui_ImplOpenGL3_DestroyFontsTexture();
-            ApplyUiScale(newUiScale, baseStyle);
+            ApplyUiScale(newUiScale, newFontPixelScale, baseStyle);
             if (!ImGui_ImplOpenGL3_CreateFontsTexture())
             {
                 fprintf(stderr, "Unable to recreate the scaled font texture.\n");
@@ -137,6 +157,7 @@ int main()
                 break;
             }
             uiScale = newUiScale;
+            fontPixelScale = newFontPixelScale;
         }
 
         ImGui_ImplOpenGL3_NewFrame();
