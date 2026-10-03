@@ -357,12 +357,10 @@ void	SndhArchivePlayer::DropFile(const char* sFilename)
 		loadOk = LoadNewMusic(sFilename);
 	}
 
-	#if _WIN32	// toto[arnaud]
 	if (loadOk)
 	{
 		SaveAppData("ArchiveFile", sFilename);
 	}
-	#endif
 }
 
 void	SndhArchivePlayer::Startup()
