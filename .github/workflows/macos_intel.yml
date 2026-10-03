@@ -1,4 +1,4 @@
-name: release
+name: macos_intel
 
 on:
   workflow_dispatch:
