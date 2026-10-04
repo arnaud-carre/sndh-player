@@ -39,7 +39,6 @@ void AudioStream::WaveOutDoneCallback()
 bool AudioStream::Start(const int16_t* pcmBuffer, uint32_t sampleCount, uint32_t replayRate)
 {
 	assert(nullptr == m_pcmBuffer);
-	m_replayRate = replayRate;
 	m_pcmSampleCount = sampleCount;
 	m_playOffsetSample = 0;
 	m_endReached = false;
@@ -139,11 +138,8 @@ bool AudioStream::SetPause(bool pause)
 
 #else		// _WIN32
 
-bool AudioStream::InternalRenderCallback(AudioUnitRenderActionFlags* actionFlags, const AudioTimeStamp* timeStamp, UInt32 busNumber, UInt32 requestedFrames, AudioBufferList* ioData)
+bool AudioStream::InternalRenderCallback(AudioUnitRenderActionFlags* actionFlags, UInt32 requestedFrames, AudioBufferList* ioData)
 {
-    (void)timeStamp;
-    (void)busNumber;
-
     // Our configured format is mono, with one buffer.
     const size_t bytes = size_t(requestedFrames) * sizeof(int16_t);
 
@@ -187,7 +183,7 @@ bool AudioStream::InternalRenderCallback(AudioUnitRenderActionFlags* actionFlags
 static OSStatus sRenderCallback(void* refCon, AudioUnitRenderActionFlags* actionFlags, const AudioTimeStamp* timeStamp, UInt32 busNumber, UInt32 requestedFrames, AudioBufferList* ioData)
 {
 	AudioStream& as = *static_cast<AudioStream*>(refCon);
-	bool ret = as.InternalRenderCallback(actionFlags, timeStamp, busNumber, requestedFrames, ioData);
+	bool ret = as.InternalRenderCallback(actionFlags, requestedFrames, ioData);
 	return ret ? noErr : kAudio_ParamError;
 }
 

@@ -35,19 +35,18 @@ public:
 	#ifdef _WIN32
 	void WaveOutDoneCallback();
 	#else
-	bool InternalRenderCallback(AudioUnitRenderActionFlags* actionFlags, const AudioTimeStamp* timeStamp, UInt32 busNumber, UInt32 requestedFrames, AudioBufferList* ioData);
+	bool InternalRenderCallback(AudioUnitRenderActionFlags* actionFlags, UInt32 requestedFrames, AudioBufferList* ioData);
 	#endif
 
 private:
 	const int16_t* m_pcmBuffer = nullptr;
-	uint32_t m_pcmSampleCount = 0;;
-	uint32_t m_replayRate = 0;
-	uint32_t m_playOffsetSample = 0;
+	uint32_t m_pcmSampleCount = 0;
 	std::atomic<bool> m_endReached = false;
 
 #ifdef _WIN32
 	HWAVEOUT	m_waveOutHandle;
 	WAVEHDR		m_waveHeader;
+	uint32_t m_playOffsetSample = 0;
 	std::atomic<bool> m_seeking = false;
 #else
 	static OSStatus RenderCallback(void* refCon, AudioUnitRenderActionFlags* actionFlags, const AudioTimeStamp* timeStamp, UInt32 busNumber, UInt32 requestedFrames, AudioBufferList* ioData);
