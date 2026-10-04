@@ -248,8 +248,6 @@ bool AudioStream::Start(const int16_t* pcmBuffer, uint32_t sampleCount, uint32_t
 			{
 				m_pcmBuffer = pcmBuffer;
 				m_pcmSampleCount = sampleCount;
-				m_playOffsetSample = 0;
-				m_replayRate = replayRate;
 				m_writePos = 0;
 				m_endReached= false;
 
