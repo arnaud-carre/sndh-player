@@ -86,19 +86,27 @@ jobs:
           security create-keychain -p "$keychain_password" "$keychain_path"
           security set-keychain-settings -lut 21600 "$keychain_path"
           security unlock-keychain -p "$keychain_password" "$keychain_path"
+          echo "Importing the P12 signing identity"
           security import "$certificate_path" -P "$MACOS_CERTIFICATE_PASSWORD" \
-            -k "$keychain_path" -T /usr/bin/codesign >/dev/null
-          security set-key-partition-list -S apple-tool:,apple:,codesign: \
-            -s -k "$keychain_password" "$keychain_path" >/dev/null
+            -k "$keychain_path" -f pkcs12 -T /usr/bin/codesign
 
+          echo "Checking for a valid Developer ID Application certificate and matching private key"
           identities="$(security find-identity -v -p codesigning "$keychain_path" \
             | awk '/"Developer ID Application:/ {print $2}')"
           identity_count="$(printf '%s\n' "$identities" | awk 'NF {count++} END {print count+0}')"
           if [[ "$identity_count" != 1 ]]; then
-            echo "::error::The P12 must contain exactly one valid Developer ID Application identity with its private key."
+            echo "::error::The imported P12 must contain exactly one valid Developer ID Application identity with its matching private key. Check the certificate type, expiry, trust chain, and private key before re-exporting."
             exit 1
           fi
 
+          echo "Allowing codesign to access the imported private key"
+          if ! security set-key-partition-list -S apple-tool:,apple:,codesign: \
+              -s -k "$keychain_password" "$keychain_path" >/dev/null; then
+            echo "::error::Could not configure the imported private key. Re-export the Developer ID Application certificate together with its private key as a P12."
+            exit 1
+          fi
+
+          echo "Signing the application bundle"
           app_path="build/SndhArchivePlayer.app"
           test -x "$app_path/Contents/MacOS/SndhArchivePlayer"
           codesign --force --sign "$identities" --keychain "$keychain_path" \
