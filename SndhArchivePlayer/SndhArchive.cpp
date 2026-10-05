@@ -312,6 +312,9 @@ void	SndhArchive::ImGuiDraw(SndhArchivePlayer& player)
 				{
 					OsOpenInShell("https://sndh.atari.org/download.php");
 				}
+				#ifndef _WIN32
+				ImGui::Text("Safari users: disable \"Open safe files after downloading\" to keep the large music archive file zipped.");
+				#endif
 			}
 		}
 	}
