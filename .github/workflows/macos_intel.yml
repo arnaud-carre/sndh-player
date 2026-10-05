@@ -34,6 +34,100 @@ jobs:
       - name: Build
         run: cmake --build build --config Release --parallel
 
+      - name: Sign macOS application
+        if: runner.os == 'macOS'
+        shell: bash
+        env:
+          MACOS_CERTIFICATE_P12_BASE64: ${{ secrets.MACOS_CERTIFICATE_P12_BASE64 }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$MACOS_CERTIFICATE_P12_BASE64" || -z "$MACOS_CERTIFICATE_PASSWORD" ]]; then
+            echo "::error::Set MACOS_CERTIFICATE_P12_BASE64 and MACOS_CERTIFICATE_PASSWORD to sign macOS releases."
+            exit 1
+          fi
+
+          certificate_path="$RUNNER_TEMP/release-signing.p12"
+          keychain_path="$RUNNER_TEMP/release-signing.keychain-db"
+          cleanup() {
+            security delete-keychain "$keychain_path" >/dev/null 2>&1 || true
+            rm -f "$certificate_path"
+          }
+          trap cleanup EXIT
+          umask 077
+          keychain_password="$(openssl rand -hex 32)"
+          echo "::add-mask::$keychain_password"
+          printf '%s' "$MACOS_CERTIFICATE_P12_BASE64" | base64 --decode > "$certificate_path"
+          security create-keychain -p "$keychain_password" "$keychain_path"
+          security set-keychain-settings -lut 21600 "$keychain_path"
+          security unlock-keychain -p "$keychain_password" "$keychain_path"
+          security import "$certificate_path" -P "$MACOS_CERTIFICATE_PASSWORD" \
+            -k "$keychain_path" -T /usr/bin/codesign >/dev/null
+          security set-key-partition-list -S apple-tool:,apple:,codesign: \
+            -s -k "$keychain_password" "$keychain_path" >/dev/null
+
+          identities="$(security find-identity -v -p codesigning "$keychain_path" \
+            | awk '/"Developer ID Application:/ {print $2}')"
+          identity_count="$(printf '%s\n' "$identities" | awk 'NF {count++} END {print count+0}')"
+          if [[ "$identity_count" != 1 ]]; then
+            echo "::error::The P12 must contain exactly one valid Developer ID Application identity with its private key."
+            exit 1
+          fi
+
+          app_path="build/SndhArchivePlayer.app"
+          test -x "$app_path/Contents/MacOS/SndhArchivePlayer"
+          codesign --force --sign "$identities" --keychain "$keychain_path" \
+            --options runtime --timestamp "$app_path"
+          codesign --verify --deep --strict --verbose=2 "$app_path"
+
+      - name: Notarize and validate macOS application
+        if: runner.os == 'macOS'
+        shell: bash
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$APPLE_ID" || -z "$APPLE_TEAM_ID" || -z "$APPLE_APP_SPECIFIC_PASSWORD" ]]; then
+            echo "::error::Set APPLE_ID, APPLE_TEAM_ID and APPLE_APP_SPECIFIC_PASSWORD for notarization."
+            exit 1
+          fi
+          mkdir -p notarization
+          app_path="build/SndhArchivePlayer.app"
+          ditto -c -k --sequesterRsrc --keepParent "$app_path" "$RUNNER_TEMP/notarization.zip"
+          auth=(--apple-id "$APPLE_ID" --team-id "$APPLE_TEAM_ID" --password "$APPLE_APP_SPECIFIC_PASSWORD")
+          xcrun notarytool submit "$RUNNER_TEMP/notarization.zip" "${auth[@]}" \
+            --output-format json > notarization/submission.json
+          submission_id="$(python3 -c 'import json; print(json.load(open("notarization/submission.json"))["id"])')"
+          echo "Notarization submission: $submission_id"
+          if ! xcrun notarytool wait "$submission_id" "${auth[@]}" \
+              --timeout 30m --output-format json > notarization/result.json; then
+            xcrun notarytool log "$submission_id" "${auth[@]}" notarization/log.json || true
+            echo "::error::Notarization did not finish successfully within 30 minutes. See the submission ID and diagnostic artifact; Apple may still be processing it."
+            exit 1
+          fi
+          status="$(python3 -c 'import json; print(json.load(open("notarization/result.json"))["status"])')"
+          if [[ "$status" != "Accepted" ]]; then
+            xcrun notarytool log "$submission_id" "${auth[@]}" notarization/log.json || true
+            echo "::error::Apple notarization status: $status. See the diagnostic artifact."
+            exit 1
+          fi
+          xcrun stapler staple "$app_path"
+          xcrun stapler validate "$app_path"
+          codesign --verify --deep --strict --verbose=2 "$app_path"
+          spctl --assess --type execute --verbose=2 "$app_path"
+          echo "Apple accepted the app; stapling and Gatekeeper assessment passed." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload notarization diagnostics
+        if: always() && runner.os == 'macOS'
+        uses: actions/upload-artifact@v7
+        with:
+          name: notarization-macos-intel
+          path: notarization/
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Package application bundle
         run: |
           test -x build/SndhArchivePlayer.app/Contents/MacOS/SndhArchivePlayer
