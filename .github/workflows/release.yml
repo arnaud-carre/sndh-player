@@ -74,7 +74,12 @@ jobs:
 
           certificate_path="$RUNNER_TEMP/release-signing.p12"
           keychain_path="$RUNNER_TEMP/release-signing.keychain-db"
+          original_keychains=()
+          while IFS= read -r keychain; do
+            original_keychains+=("$keychain")
+          done < <(security list-keychains -d user | sed -E 's/^[[:space:]]*"(.*)"$/\1/')
           cleanup() {
+            security list-keychains -d user -s "${original_keychains[@]}" >/dev/null 2>&1 || true
             security delete-keychain "$keychain_path" >/dev/null 2>&1 || true
             rm -f "$certificate_path"
           }
@@ -86,6 +91,7 @@ jobs:
           security create-keychain -p "$keychain_password" "$keychain_path"
           security set-keychain-settings -lut 21600 "$keychain_path"
           security unlock-keychain -p "$keychain_password" "$keychain_path"
+          security list-keychains -d user -s "$keychain_path" "${original_keychains[@]}"
           echo "Importing the P12 signing identity"
           security import "$certificate_path" -P "$MACOS_CERTIFICATE_PASSWORD" \
             -k "$keychain_path" -f pkcs12 -T /usr/bin/codesign
