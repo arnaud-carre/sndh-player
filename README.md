@@ -69,4 +69,21 @@ This repo comes with a pre-build players for Windows & macOS Arm (look at the Gi
 
 Enjoy!
 
+## Ubuntu build
+
+Linux uses SDL2 for audio and GLFW/OpenGL for the interface. On Ubuntu:
+
+```sh
+sudo apt install build-essential cmake libsdl2-dev libgl1-mesa-dev xorg-dev libwayland-dev libxkbcommon-dev wayland-protocols
+git submodule update --init --recursive
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j
+./build/SndhArchivePlayer
+```
+
+GLFW builds both X11 and Wayland support by default. For an X11-only build,
+add `-DGLFW_BUILD_WAYLAND=OFF` when configuring; the Wayland development packages
+are then unnecessary. Settings are stored in `$XDG_CONFIG_HOME/sndh-player`,
+or `$HOME/.config/sndh-player` when `XDG_CONFIG_HOME` is unset.
+
 [https://github.com/arnaud-carre/sndh-player](https://github.com/arnaud-carre/sndh-player)

@@ -1,4 +1,4 @@
-name: Windows and macOS build
+name: Windows, macOS and Linux build
 
 on:
   push:
@@ -18,6 +18,8 @@ jobs:
         platform:
           - name: Windows x64
             runner: windows-2022
+          - name: Ubuntu x64
+            runner: ubuntu-24.04
           - name: macOS ARM64
             runner: macos-latest
             architecture: arm64
@@ -36,6 +38,14 @@ jobs:
       - name: Configure Windows x64
         if: runner.os == 'Windows'
         run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+
+      - name: Install Ubuntu dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libsdl2-dev libgl1-mesa-dev xorg-dev libwayland-dev libxkbcommon-dev wayland-protocols
+
+      - name: Configure Linux
+        if: runner.os == 'Linux'
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.configuration }}
 
       - name: Configure macOS
         if: runner.os == 'macOS'

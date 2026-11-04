@@ -7,16 +7,21 @@
 //-----------------------------------------------------------------
 #pragma once
 #include <stdint.h>
+#include <cstddef>
 #include <atomic>
 
 #ifdef _WIN32
 #include <windows.h>
 #include <mmsystem.h>
-#else
+#elif defined(__linux__)
+#include <SDL.h>
+#elif defined(__APPLE__)
 #include <AudioToolbox/AudioToolbox.h>
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
+#else
+#error Unsupported audio platform
 #endif
 
 class	AudioStream
@@ -34,7 +39,9 @@ public:
 
 	#ifdef _WIN32
 	void WaveOutDoneCallback();
-	#else
+	#elif defined(__linux__)
+	void RenderLinuxAudio(uint8_t* output, int byteCount);
+	#elif defined(__APPLE__)
 	bool InternalRenderCallback(AudioUnitRenderActionFlags* actionFlags, UInt32 requestedFrames, AudioBufferList* ioData);
 	#endif
 
@@ -48,10 +55,14 @@ private:
 	WAVEHDR		m_waveHeader;
 	uint32_t m_playOffsetSample = 0;
 	std::atomic<bool> m_seeking = false;
-#else
-	static OSStatus RenderCallback(void* refCon, AudioUnitRenderActionFlags* actionFlags, const AudioTimeStamp* timeStamp, UInt32 busNumber, UInt32 requestedFrames, AudioBufferList* ioData);
+#elif defined(__linux__)
+	SDL_AudioDeviceID m_audioDevice = 0;
+	bool m_audioInitialized = false;
 	std::atomic<size_t> m_writePos = 0;
+#elif defined(__APPLE__)
+	static OSStatus RenderCallback(void* refCon, AudioUnitRenderActionFlags* actionFlags, const AudioTimeStamp* timeStamp, UInt32 busNumber, UInt32 requestedFrames, AudioBufferList* ioData);
 	AudioUnit m_audioUnit;
+	std::atomic<size_t> m_writePos = 0;
 #endif
 
 };

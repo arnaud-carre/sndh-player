@@ -11,6 +11,9 @@
 #include <atomic>
 #include <random>
 #include <ctime>
+#ifndef _WIN32
+#include <strings.h>
+#endif
 #include "imgui_internal.h"
 #include "extern/zip/src/zip.h"
 #include "jobSystem.h"

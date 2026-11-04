@@ -9,8 +9,8 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
         Debug Release RelWithDebInfo MinSizeRel)
 endif()
 
-if(NOT WIN32 AND NOT APPLE)
-    message(FATAL_ERROR "Only Windows and macOS builds are supported.")
+if(NOT WIN32 AND NOT APPLE AND NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    message(FATAL_ERROR "Only Windows, macOS and Linux builds are supported.")
 endif()
 
 # Compile the checked-out sources directly. No dependency downloads or Git commands.
@@ -59,6 +59,19 @@ elseif(APPLE)
     set_source_files_properties(${GLFW_SOURCES} PROPERTIES
         COMPILE_DEFINITIONS "_GLFW_COCOA"
     )
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    # Let GLFW configure its X11/Wayland sources and dependencies.
+    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+    set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+    add_subdirectory(SndhArchivePlayer/extern/glfw)
+    set(GLFW_SOURCES "")
+    find_package(SDL2 REQUIRED CONFIG)
+    find_package(OpenGL REQUIRED)
+    find_package(Threads REQUIRED)
 endif()
 
 add_executable(SndhArchivePlayer
@@ -115,6 +128,10 @@ elseif(APPLE)
     target_link_libraries(SndhArchivePlayer PRIVATE
         "-framework Cocoa" "-framework IOKit"
         "-framework CoreFoundation" "-framework OpenGL" "-framework AudioToolbox"
+    )
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    target_link_libraries(SndhArchivePlayer PRIVATE
+        glfw SDL2::SDL2 OpenGL::GL Threads::Threads ${CMAKE_DL_LIBS}
     )
 endif()
 

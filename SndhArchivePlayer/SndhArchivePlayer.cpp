@@ -6,9 +6,16 @@
 //
 //-----------------------------------------------------------------
 #define _CRT_SECURE_NO_WARNINGS
-#ifndef _WIN32
+#ifdef __APPLE__
 #include <CoreFoundation/CoreFoundation.h>
 #include <stddef.h>
+#endif
+#ifdef __linux__
+#include <cstdlib>
+#include <cstring>
+#include <filesystem>
+#include <fstream>
+#include <string>
 #endif
 #include "imgui.h"
 #include "imgui_internal.h"
@@ -40,7 +47,59 @@ bool LoadAppData(const char* keyName,char* bufferOut, size_t size)
 	return (nc > 0);
 }
 
-#else
+#elif defined(__linux__)
+
+static std::filesystem::path PreferencesDirectory()
+{
+	const char* config = std::getenv("XDG_CONFIG_HOME");
+	if (config && std::filesystem::path(config).is_absolute())
+		return std::filesystem::path(config) / "sndh-player";
+	const char* home = std::getenv("HOME");
+	if (home && std::filesystem::path(home).is_absolute())
+		return std::filesystem::path(home) / ".config" / "sndh-player";
+	return {};
+}
+
+static bool IsPreferenceKey(const char* key)
+{
+	return key && *key && std::strspn(key, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-") == std::strlen(key);
+}
+
+bool SaveAppData(const char* keyName, const char* utf8Path)
+{
+	if (!IsPreferenceKey(keyName) || !utf8Path)
+		return false;
+	const auto directory = PreferencesDirectory();
+	if (directory.empty())
+		return false;
+	std::error_code error;
+	std::filesystem::create_directories(directory, error);
+	if (error)
+		return false;
+	std::ofstream file(directory / keyName, std::ios::binary | std::ios::trunc);
+	file << utf8Path;
+	file.close();
+	return !file.fail();
+}
+
+bool LoadAppData(const char* keyName, char* buffer, size_t bufferSize)
+{
+	if (!buffer || !bufferSize)
+		return false;
+	buffer[0] = '\0';
+	const auto directory = PreferencesDirectory();
+	if (!IsPreferenceKey(keyName) || directory.empty())
+		return false;
+	std::ifstream file(directory / keyName, std::ios::binary);
+	if (!file)
+		return false;
+	file.read(buffer, std::streamsize(bufferSize - 1));
+	const size_t count = size_t(file.gcount());
+	buffer[count] = '\0';
+	return count > 0 && !file.bad() && file.peek() == std::char_traits<char>::eof();
+}
+
+#elif defined(__APPLE__)
 
 static CFStringRef PreferencesDomain()
 {

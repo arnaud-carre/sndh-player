@@ -136,7 +136,101 @@ bool AudioStream::SetPause(bool pause)
 	return true;
 }
 
-#else		// _WIN32
+#elif defined(__linux__)
+
+void AudioStream::RenderLinuxAudio(uint8_t* output, int byteCount)
+{
+	SDL_memset(output, 0, byteCount);
+	const size_t position = m_writePos.load();
+	const size_t requested = size_t(byteCount) / sizeof(int16_t);
+	const size_t available = m_pcmSampleCount - position;
+	const size_t copied = requested < available ? requested : available;
+	if (copied)
+	{
+		SDL_memcpy(output, m_pcmBuffer + position, copied * sizeof(int16_t));
+		m_writePos.store(position + copied);
+	}
+	// Wait until the next callback so the final block has had time to play.
+	if (!available)
+		m_endReached.store(true);
+}
+
+bool AudioStream::Start(const int16_t* pcmBuffer, uint32_t sampleCount, uint32_t replayRate)
+{
+	if (m_audioDevice || !pcmBuffer || !sampleCount || !replayRate)
+		return false;
+	if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0)
+		return false;
+	m_audioInitialized = true;
+	SDL_AudioSpec desired{};
+	desired.freq = int(replayRate);
+	desired.format = AUDIO_S16SYS;
+	desired.channels = 1;
+	desired.samples = 1024;
+	desired.userdata = this;
+	desired.callback = [](void* user, Uint8* output, int bytes)
+	{
+		static_cast<AudioStream*>(user)->RenderLinuxAudio(output, bytes);
+	};
+	// Keep the renderer's format; SDL handles conversion for the output device.
+	m_audioDevice = SDL_OpenAudioDevice(nullptr, 0, &desired, nullptr, 0);
+	if (!m_audioDevice)
+	{
+		Stop();
+		return false;
+	}
+	m_pcmBuffer = pcmBuffer;
+	m_pcmSampleCount = sampleCount;
+	m_writePos.store(0);
+	m_endReached.store(false);
+	SDL_PauseAudioDevice(m_audioDevice, 0);
+	return true;
+}
+
+bool AudioStream::Stop()
+{
+	if (m_audioDevice)
+	{
+		SDL_CloseAudioDevice(m_audioDevice);
+		m_audioDevice = 0;
+	}
+	m_pcmBuffer = nullptr;
+	m_pcmSampleCount = 0;
+	m_writePos.store(0);
+	m_endReached.store(false);
+	if (m_audioInitialized)
+	{
+		SDL_QuitSubSystem(SDL_INIT_AUDIO);
+		m_audioInitialized = false;
+	}
+	return true;
+}
+
+uint32_t AudioStream::GetSpeakerPositionSample() const
+{
+	return uint32_t(m_writePos.load());
+}
+
+bool AudioStream::SetPositionSample(uint32_t posSample)
+{
+	if (!m_audioDevice || posSample > m_pcmSampleCount)
+		return false;
+	SDL_LockAudioDevice(m_audioDevice);
+	m_writePos.store(posSample);
+	m_endReached.store(false);
+	SDL_UnlockAudioDevice(m_audioDevice);
+	return true;
+}
+
+bool AudioStream::SetPause(bool pause)
+{
+	if (!m_audioDevice)
+		return false;
+	SDL_PauseAudioDevice(m_audioDevice, pause ? 1 : 0);
+	return true;
+}
+
+#elif defined(__APPLE__)
 
 bool AudioStream::InternalRenderCallback(AudioUnitRenderActionFlags* actionFlags, UInt32 requestedFrames, AudioBufferList* ioData)
 {
