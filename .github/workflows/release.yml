@@ -59,7 +59,13 @@ jobs:
           }
           Compress-Archive -LiteralPath $executable, 'README.md' -DestinationPath 'SndhArchivePlayer_win64.zip'
 
+      - name: Preserve macOS application for signing fallback
+        if: runner.os == 'macOS'
+        run: ditto build/SndhArchivePlayer.app "$RUNNER_TEMP/SndhArchivePlayer-unsigned.app"
+
       - name: Sign macOS application
+        id: macos_sign
+        continue-on-error: true
         if: runner.os == 'macOS'
         shell: bash
         env:
@@ -120,7 +126,9 @@ jobs:
           codesign --verify --deep --strict --verbose=2 "$app_path"
 
       - name: Notarize and validate macOS application
-        if: runner.os == 'macOS'
+        id: macos_notarize
+        if: runner.os == 'macOS' && steps.macos_sign.outcome == 'success'
+        continue-on-error: true
         shell: bash
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -158,6 +166,19 @@ jobs:
           spctl --assess --type execute --verbose=2 "$app_path"
           echo "Apple accepted the app; stapling and Gatekeeper assessment passed." >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Apply ad hoc signature when Apple signing or notarization fails
+        if: runner.os == 'macOS' && (steps.macos_sign.outcome == 'failure' || steps.macos_notarize.outcome == 'failure')
+        shell: bash
+        run: |
+          set -euo pipefail
+          app_path="build/SndhArchivePlayer.app"
+          rm -rf "$app_path"
+          ditto "$RUNNER_TEMP/SndhArchivePlayer-unsigned.app" "$app_path"
+          codesign --force --sign - --timestamp=none "$app_path"
+          codesign --verify --deep --strict --verbose=2 "$app_path"
+          echo "::warning::Apple signing or notarization failed. Publishing an ad hoc signed, unnotarized macOS app."
+          echo "macOS fallback: publishing an ad hoc signed, unnotarized app. See MACOS-LAUNCH.txt in the ZIP for launch instructions." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Upload notarization diagnostics
         if: always() && runner.os == 'macOS'
         uses: actions/upload-artifact@v7
@@ -168,26 +189,45 @@ jobs:
           retention-days: 7
 
       - name: Package macOS application and README
+        id: macos_package
         if: runner.os == 'macOS'
+        env:
+          NOTARIZATION_OUTCOME: ${{ steps.macos_notarize.outcome }}
         run: |
           test -x build/SndhArchivePlayer.app/Contents/MacOS/SndhArchivePlayer
           mkdir package
           ditto build/SndhArchivePlayer.app package/SndhArchivePlayer.app
           cp README.md package/README.md
-          ditto -c -k --sequesterRsrc package SndhArchivePlayer_macOS.zip
-          unzip -l SndhArchivePlayer_macOS.zip
+          archive=SndhArchivePlayer_macOS.zip
+          if [[ "$NOTARIZATION_OUTCOME" != success ]]; then
+            cat > package/MACOS-LAUNCH.txt <<'EOF'
+          This build is ad hoc signed and has not been notarized by Apple.
+          It does not have a verified Apple Developer identity.
+
+          If you trust this download, extract the ZIP and try opening the app.
+          If macOS blocks it, open System Settings > Privacy & Security,
+          find the blocked app, and choose Open Anyway to confirm.
+          Managed Macs may prevent this exception.
+
+          Apple instructions: https://support.apple.com/102445
+          EOF
+          fi
+          ditto -c -k --sequesterRsrc package "$archive"
+          unzip -l "$archive"
+          echo "archive=$archive" >> "$GITHUB_OUTPUT"
 
       - name: Upload release package
         uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.platform.artifact }}
-          path: ${{ matrix.platform.archive }}
+          path: ${{ steps.macos_package.outputs.archive || matrix.platform.archive }}
           if-no-files-found: error
           retention-days: 7
 
   publish:
     name: Publish tag release
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    # Publish successful matrix artifacts even when another platform failed.
+    if: ${{ !cancelled() && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && github.event.created == true }}
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -210,15 +250,15 @@ jobs:
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
-          test -f release-assets/SndhArchivePlayer_win64.zip
-          test -f release-assets/SndhArchivePlayer_macOS.zip
+          shopt -s nullglob
+          assets=(release-assets/*.zip)
+          if (( ${#assets[@]} == 0 )); then
+            echo "::error::No successful release packages were produced."
+            exit 1
+          fi
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" \
-              release-assets/SndhArchivePlayer_win64.zip \
-              release-assets/SndhArchivePlayer_macOS.zip --clobber
+            gh release upload "$RELEASE_TAG" "${assets[@]}" --clobber
           else
-            gh release create "$RELEASE_TAG" \
-              release-assets/SndhArchivePlayer_win64.zip \
-              release-assets/SndhArchivePlayer_macOS.zip \
+            gh release create "$RELEASE_TAG" "${assets[@]}" \
               --verify-tag --title "$RELEASE_TAG" --generate-notes
           fi
