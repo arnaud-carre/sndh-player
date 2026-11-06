@@ -1,4 +1,4 @@
-# SNDH and YM Archive Player v1.23
+# SNDH and YM Archive Player v1.24
 ATARI-ST SNDH & YM ZIP Archive music browser/player by [Leonard/Oxygene](https://twitter.com/leonard_coder)
 
 **Now also runs on macOS!**
@@ -13,6 +13,7 @@ Powered by my [AtariAudio](https://github.com/arnaud-carre/AtariAudio)
 
 # Versions
 
+- v1.24 : use AtariAudio 1.28
 - v1.23 : github release workflow fixed
 - v1.22 : use AtariAudio 1.27
 - v1.21 : macOS signed builds, fixed macOS pause/play button
