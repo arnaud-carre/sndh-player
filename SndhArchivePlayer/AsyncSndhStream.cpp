@@ -185,8 +185,9 @@ const int16_t* AsyncSndhStream::GetDisplaySampleData(int sampleCount, uint32_t**
 	return m_audioBuffer + posInSample;
 }
 
-void AsyncSndhStream::DrawGui(cui_ctx* ui)
+int AsyncSndhStream::DrawGui(cui_ctx* ui, bool canSkipPrevious, bool canSkipNext)
 {
+	int skip = 0;
 	{
 		Ui::Row row(ui);
 		cui_button_opts play = {};
@@ -199,6 +200,7 @@ void AsyncSndhStream::DrawGui(cui_ctx* ui)
 			m_paused = !m_paused;
 			Pause(m_paused);
 		}
+		if (Ui::IconButton(ui, CUI_ICON_SKIP_BACK, "Previous music", !canSkipPrevious)) skip = -1;
 		const bool ready = IsRenderComplete();
 		const uint32_t length = m_exactSongSamples / m_replayRate;
 		float position = float(GetReplayPosInSec());
@@ -208,9 +210,11 @@ void AsyncSndhStream::DrawGui(cui_ctx* ui)
 		slider.disabled = !ready;
 		if (cui_slider_ex(ui, "##seek", &position, 0, float(length), &slider))
 			SetReplayPosInSec(int(position));
+		if (Ui::IconButton(ui, CUI_ICON_SKIP_FORWARD, "Next music", !canSkipNext)) skip = 1;
 		const int seconds = int(position);
 		cui_textf(ui, "%d:%02d / %u:%02u", seconds / 60, seconds % 60, length / 60, length % 60);
 	}
+	return skip;
 }
 
 void AsyncSndhStream::DrawOptions(cui_ctx* ui, const char* musicName)

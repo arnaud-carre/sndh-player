@@ -124,6 +124,24 @@ void SndhArchivePlayer::Navigate(int direction)
 		StartSubsong(next);
 }
 
+void SndhArchivePlayer::SkipMusic(int direction)
+{
+	if (!m_sndh.GetSndhFile() || !direction) return;
+	int zipIndex = -1;
+	int targetSubsong = 1;
+	if (m_sndh.GetPlayMode() == AsyncSndhStream::PlayMode_Random)
+		gArchive.GetRandomFilteredSong(zipIndex, targetSubsong);
+	else if (direction < 0)
+		zipIndex = gArchive.GetPrevFilteredZipIndex(m_currentZipIndex);
+	else
+		zipIndex = gArchive.GetNextFilteredZipIndex(m_currentZipIndex);
+	if (zipIndex >= 0)
+	{
+		PlayZipEntry(gArchive, zipIndex);
+		if (targetSubsong > 1) StartSubsong(targetSubsong);
+	}
+}
+
 void SndhArchivePlayer::Update()
 {
 	gArchive.Update();
@@ -132,11 +150,15 @@ void SndhArchivePlayer::Update()
 		PlayZipEntry(gArchive, m_pendingZipIndex);
 		m_pendingZipIndex = -1;
 		m_pendingDirection = 0;
+		m_pendingSubsongDirection = 0;
 		return;
 	}
 	const int direction = m_pendingDirection;
 	m_pendingDirection = 0;
-	if (direction) Navigate(direction);
+	const int subsongDirection = m_pendingSubsongDirection;
+	m_pendingSubsongDirection = 0;
+	if (direction) SkipMusic(direction);
+	else if (subsongDirection) StartSubsong(m_currentSubSong + subsongDirection);
 	else if (m_sndh.GetSndhFile() && m_sndh.SubsongReachedEnd())
 	{
 		if (m_sndh.GetPlayMode() == AsyncSndhStream::PlayMode_Loop)
@@ -157,6 +179,7 @@ void SndhArchivePlayer::DropFile(const char* filename)
 	m_sndh.Unload();
 	m_currentZipIndex = -1;
 	m_pendingDirection = 0;
+	m_pendingSubsongDirection = 0;
 	bool loaded = gArchive.Open(filename);
 	m_pendingZipIndex = -1;
 	if (!loaded) loaded = LoadNewMusic(filename);
@@ -166,8 +189,9 @@ void SndhArchivePlayer::DropFile(const char* filename)
 void SndhArchivePlayer::Startup(cui_ctx* ui)
 {
 	char value[4096];
-	if (LoadAppData("CuiTheme", value, sizeof(value)))
-		cui_set_theme(ui, strcmp(value, "light") == 0 ? CUI_THEME_LIGHT : CUI_THEME_DARK);
+	cui_set_theme(ui, CUI_THEME_LIGHT);
+	if (LoadAppData("CuiTheme", value, sizeof(value)) && strcmp(value, "dark") == 0)
+		cui_set_theme(ui, CUI_THEME_DARK);
 	if (LoadAppData("CuiSplits", value, sizeof(value)))
 	{
 		float top, song, archive;
@@ -264,11 +288,16 @@ void SndhArchivePlayer::DrawSongInfo(cui_ctx* ui)
 		if (info.subsongCount >= 2)
 		{
 			Ui::Row row(ui);
-			if (Ui::IconButton(ui, CUI_ICON_CHEVRON_LEFT, "Previous sub-tune / track")) m_pendingDirection = -1;
+			if (Ui::IconButton(ui, CUI_ICON_CHEVRON_LEFT, "Previous sub-tune", m_currentSubSong <= 1)) m_pendingSubsongDirection = -1;
 			cui_textf(ui, "Sub-tune %d / %d", m_currentSubSong, info.subsongCount);
-			if (Ui::IconButton(ui, CUI_ICON_CHEVRON_RIGHT, "Next sub-tune / track")) m_pendingDirection = 1;
+			if (Ui::IconButton(ui, CUI_ICON_CHEVRON_RIGHT, "Next sub-tune", m_currentSubSong >= sf->GetSongInfo().subsongCount)) m_pendingSubsongDirection = 1;
 		}
-		m_sndh.DrawGui(ui);
+		const bool random = m_sndh.GetPlayMode() == AsyncSndhStream::PlayMode_Random;
+		const bool canRandom = random && gArchive.GetFilteredSize() > 0;
+		const bool canPrevious = canRandom || gArchive.GetPrevFilteredZipIndex(m_currentZipIndex) >= 0;
+		const bool canNext = canRandom || gArchive.GetNextFilteredZipIndex(m_currentZipIndex) >= 0;
+		const int skip = m_sndh.DrawGui(ui, canPrevious, canNext);
+		if (skip) m_pendingDirection = skip;
 	}
 	else
 	{
@@ -277,7 +306,7 @@ void SndhArchivePlayer::DrawSongInfo(cui_ctx* ui)
 	}
 	{
 		Ui::Row row(ui, 8);
-		if (Ui::Button(ui, "About")) m_showAbout = true;
+		if (cui_button_ex(ui, "About", nullptr)) m_showAbout = true;
 		cui_menu_opts options = {};
 		options.width = 240;
 		if (cui_menu_begin(ui, "Options", &options))

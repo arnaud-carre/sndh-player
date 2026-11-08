@@ -10,6 +10,7 @@
 #include <cui/cui_render.h>
 #include <stdio.h>
 #include <vector>
+#include <algorithm>
 
 static SndhArchivePlayer gApp;
 
@@ -42,6 +43,44 @@ static void DropFilesCallback(GLFWwindow*, int count, const char** paths)
 #endif
 }
 
+static void FitStartupWindow(GLFWwindow* window)
+{
+    int x, y, width, height;
+    glfwGetWindowPos(window, &x, &y);
+    glfwGetWindowSize(window, &width, &height);
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    int count = 0;
+    GLFWmonitor** monitors = glfwGetMonitors(&count);
+    long long largestOverlap = 0;
+    for (int i = 0; i < count; ++i)
+    {
+        int mx, my, mw, mh;
+        glfwGetMonitorWorkarea(monitors[i], &mx, &my, &mw, &mh);
+        const int overlapWidth = (std::max)(0, (std::min)(x + width, mx + mw) - (std::max)(x, mx));
+        const int overlapHeight = (std::max)(0, (std::min)(y + height, my + mh) - (std::max)(y, my));
+        const long long overlap = static_cast<long long>(overlapWidth) * overlapHeight;
+        if (overlap > largestOverlap)
+        {
+            largestOverlap = overlap;
+            monitor = monitors[i];
+        }
+    }
+    if (!monitor) return;
+    int workX, workY, workWidth, workHeight;
+    glfwGetMonitorWorkarea(monitor, &workX, &workY, &workWidth, &workHeight);
+    int left, top, right, bottom;
+    glfwGetWindowFrameSize(window, &left, &top, &right, &bottom);
+    const int availableWidth = (std::max)(1, workWidth - left - right);
+    const int availableHeight = (std::max)(1, workHeight - top - bottom);
+    width = (std::min)(width, availableWidth);
+    height = (std::min)(height, availableHeight);
+    glfwSetWindowSizeLimits(window, (std::min)(720, availableWidth), (std::min)(640, availableHeight),
+        GLFW_DONT_CARE, GLFW_DONT_CARE);
+    glfwSetWindowSize(window, width, height);
+    glfwSetWindowPos(window, workX + left + (availableWidth - width) / 2,
+        workY + top + (availableHeight - height) / 2);
+}
+
 int main()
 {
     glfwSetErrorCallback(GlfwErrorCallback);
@@ -53,13 +92,14 @@ int main()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 #endif
     glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     GLFWwindow* window = glfwCreateWindow(1060, 900, "SNDH & YM Archive Player v" SNDH_ARCHIVE_PLAYER_VERSION, nullptr, nullptr);
     if (!window)
     {
         glfwTerminate();
         return 1;
     }
-    glfwSetWindowSizeLimits(window, 720, 640, GLFW_DONT_CARE, GLFW_DONT_CARE);
+    FitStartupWindow(window);
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
     cui_gl_renderer* renderer = cui_gl_create([](const char* name) -> void* { return reinterpret_cast<void*>(glfwGetProcAddress(name)); });
@@ -72,7 +112,7 @@ int main()
     }
     cui_ctx_desc desc = {};
     desc.renderer = cui_gl_iface(renderer);
-    desc.theme = CUI_THEME_DARK;
+    desc.theme = CUI_THEME_LIGHT;
     desc.accent = CUI_ACCENT_GREEN;
     cui_ctx* ui = cui_create(&desc);
     if (!ui)
@@ -86,6 +126,7 @@ int main()
         CuiGlfw platform(window, ui);
         glfwSetDropCallback(window, DropFilesCallback);
         gApp.Startup(ui);
+        glfwShowWindow(window);
         double previousTime = glfwGetTime();
         while (!glfwWindowShouldClose(window))
         {

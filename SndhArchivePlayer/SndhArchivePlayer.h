@@ -43,10 +43,12 @@ public:
 private:
 	bool	StartSubsong(int subsong);
 	void	Navigate(int direction);
+	void	SkipMusic(int direction);
 	void	DrawSongInfo(cui_ctx* ui);
 	bool	m_showAbout = false;
 	bool	m_showDetails = false;
 	int		m_pendingDirection = 0;
+	int		m_pendingSubsongDirection = 0;
 	int		m_pendingZipIndex = -1;
 	float	m_topRatio = 0.36f;
 	float	m_songRatio = 0.55f;

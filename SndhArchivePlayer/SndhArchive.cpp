@@ -213,6 +213,36 @@ void SndhArchive::Update()
 	}
 }
 
+void SndhArchive::SortFilteredList()
+{
+	if (m_filterdSize > 1)
+		std::sort(m_filteredList, m_filteredList + m_filterdSize, [this](const PlayListItem& a, const PlayListItem& b)
+		{
+			int result = 0;
+			if (m_sortColumn == 0 || m_sortColumn == 1)
+			{
+				const char* left = m_sortColumn == 0 ? a.author : a.title;
+				const char* right = m_sortColumn == 0 ? b.author : b.title;
+#ifdef _WIN32
+				result = _stricmp(left ? left : "", right ? right : "");
+#else
+				result = strcasecmp(left ? left : "", right ? right : "");
+#endif
+			}
+			else
+			{
+				const int left = m_sortColumn == 2 ? a.duration : a.subsongCount;
+				const int right = m_sortColumn == 2 ? b.duration : b.subsongCount;
+				result = (left > right) - (left < right);
+			}
+			if (!result) result = fEntrySort(&a, &b);
+			if (!result) result = (a.zipIndex > b.zipIndex) - (a.zipIndex < b.zipIndex);
+			return m_sortDescending ? result > 0 : result < 0;
+		});
+	m_cursor = -1;
+	m_lastPlayingIndex = -1;
+}
+
 void SndhArchive::DrawGui(cui_ctx* ui, SndhArchivePlayer& player)
 {
 	Ui::Column column(ui, CUI_FILL, 12, 14);
@@ -286,11 +316,15 @@ void SndhArchive::DrawGui(cui_ctx* ui, SndhArchivePlayer& player)
 	const int playing = player.GetPlayingZipEntry();
 	if (playing != m_lastPlayingIndex)
 	{
-		for (int i = 0; i < m_filterdSize; i++) m_selected[i] = m_filteredList[i].zipIndex == playing;
+		for (int i = 0; i < m_filterdSize; i++)
+		{
+			m_selected[i] = m_filteredList[i].zipIndex == playing;
+			if (m_selected[i]) m_cursor = i;
+		}
 		m_lastPlayingIndex = playing;
 	}
 	static const cui_grid_column columns[] = {
-		{ "Author", 260 }, { "Name", 350 }, { "Duration", 110, CUI_TEXT_RIGHT }, { "Sub-tunes", 100, CUI_TEXT_RIGHT }
+		{ "Author", 260, CUI_TEXT_LEFT, true }, { "Name", 350, CUI_TEXT_LEFT, true }, { "Duration", 110, CUI_TEXT_RIGHT, true }, { "Sub-tunes", 100, CUI_TEXT_RIGHT, true }
 	};
 	cui_grid_column shownColumns[4];
 	int shownIndices[4];
@@ -301,7 +335,12 @@ void SndhArchive::DrawGui(cui_ctx* ui, SndhArchivePlayer& player)
 		shownIndices[columnCount] = index;
 		shownColumns[columnCount++] = columns[index];
 	}
+	cui_table_sort sort = { -1, m_sortDescending };
+	for (int i = 0; i < columnCount; i++)
+		if (shownIndices[i] == m_sortColumn) sort.column = i;
+	const cui_table_sort previousSort = sort;
 	cui_grid_opts grid = {};
+	grid.sort = &sort;
 	grid.width = CUI_FILL;
 	grid.height = CUI_FILL;
 	grid.row_height = 30;
@@ -350,6 +389,12 @@ void SndhArchive::DrawGui(cui_ctx* ui, SndhArchivePlayer& player)
 		cui_data_grid_end(ui);
 	}
 	cui_pop_id(ui);
+	if (sort.column >= 0 && (sort.column != previousSort.column || sort.descending != previousSort.descending))
+	{
+		m_sortColumn = shownIndices[sort.column];
+		m_sortDescending = sort.descending;
+		SortFilteredList();
+	}
 	// CUI paints canvases after layout; keep their audio pointers alive until then.
 	if (activate >= 0) player.QueueZipEntry(activate);
 }

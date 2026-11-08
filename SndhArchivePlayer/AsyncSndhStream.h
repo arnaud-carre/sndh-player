@@ -42,7 +42,7 @@ public:
 	bool SubsongReachedEnd() const { return m_audioStream.IsEndReached(); }
 	void SetReplayPosInSec(int pos);
 
-	void	DrawGui(cui_ctx* ui);
+	int		DrawGui(cui_ctx* ui, bool canSkipPrevious = false, bool canSkipNext = false);
 	void	DrawOptions(cui_ctx* ui, const char* musicName);
 	bool IsPaused() const { return m_paused.load(); }
 	bool IsRenderComplete() const { return m_audioBuffer && m_asyncInfo.fillPos.load() >= m_exactSongSamples; }

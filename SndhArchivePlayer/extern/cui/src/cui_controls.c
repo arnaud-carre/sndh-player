@@ -271,7 +271,7 @@ bool cui_slider_ex(cui_ctx *ui, const char *label, float *value, float min, floa
     float pad = 9;
     float x0 = pr.x + pad, x1 = pr.x + pr.w - pad;
     bool jumped = false;
-    if (r.active && ui->mdown[0] && pr.w > 0) {
+    if (!disabled && r.active && (ui->mdown[0] || ui->mpressed[0]) && pr.w > 2 * pad) {
         float mt = (ui->mx - x0) / (x1 - x0);
         if (ui->mpressed[0]) {
             st->dragging = true;

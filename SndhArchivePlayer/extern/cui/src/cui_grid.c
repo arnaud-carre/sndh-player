@@ -96,10 +96,13 @@ bool cui_data_grid_begin_ex(cui_ctx *ui, const char *id_str, const cui_grid_colu
         st->init = true;
     }
     /* a cursor moved by the caller is scrolled into view below */
-    bool cursor_set = o->cursor && *o->cursor >= 0 && *o->cursor < nrows && st->cursor >= 0 && *o->cursor != st->cursor;
+    bool cursor_set = o->cursor && *o->cursor >= 0 && *o->cursor < nrows && *o->cursor != st->cursor;
     if (o->cursor && *o->cursor >= 0) st->cursor = *o->cursor;
     if (o->anchor && *o->anchor >= 0) st->anchor = *o->anchor;
     cui_scroll_state *ss = cui_state(ui, b->sid, sizeof *ss);
+    ss->bar_top_inset = CUI__GRID_HEAD;
+    ss->always_show_bar = true;
+    ss->bar_t = 1.0f;
     b->checks = o->selected && !o->hide_checkboxes;
     float total = b->checks ? CUI__GRID_CHECK : 0;
     for (int k = 0; k < ncols; k++) total += st->widths[k];
@@ -120,9 +123,10 @@ bool cui_data_grid_begin_ex(cui_ctx *ui, const char *id_str, const cui_grid_colu
     b->total_w = total;
     float view_h = ss->view_h > 0 ? ss->view_h : 400;
     if (cursor_set) {
-        float top = CUI__GRID_HEAD + st->cursor * b->row_h, bottom = top + b->row_h;
-        if (top - CUI__GRID_HEAD < ss->ty) ss->ty = top - CUI__GRID_HEAD;
-        if (bottom > ss->ty + view_h) ss->ty = bottom - view_h;
+        /* Center caller-selected rows in the body, excluding the fixed header.
+         * The scroll area clamps this target at the beginning/end of the list. */
+        float body_h = CUI_MAX(0, view_h - CUI__GRID_HEAD);
+        ss->ty = (st->cursor + 0.5f) * b->row_h - body_h * 0.5f;
         ui->animating = true;
     }
     /* keyboard: the grid is one tab stop; arrows move the cursor row */
@@ -165,6 +169,9 @@ bool cui_data_grid_begin_ex(cui_ctx *ui, const char *id_str, const cui_grid_colu
     on->min_h = 120;
     on->radius = CUI_CORNERS(ui->theme.radius_control);
     on->border = 1; on->border_color = CUI_C(ui, BORDER);
+    /* Clips round outward to physical pixels. Keep scrolling content inside
+     * the border so fractional frame positions cannot expose a row above it. */
+    on->pad[0] = on->pad[1] = on->pad[2] = on->pad[3] = on->border;
     on->bg = CUI_C(ui, SURFACE);
     on->flags |= CUI_NF_CLIP;
     cui__mark_interactive(ui, outer, CUI_IF_FOCUSABLE);
@@ -176,7 +183,10 @@ bool cui_data_grid_begin_ex(cui_ctx *ui, const char *id_str, const cui_grid_colu
     cui__scroll_begin_ex(ui, b->sid, &sb, true);
     /* Wheel input, thumb dragging and the scroll animation update the offset
      * above. Virtualize against the offset this frame will actually draw. */
-    float scroll_y = ui->nodes[cui__current(ui)].scroll_y;
+    /* Snap both content and sticky header to the same pixel boundary.
+     * A fractional transform otherwise exposes text above the header fill. */
+    float scroll_y = roundf(ui->nodes[cui__current(ui)].scroll_y);
+    ui->nodes[cui__current(ui)].scroll_y = scroll_y;
     int f = (int)floorf((scroll_y - CUI__GRID_HEAD) / b->row_h) - 2;
     if (f < 0) f = 0;
     int l = f + (int)ceilf(view_h / b->row_h) + 5;

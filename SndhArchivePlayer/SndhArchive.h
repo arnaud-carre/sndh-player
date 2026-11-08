@@ -118,10 +118,15 @@ private:
 				m_filterdSize++;
 			}
 		}
+		SortFilteredList();
 		m_selected.reset(new bool[m_filterdSize]());
 		m_cursor = -1;
 		m_lastPlayingIndex = -1;
 	}
+
+	void SortFilteredList();
+	int m_sortColumn = 0;
+	bool m_sortDescending = false;
 
 	PlayListItem*	m_list;
 	int				m_size;

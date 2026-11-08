@@ -1026,16 +1026,19 @@ int cui__scroll_begin_ex(cui_ctx *ui, cui_id id, const cui_box *box, bool horizo
     cui_id bar_id = id ^ 0x5C5C5C5Cu;
     cui_interact br = cui__interact(ui, bar_id, CUI_IF_DRAG | CUI_IF_KEEP_FOCUS);
     st->hover_bar = br.hovered;
-    if (max_y > 0 && pr.h > 0) {
-        float thumb_h = CUI_MAX(28.0f, pr.h * pr.h / st->content_h);
-        float track = pr.h - thumb_h - 6;
-        float thumb_y = pr.y + 3 + (max_y > 0 ? st->y / max_y * track : 0);
+    cui_rect bar = pr;
+    bar.y += st->bar_top_inset;
+    bar.h = CUI_MAX(0, bar.h - st->bar_top_inset);
+    if (max_y > 0 && bar.h > 6) {
+        float thumb_h = CUI_MIN(bar.h - 6, CUI_MAX(28.0f, bar.h * bar.h / CUI_MAX(1, st->content_h - st->bar_top_inset)));
+        float track = bar.h - thumb_h - 6;
+        float thumb_y = bar.y + 3 + (max_y > 0 ? st->y / max_y * track : 0);
         if (br.pressed && ui->mpressed[0]) {
             st->drag_y = true;
             st->drag_grab = (ui->my >= thumb_y && ui->my <= thumb_y + thumb_h) ? ui->my - thumb_y : thumb_h * 0.5f;
         }
         if (st->drag_y && ui->mdown[0]) {
-            float ny = (ui->my - pr.y - 3 - st->drag_grab) / (track > 1 ? track : 1) * max_y;
+            float ny = (ui->my - bar.y - 3 - st->drag_grab) / (track > 1 ? track : 1) * max_y;
             st->ty = st->y = cui__clampf(ny, 0, max_y);
             st->last_activity = ui->time;
         }
@@ -1048,7 +1051,7 @@ int cui__scroll_begin_ex(cui_ctx *ui, cui_id id, const cui_box *box, bool horizo
     if (fabsf(st->y - st->ty) < 0.25f) st->y = st->ty;
     if (fabsf(st->x - st->tx) < 0.25f) st->x = st->tx;
     bool recent = st->last_activity > 0 && ui->time - st->last_activity < 0.9;
-    bool show = recent || st->hover_bar || st->drag_y;
+    bool show = st->always_show_bar || recent || st->hover_bar || st->drag_y;
     if (recent) cui__wakeup_after(ui, (float)(0.9 - (ui->time - st->last_activity)) + 0.01f);
     cui__tween(ui, &st->bar_t, show ? 1.0f : 0.0f, show ? 0.12f : 0.3f);
 
@@ -1121,13 +1124,16 @@ void cui__paint_scrollbars(cui_ctx *ui, cui_node *n, cui_rect clip) {
             cui__draw_triangles(ui, v, (S + 1) * 2, idx, S * 6);
         }
     }
-    if (max_y > 0.5f) {
-        cui_rect zone = { r.x + r.w - CUI__BAR_ZONE, r.y, CUI__BAR_ZONE, r.h };
+    cui_rect bar = r;
+    bar.y += st->bar_top_inset;
+    bar.h = CUI_MAX(0, bar.h - st->bar_top_inset);
+    if (max_y > 0.5f && bar.h > 6) {
+        cui_rect zone = { r.x + r.w - CUI__BAR_ZONE, bar.y, CUI__BAR_ZONE, bar.h };
         cui__paint_add_hit(ui, n->id ^ 0x5C5C5C5Cu, cui__rect_intersect(zone, clip), CUI_NF_INTERACTIVE);
         if (st->bar_t > 0.01f) {
-            float thumb_h = CUI_MAX(28.0f, r.h * r.h / st->content_h);
-            float track = r.h - thumb_h - 6;
-            float y = r.y + 3 + cui__clampf(st->y / max_y, 0, 1) * track;
+            float thumb_h = CUI_MIN(bar.h - 6, CUI_MAX(28.0f, bar.h * bar.h / CUI_MAX(1, st->content_h - st->bar_top_inset)));
+            float track = bar.h - thumb_h - 6;
+            float y = bar.y + 3 + cui__clampf(st->y / max_y, 0, 1) * track;
             bool big = st->hover_bar || st->drag_y;
             float w = big ? 8 : 6;
             cui_rect th = { r.x + r.w - w - 3, y, w, thumb_h };

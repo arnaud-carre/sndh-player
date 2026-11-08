@@ -294,6 +294,8 @@ typedef struct cui_scroll_state {
     float content_w, content_h; /* from last layout */
     float view_w, view_h;
     float bar_t;                /* scrollbar visibility 0..1 */
+    float bar_top_inset;        /* fixed header excluded from vertical scrollbar */
+    bool always_show_bar;       /* keep data-grid position and extent visible */
     double last_activity;
     bool drag_y, drag_x;
     float drag_grab;
