@@ -32,6 +32,9 @@ public:
 	void	Startup(cui_ctx* ui);
 	void	Update();
 	void	DrawGui(cui_ctx* ui);
+	void	DrawDataGui(cui_ctx* ui);
+	bool	IsDataViewerOpen() const { return m_showDataViewer; }
+	void	CloseDataViewer() { m_showDataViewer = false; }
 	bool	NeedsContinuousFrames() const;
 	void	DropFile(const char* sFilename);
 	bool	LoadNewMusic(const char* sFilename);
@@ -53,7 +56,7 @@ private:
 	float	m_topRatio = 0.36f;
 	float	m_songRatio = 0.55f;
 	float	m_archiveRatio = 0.64f;
-	int		m_archiveTab = 0;
+	bool	m_showDataViewer = false;
 
 	AsyncSndhStream	m_sndh;
 	int		m_currentSubSong = 1;

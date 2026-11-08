@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <vector>
 #include <algorithm>
+#include <memory>
 
 static SndhArchivePlayer gApp;
 
@@ -43,7 +44,7 @@ static void DropFilesCallback(GLFWwindow*, int count, const char** paths)
 #endif
 }
 
-static void FitStartupWindow(GLFWwindow* window)
+static void FitStartupWindow(GLFWwindow* window, GLFWwindow* beside = nullptr, int minWidth = 720, int minHeight = 640)
 {
     int x, y, width, height;
     glfwGetWindowPos(window, &x, &y);
@@ -74,12 +75,114 @@ static void FitStartupWindow(GLFWwindow* window)
     const int availableHeight = (std::max)(1, workHeight - top - bottom);
     width = (std::min)(width, availableWidth);
     height = (std::min)(height, availableHeight);
-    glfwSetWindowSizeLimits(window, (std::min)(720, availableWidth), (std::min)(640, availableHeight),
+    glfwSetWindowSizeLimits(window, (std::min)(minWidth, availableWidth), (std::min)(minHeight, availableHeight),
         GLFW_DONT_CARE, GLFW_DONT_CARE);
     glfwSetWindowSize(window, width, height);
-    glfwSetWindowPos(window, workX + left + (availableWidth - width) / 2,
-        workY + top + (availableHeight - height) / 2);
+    int targetX = workX + left + (availableWidth - width) / 2;
+    int targetY = workY + top + (availableHeight - height) / 2;
+    if (beside)
+    {
+        int bx, by, bw, bh, bl, bt, br, bb;
+        glfwGetWindowPos(beside, &bx, &by);
+        glfwGetWindowSize(beside, &bw, &bh);
+        glfwGetWindowFrameSize(beside, &bl, &bt, &br, &bb);
+        targetX = bx + bw + br + left + 8;
+        if (targetX + width + right > workX + workWidth)
+            targetX = bx - bl - right - width - 8;
+        targetX = (std::max)(workX + left, (std::min)(targetX, workX + left + availableWidth - width));
+        targetY = (std::max)(workY + top, (std::min)(by, workY + top + availableHeight - height));
+    }
+    glfwSetWindowPos(window, targetX, targetY);
 }
+
+class DataViewerWindow
+{
+public:
+    ~DataViewerWindow() { Close(); }
+
+    void Render(GLFWwindow* mainWindow, cui_ctx* mainUi)
+    {
+        if (m_window && glfwWindowShouldClose(m_window)) gApp.CloseDataViewer();
+        if (!gApp.IsDataViewerOpen())
+        {
+            Close();
+            return;
+        }
+        if (!m_window && !Open(mainWindow, mainUi))
+        {
+            gApp.CloseDataViewer();
+            return;
+        }
+        int width, height;
+        glfwGetFramebufferSize(m_window, &width, &height);
+        if (glfwGetWindowAttrib(m_window, GLFW_ICONIFIED) || width == 0 || height == 0) return;
+        glfwMakeContextCurrent(m_window);
+        m_platform->UpdateViewport();
+        cui_set_theme(m_ui, cui_get_theme_mode(mainUi));
+        const double now = glfwGetTime();
+        cui_begin_frame(m_ui, float(now - m_previousTime));
+        m_previousTime = now;
+        gApp.DrawDataGui(m_ui);
+        cui_end_frame(m_ui);
+        cui_gl_render(m_renderer, cui_get_draw_data(m_ui), true);
+        glfwSwapBuffers(m_window);
+        glfwMakeContextCurrent(mainWindow);
+    }
+
+private:
+    bool Open(GLFWwindow* mainWindow, cui_ctx* mainUi)
+    {
+        m_window = glfwCreateWindow(760, 600, "File Viewer - SNDH & YM Archive Player", nullptr, nullptr);
+        if (!m_window) return false;
+        int x, y;
+        glfwGetWindowPos(mainWindow, &x, &y);
+        glfwSetWindowPos(m_window, x, y);
+        FitStartupWindow(m_window, mainWindow, 360, 240);
+        glfwMakeContextCurrent(m_window);
+        glfwSwapInterval(0);
+        m_renderer = cui_gl_create([](const char* name) -> void* { return reinterpret_cast<void*>(glfwGetProcAddress(name)); });
+        if (m_renderer)
+        {
+            cui_ctx_desc desc = {};
+            desc.renderer = cui_gl_iface(m_renderer);
+            desc.theme = cui_get_theme_mode(mainUi);
+            desc.accent = CUI_ACCENT_GREEN;
+            m_ui = cui_create(&desc);
+        }
+        if (!m_ui)
+        {
+            Close();
+            glfwMakeContextCurrent(mainWindow);
+            return false;
+        }
+        m_platform = std::make_unique<CuiGlfw>(m_window, m_ui);
+        m_previousTime = glfwGetTime();
+        glfwShowWindow(m_window);
+        glfwMakeContextCurrent(mainWindow);
+        return true;
+    }
+
+    void Close()
+    {
+        if (!m_window) return;
+        GLFWwindow* previous = glfwGetCurrentContext();
+        glfwMakeContextCurrent(m_window);
+        m_platform.reset();
+        if (m_ui) cui_destroy(m_ui);
+        if (m_renderer) cui_gl_destroy(m_renderer);
+        glfwDestroyWindow(m_window);
+        glfwMakeContextCurrent(previous == m_window ? nullptr : previous);
+        m_window = nullptr;
+        m_ui = nullptr;
+        m_renderer = nullptr;
+    }
+
+    GLFWwindow* m_window = nullptr;
+    cui_ctx* m_ui = nullptr;
+    cui_gl_renderer* m_renderer = nullptr;
+    std::unique_ptr<CuiGlfw> m_platform;
+    double m_previousTime = 0;
+};
 
 int main()
 {
@@ -124,6 +227,7 @@ int main()
     }
     {
         CuiGlfw platform(window, ui);
+        DataViewerWindow dataViewer;
         glfwSetDropCallback(window, DropFilesCallback);
         gApp.Startup(ui);
         glfwShowWindow(window);
@@ -135,6 +239,7 @@ int main()
 
             // Playback and job completion advance independently of visible panels.
             gApp.Update();
+            dataViewer.Render(window, ui);
             int width, height;
             glfwGetFramebufferSize(window, &width, &height);
             if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) || width == 0 || height == 0)

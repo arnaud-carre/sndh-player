@@ -332,6 +332,8 @@ void SndhArchivePlayer::DrawSongInfo(cui_ctx* ui)
 			if (cui_menu_item_ex(ui, "Light", &light)) cui_set_theme(ui, CUI_THEME_LIGHT);
 			cui_menu_end(ui);
 		}
+		if (gArchive.IsOpen() && !gArchive.IsOpening() && m_currentZipIndex >= 0 && sf)
+			if (cui_button_ex(ui, "File Viewer", nullptr)) m_showDataViewer = true;
 	}
 	cui_scroll_end(ui);
 }
@@ -363,6 +365,20 @@ static void PaintScope(cui_ctx* ui, cui_rect rect, void* user)
 	}
 	cui_draw_polyline(ui, points, count, 1.35f, data.voice < 0 ? CUI_COLOR_ACCENT : CUI_COLOR_SERIES(data.voice), false);
 	cui_pop_clip(ui);
+}
+
+void SndhArchivePlayer::DrawDataGui(cui_ctx* ui)
+{
+	Ui::Column column(ui, CUI_FILL, 8, 12);
+	const auto* sf = m_sndh.GetSndhFile();
+	if (sf)
+	{
+		const auto& info = sf->GetSongInfo();
+		cui_hex_view_opts opts = {};
+		opts.height = -1;
+		cui_hex_view_ex(ui, "file-bytes", static_cast<const uint8_t*>(info.rawBinaryData), info.rawBinaryDataSize, nullptr, &opts);
+	}
+	else cui_secondary(ui, "Load a track to inspect its file.");
 }
 
 void SndhArchivePlayer::DrawGui(cui_ctx* ui)
@@ -397,27 +413,7 @@ void SndhArchivePlayer::DrawGui(cui_ctx* ui)
 	cui_split_begin(ui, "player-archive-voices", &m_archiveRatio, &vertical);
 	{
 		Ui::Column panel(ui, CUI_FILL, 0, 0, CUI_COLOR_SURFACE);
-		const cui_doc_tab tabs[] = { { kWndSndhArchive }, { kWndFileViewer } };
-		cui_doc_tabs_opts tabOptions = {};
-		tabOptions.no_close = true;
-		tabOptions.no_reorder = true;
-		tabOptions.shortcuts = true;
-		cui_doc_tabs_ex(ui, "archive-tabs", tabs, 2, &m_archiveTab, &tabOptions);
-		if (m_archiveTab == 0)
-			gArchive.DrawGui(ui, *this);
-		else
-		{
-			Ui::Column column(ui, CUI_FILL, 8, 12);
-			const auto* sf = m_sndh.GetSndhFile();
-			if (sf)
-			{
-				const auto& info = sf->GetSongInfo();
-				cui_hex_view_opts opts = {};
-				opts.height = -1;
-				cui_hex_view_ex(ui, "file-bytes", static_cast<const uint8_t*>(info.rawBinaryData), info.rawBinaryDataSize, nullptr, &opts);
-			}
-			else cui_secondary(ui, "Load a track to inspect its file.");
-		}
+		gArchive.DrawGui(ui, *this);
 	}
 	cui_split_next(ui);
 	{
