@@ -34,7 +34,14 @@ jobs:
       - name: Build
         run: cmake --build build --config Release --parallel
 
+      - name: Preserve unsigned application
+        run: |
+          test -x build/SndhArchivePlayer.app/Contents/MacOS/SndhArchivePlayer
+          ditto build/SndhArchivePlayer.app "$RUNNER_TEMP/unsigned-SndhArchivePlayer.app"
+
       - name: Sign macOS application
+        id: sign
+        continue-on-error: true
         if: runner.os == 'macOS'
         shell: bash
         env:
@@ -94,8 +101,16 @@ jobs:
             --options runtime --timestamp "$app_path"
           codesign --verify --deep --strict --verbose=2 "$app_path"
 
+      - name: Restore unsigned application if signing failed
+        if: steps.sign.outcome == 'failure'
+        run: |
+          rm -rf build/SndhArchivePlayer.app
+          ditto "$RUNNER_TEMP/unsigned-SndhArchivePlayer.app" build/SndhArchivePlayer.app
+
       - name: Notarize and validate macOS application
-        if: runner.os == 'macOS'
+        id: notarize
+        continue-on-error: true
+        if: runner.os == 'macOS' && steps.sign.outcome == 'success'
         shell: bash
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -141,6 +156,12 @@ jobs:
           path: notarization/
           if-no-files-found: ignore
           retention-days: 7
+
+      - name: Report incomplete Apple validation
+        if: steps.sign.outcome == 'failure' || steps.notarize.outcome == 'failure'
+        run: |
+          echo "::warning::Apple signing or notarization failed. The application will still be packaged and uploaded."
+          echo "Apple signing or notarization failed; the build artifact is provided without complete Apple validation. See the signing/notarization logs." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Package application bundle
         run: |
