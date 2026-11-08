@@ -8,6 +8,10 @@
 #include "SndhArchivePlayer.h"
 #include "SndhArchive.h"
 #include "jobSystem.h"
+#include "Ui.h"
+#include <assert.h>
+#include <stdio.h>
+#include <algorithm>
 
 
 SndhArchive::SndhArchive()
@@ -16,6 +20,7 @@ SndhArchive::SndhArchive()
 	m_list = NULL;
 	m_filteredList = NULL;
 	m_filterdSize = 0;
+	m_size = 0;
 	m_firstSearchFocus = false;
 	m_asyncBrowse = false;
 }
@@ -106,7 +111,6 @@ bool SndhArchive::LoadZipEnd()
 	m_size = int(w - m_list);
 	m_firstSearchFocus = true;
 	qsort((void *)m_list, (size_t)m_size, sizeof(PlayListItem), fEntrySort);
-	RebuildFilterList();
 	return true;
 }
 
@@ -158,7 +162,7 @@ bool	SndhArchive::Open(const char* sFilename)
 void	SndhArchive::Close()
 {
 
-	if (m_jsBrowse.Running())
+	if (m_asyncBrowse)
 		m_jsBrowse.Join();
 
 	if (m_zipArchive)
@@ -173,7 +177,11 @@ void	SndhArchive::Close()
 	free(m_filteredList);
 	m_list = NULL;
 	m_filteredList = NULL;
-	m_filteredList = 0;
+	m_zipArchive = nullptr;
+	m_asyncBrowse = false;
+	m_selected.reset();
+	m_cursor = -1;
+	m_lastPlayingIndex = -1;
 	m_size = 0;
 	m_filterdSize = 0;
 }
@@ -195,129 +203,153 @@ void OsOpenInShell(const char* path)
 #endif
 }
 
-void	SndhArchive::ImGuiDraw(SndhArchivePlayer& player)
+void SndhArchive::Update()
 {
-
-	if (ImGui::Begin(kWndSndhArchive))
+	if (m_asyncBrowse && !m_jsBrowse.Running())
 	{
-		if ( m_asyncBrowse )
+		m_jsBrowse.Join();
+		m_asyncBrowse = false;
+		RebuildFilterList();
+	}
+}
+
+void SndhArchive::DrawGui(cui_ctx* ui, SndhArchivePlayer& player)
+{
+	Ui::Column column(ui, CUI_FILL, 12, 14);
+	if (m_asyncBrowse)
+	{
+		cui_heading(ui, "Opening your archive", 4);
+		cui_secondary(ui, "Reading SNDH and YM metadata...");
+		cui_progress_opts progress = {};
+		cui_progress_ex(ui, float(m_progress.load()) / 100, &progress);
+		return;
+	}
+	if (!IsOpen())
+	{
+		cui_heading(ui, "Discover Atari music", 3);
+		cui_secondary(ui, "Drop a ZIP archive containing SNDH and YM files anywhere in this window.");
+		if (Ui::Button(ui, "Get the SNDH archive", false, CUI_ICON_DOWNLOAD))
+			OsOpenInShell("https://sndh.atari.org/download.php");
+#ifndef _WIN32
+		cui_muted(ui, "Safari: disable 'Open safe files after downloading' to keep the archive zipped.");
+#endif
+		return;
+	}
+	{
+		Ui::Row row(ui);
+		cui_input_opts search = {};
+		search.width = CUI_FILL;
+		search.placeholder = "Search author or title (include, -exclude)";
+		search.clearable = true;
+		search.autofocus = m_firstSearchFocus;
+		if (cui_search_ex(ui, "archive-search", m_search, sizeof(m_search), &search) & CUI_CHANGED)
 		{
-			if ( m_jsBrowse.Running() )
-			{
-				ImGui::Text("Parsing large SNDH ZIP archive...");
-				ImGui::SameLine();
-				ImGui::ProgressBar(float(m_progress)/100.f);
-			}
-			else
-			{
-				// loading just finished
-				m_jsBrowse.Join();
-				m_asyncBrowse = false;
-			}
+			m_filter.Build(m_search);
+			RebuildFilterList();
 		}
-
-		if ( !m_asyncBrowse )
+		m_firstSearchFocus = false;
+		cui_textf(ui, "%d files", m_filterdSize);
+		if (Ui::Button(ui, "Columns")) cui_popover_toggle(ui, "archive-columns");
+		cui_popover_opts popup = {};
+		popup.width = 290;
+		if (cui_popover_begin(ui, "archive-columns", &popup))
 		{
-			if (IsOpen())
+			const char* names[] = { "Author", "Name", "Duration", "Sub-tunes" };
+			cui_muted(ui, "Show and reorder columns");
+			for (int pos = 0; pos < 4; pos++)
 			{
-				ImGui::Text("Search:");
-				ImGui::SameLine();
-				if (m_firstSearchFocus)
+				const int index = m_columnOrder[pos];
+				cui_push_id_int(ui, pos);
 				{
-					ImGui::SetKeyboardFocusHere();
-					m_firstSearchFocus = false;
-				}
-				if (m_ImGuiFilter.Draw("Found:"))
-					RebuildFilterList();
-
-				int count = GetFilteredSize();
-				ImGui::SameLine();
-				ImGui::Text("%d files", count);
-
-				// When using ScrollX or ScrollY we need to specify a size for our table container!
-				// Otherwise by default the table will fit all available space, like a BeginChild() call.
-				static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
-				// 		ImVec2 outer_size = ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() * 8);
-				// 		if (ImGui::BeginTable("table_scrolly", 3, flags, outer_size))
-
-		/*
-				static ImGuiTableFlags flags =
-					ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable
-					| ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti
-					| ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_NoBordersInBody
-					| ImGuiTableFlags_ScrollX | ImGuiTableFlags_ScrollY
-					| ImGuiTableFlags_SizingFixedFit;
-		*/
-				if (ImGui::BeginTable("table_advanced", 4, flags))
-				{
-					ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
-					ImGui::TableSetupColumn("Author", ImGuiTableColumnFlags_WidthStretch, 40.0f);
-					ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch,40.0f);
-					ImGui::TableSetupColumn("Duration", ImGuiTableColumnFlags_WidthStretch,10.f);
-					ImGui::TableSetupColumn("Sub-Song", ImGuiTableColumnFlags_WidthStretch,10.f);
-					ImGui::TableHeadersRow();
-
-					// Demonstrate using clipper for large vertical lists
-					ImGuiListClipper clipper;
-					clipper.Begin(count);
-					int selectedZipIndex = player.GetPlayingZipEntry();
-					while (clipper.Step())
+					Ui::Row controls(ui);
+					const int visible = int(m_columnVisible[0]) + int(m_columnVisible[1]) + int(m_columnVisible[2]) + int(m_columnVisible[3]);
+					cui_check_opts check = {};
+					check.disabled = visible == 1 && m_columnVisible[index];
+					if (cui_checkbox_ex(ui, names[index], &m_columnVisible[index], &check)) ++m_columnRevision;
+					cui_spacer(ui);
+					if (Ui::IconButton(ui, CUI_ICON_CHEVRON_UP, "Move column left", pos == 0))
 					{
-						for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; row++)
-						{
-							ImGui::PushID(row);
-
-							const PlayListItem& item = m_filteredList[row];
-
-							ImGui::TableNextRow(ImGuiTableRowFlags_None, 0);
-
-							ImGui::TableSetColumnIndex(0);
-							if (item.author)
-								ImGui::TextUnformatted(item.author);
-							else
-								ImGui::TextUnformatted("");
-
-							ImGui::TableSetColumnIndex(1);
-							const ImGuiSelectableFlags selectable_flags = ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap;
-							if (ImGui::Selectable(item.title, (item.zipIndex == selectedZipIndex), selectable_flags, ImVec2(0, 0)))
-							{
-								player.PlayZipEntry(*this, item.zipIndex);
-								selectedZipIndex = item.zipIndex;
-							}
-
-							ImGui::TableSetColumnIndex(2);
-							if (item.duration > 0)
-							{
-								const int mm = item.duration / 60;
-								const int ss = item.duration % 60;
-								ImGui::Text("%d:%02d", mm, ss);
-							}
-							else
-								ImGui::TextUnformatted("?");
-
-							ImGui::TableSetColumnIndex(3);
-							if ( item.subsongCount>1)
-								ImGui::Text("%d", item.subsongCount);
-
-							ImGui::PopID();
-						}
+						std::swap(m_columnOrder[pos], m_columnOrder[pos - 1]);
+						++m_columnRevision;
 					}
-					ImGui::EndTable();
+					if (Ui::IconButton(ui, CUI_ICON_CHEVRON_DOWN, "Move column right", pos == 3))
+					{
+						std::swap(m_columnOrder[pos], m_columnOrder[pos + 1]);
+						++m_columnRevision;
+					}
 				}
+				cui_pop_id(ui);
 			}
-			else
-			{
-				ImGui::Text("You can directly drop a large ZIP Archive full of thousand of SNDH or YM files here!");
-				if (ImGui::Button("(you can get some from https://sndh.atari.org/download.php)"))
-				{
-					OsOpenInShell("https://sndh.atari.org/download.php");
-				}
-				#ifndef _WIN32
-				ImGui::Text("Safari users: disable \"Open safe files after downloading\" to keep the large music archive file zipped.");
-				#endif
-			}
+			cui_popover_end(ui);
 		}
 	}
-	ImGui::End();
-
+	const int playing = player.GetPlayingZipEntry();
+	if (playing != m_lastPlayingIndex)
+	{
+		for (int i = 0; i < m_filterdSize; i++) m_selected[i] = m_filteredList[i].zipIndex == playing;
+		m_lastPlayingIndex = playing;
+	}
+	static const cui_grid_column columns[] = {
+		{ "Author", 260 }, { "Name", 350 }, { "Duration", 110, CUI_TEXT_RIGHT }, { "Sub-tunes", 100, CUI_TEXT_RIGHT }
+	};
+	cui_grid_column shownColumns[4];
+	int shownIndices[4];
+	int columnCount = 0;
+	for (int index : m_columnOrder)
+	{
+		if (!m_columnVisible[index]) continue;
+		shownIndices[columnCount] = index;
+		shownColumns[columnCount++] = columns[index];
+	}
+	cui_grid_opts grid = {};
+	grid.width = CUI_FILL;
+	grid.height = CUI_FILL;
+	grid.row_height = 30;
+	grid.striped = true;
+	grid.selected = m_selected.get();
+	grid.hide_checkboxes = true;
+	grid.cursor = &m_cursor;
+	int first = 0, last = 0;
+	int activate = -1;
+	cui_push_id_int(ui, m_columnRevision);
+	if (cui_data_grid_begin_ex(ui, "archive-tracks", shownColumns, columnCount, m_filterdSize, &first, &last, &grid))
+	{
+		for (int row = first; row < last; row++)
+		{
+			const PlayListItem& item = m_filteredList[row];
+			if (cui_data_grid_row(ui, row)) activate = item.zipIndex;
+			for (int columnIndex = 0; columnIndex < columnCount; columnIndex++)
+			{
+				char value[32];
+				switch (shownIndices[columnIndex])
+				{
+				case 0: cui_data_grid_cell_text(ui, item.author ? item.author : ""); break;
+				case 1:
+				{
+					cui_data_grid_cell(ui);
+					cui_text_opts text = {};
+					text.nowrap = true;
+					text.width = CUI_FILL;
+					text.color = item.zipIndex == playing ? CUI_COLOR_ACCENT : CUI_COLOR_FOREGROUND;
+					cui_text_ex(ui, item.title ? item.title : "", &text);
+					break;
+				}
+				case 2:
+					if (item.duration > 0) snprintf(value, sizeof(value), "%d:%02d", item.duration / 60, item.duration % 60);
+					else snprintf(value, sizeof(value), "?");
+					cui_data_grid_cell_text(ui, value);
+					break;
+				case 3:
+					if (item.subsongCount > 1) snprintf(value, sizeof(value), "%d", item.subsongCount);
+					else value[0] = 0;
+					cui_data_grid_cell_text(ui, value);
+					break;
+				}
+			}
+		}
+		cui_data_grid_end(ui);
+	}
+	cui_pop_id(ui);
+	// CUI paints canvases after layout; keep their audio pointers alive until then.
+	if (activate >= 0) player.QueueZipEntry(activate);
 }

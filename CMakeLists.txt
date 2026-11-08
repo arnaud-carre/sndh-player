@@ -64,6 +64,7 @@ endif()
 add_executable(SndhArchivePlayer
     SndhArchivePlayer/main.cpp
     SndhArchivePlayer/SndhArchivePlayer.cpp
+    SndhArchivePlayer/AppData.cpp
     SndhArchivePlayer/SndhArchive.cpp
     SndhArchivePlayer/AudioStream.cpp
     SndhArchivePlayer/AudioStream.h
@@ -86,22 +87,19 @@ add_executable(SndhArchivePlayer
     AtariAudio/src/external/Musashi/m68kcpu.cpp
     AtariAudio/src/external/Musashi/m68kops.cpp
 
-    SndhArchivePlayer/extern/imgui/imgui.cpp
-    SndhArchivePlayer/extern/imgui/imgui_demo.cpp
-    SndhArchivePlayer/extern/imgui/imgui_draw.cpp
-    SndhArchivePlayer/extern/imgui/imgui_tables.cpp
-    SndhArchivePlayer/extern/imgui/imgui_widgets.cpp
-    SndhArchivePlayer/extern/imgui/backends/imgui_impl_glfw.cpp
-    SndhArchivePlayer/extern/imgui/backends/imgui_impl_opengl3.cpp
-
+    SndhArchivePlayer/CuiGlfw.cpp
     SndhArchivePlayer/extern/zip/src/zip.c
     ${GLFW_SOURCES}
 )
 
+# Keep the existing GLFW window and use only CUI's core and OpenGL renderer.
+set(CUI_WITH_APP OFF CACHE BOOL "Use the player's GLFW integration" FORCE)
+set(CUI_BUILD_TESTS OFF CACHE BOOL "Build CUI tests" FORCE)
+set(CUI_BUILD_EXAMPLES OFF CACHE BOOL "Build CUI examples" FORCE)
+add_subdirectory(SndhArchivePlayer/extern/cui EXCLUDE_FROM_ALL)
+target_link_libraries(SndhArchivePlayer PRIVATE cui::cui)
 target_compile_features(SndhArchivePlayer PRIVATE cxx_std_17)
 target_include_directories(SndhArchivePlayer PRIVATE
-    SndhArchivePlayer/extern/imgui
-    SndhArchivePlayer/extern/imgui/backends
     SndhArchivePlayer/extern/glfw/include
 )
 if(WIN32)
@@ -122,4 +120,35 @@ if(MSVC)
     target_compile_options(SndhArchivePlayer PRIVATE /W3 /MP /permissive- /utf-8)
     # Use the portable main() entry point without opening a console window.
     target_link_options(SndhArchivePlayer PRIVATE /ENTRY:mainCRTStartup)
+endif()
+
+option(SNDH_BUILD_SMOKE_TESTS "Build the headless player GUI regression checks" OFF)
+if(SNDH_BUILD_SMOKE_TESTS)
+    enable_testing()
+    get_target_property(SNDH_SMOKE_SOURCES SndhArchivePlayer SOURCES)
+    list(REMOVE_ITEM SNDH_SMOKE_SOURCES SndhArchivePlayer/main.cpp
+        SndhArchivePlayer/CuiGlfw.cpp SndhArchivePlayer/AppData.cpp ${GLFW_SOURCES})
+    add_executable(SndhPlayerSmoke tests/player_smoke.cpp tests/TestAppData.cpp ${SNDH_SMOKE_SOURCES})
+    target_compile_features(SndhPlayerSmoke PRIVATE cxx_std_17)
+    target_include_directories(SndhPlayerSmoke PRIVATE SndhArchivePlayer)
+    target_link_libraries(SndhPlayerSmoke PRIVATE cui::cui)
+    if(WIN32)
+        target_link_libraries(SndhPlayerSmoke PRIVATE winmm shell32)
+    elseif(APPLE)
+        target_link_libraries(SndhPlayerSmoke PRIVATE
+            "-framework Cocoa" "-framework CoreFoundation" "-framework AudioToolbox")
+    endif()
+    if(MSVC)
+        target_compile_options(SndhPlayerSmoke PRIVATE /utf-8)
+    endif()
+    add_test(NAME PlayerGuiSmoke COMMAND SndhPlayerSmoke
+        "${CMAKE_CURRENT_SOURCE_DIR}/AtariAudio/example/AtariAudio2Wav/musics"
+        "${CMAKE_CURRENT_BINARY_DIR}/smoke-output")
+    set_tests_properties(PlayerGuiSmoke PROPERTIES TIMEOUT 60)
+    add_executable(SndhGridScroll tests/grid_scroll.cpp)
+    target_compile_features(SndhGridScroll PRIVATE cxx_std_17)
+    target_include_directories(SndhGridScroll PRIVATE SndhArchivePlayer/extern/cui/src)
+    target_link_libraries(SndhGridScroll PRIVATE cui::cui)
+    add_test(NAME GridScroll COMMAND SndhGridScroll)
+    set_tests_properties(GridScroll PROPERTIES TIMEOUT 10)
 endif()

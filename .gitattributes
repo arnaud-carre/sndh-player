@@ -1,0 +1,9 @@
+# Keep working-tree text files consistently in Windows CRLF format.
+* text=auto eol=crlf
+
+# Preserve the original line endings of GitHub YAML files.
+/.github/**/*.yml -text !eol
+/.github/**/*.yaml -text !eol
+
+# CUI uses its upstream LF convention.
+/SndhArchivePlayer/extern/cui/** text=auto eol=lf

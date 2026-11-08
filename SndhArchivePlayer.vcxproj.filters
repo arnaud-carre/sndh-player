@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
@@ -19,7 +19,7 @@
     <Filter Include="Source Files\extern\glfw">
       <UniqueIdentifier>{61922709-6A51-4AD2-9DA0-84A0614FD374}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\extern\imgui">
+    <Filter Include="Source Files\extern\cui">
       <UniqueIdentifier>{270060a1-9cc3-477b-a332-69d4a8e63327}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\AtariAudio">
@@ -105,27 +105,6 @@
     <ClCompile Include="SndhArchivePlayer\SndhArchivePlayer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\imgui\imgui.cpp">
-      <Filter>Source Files\extern\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\imgui\imgui_demo.cpp">
-      <Filter>Source Files\extern\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\imgui\imgui_draw.cpp">
-      <Filter>Source Files\extern\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\imgui\imgui_tables.cpp">
-      <Filter>Source Files\extern\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\imgui\imgui_widgets.cpp">
-      <Filter>Source Files\extern\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_opengl3.cpp">
-      <Filter>Source Files\extern\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_glfw.cpp">
-      <Filter>Source Files\extern\imgui</Filter>
-    </ClCompile>
     <ClCompile Include="SndhArchivePlayer\extern\zip\src\zip.c">
       <Filter>Source Files\extern</Filter>
     </ClCompile>
@@ -191,35 +170,8 @@
     <ClInclude Include="SndhArchivePlayer\SndhArchivePlayer.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="SndhArchivePlayer\extern\imgui\imconfig.h">
-      <Filter>Source Files\extern\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="SndhArchivePlayer\extern\imgui\imgui.h">
-      <Filter>Source Files\extern\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="SndhArchivePlayer\extern\imgui\imgui_internal.h">
-      <Filter>Source Files\extern\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="SndhArchivePlayer\extern\imgui\imgui_memory_editor.h">
-      <Filter>Source Files\extern\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="SndhArchivePlayer\extern\imgui\imstb_rectpack.h">
-      <Filter>Source Files\extern\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="SndhArchivePlayer\extern\imgui\imstb_textedit.h">
-      <Filter>Source Files\extern\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="SndhArchivePlayer\extern\imgui\imstb_truetype.h">
-      <Filter>Source Files\extern\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_opengl3.h">
-      <Filter>Source Files\extern\imgui</Filter>
-    </ClInclude>
     <ClInclude Include="SndhArchivePlayer\extern\glfw\include\GLFW\glfw3.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_glfw.h">
-      <Filter>Source Files\extern\imgui</Filter>
     </ClInclude>
     <ClInclude Include="SndhArchivePlayer\extern\zip\src\miniz.h">
       <Filter>Source Files\extern</Filter>
@@ -292,6 +244,171 @@
     </ClInclude>
     <ClInclude Include="SndhArchivePlayer\AudioStream.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="SndhArchivePlayer\CuiGlfw.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_core.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_theme.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_draw.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_text.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_layout.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_widgets.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_controls.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_textedit.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_overlay.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_data.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_charts.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_extras.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_actions.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_pickers.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_disclosure.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_grid.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_treetable.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_code.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_markdown.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_editor.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_diff.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_tools.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_hex.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_social.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_media.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_planning.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_chrome.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_dock.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_viz.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_motion.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_ai.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_image.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_nodes.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_flame.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_curves.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_timeline.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_dials.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_month.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_tour.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_photo.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_files.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_terminal.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_emoji.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\render\cui_render_sw.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\render\cui_render_gl.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_font_data.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_inflate.c">
+      <Filter>Source Files\extern\cui</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="SndhArchivePlayer\ArchiveFilter.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SndhArchivePlayer\Ui.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SndhArchivePlayer\CuiGlfw.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="SndhArchivePlayer\AppData.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClInclude Include="SndhArchivePlayer\AppData.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

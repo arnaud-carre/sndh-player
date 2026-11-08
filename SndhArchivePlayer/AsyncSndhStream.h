@@ -7,6 +7,7 @@
 //-----------------------------------------------------------------
 #pragma once
 #include <stdint.h>
+#include <cui/cui.h>
 #include <thread>
 #include <atomic>
 #include "../AtariAudio/src/AtariAudio.h"
@@ -29,10 +30,9 @@ public:
 
 	enum PlayMode
 	{
-		PlayMode_Single = 0,
-		PlayMode_Loop,
-		PlayMode_Continuous,
+		PlayMode_Continuous = 0,
 		PlayMode_Random,
+		PlayMode_Loop,
 		PlayMode_Count
 	};
 
@@ -42,7 +42,10 @@ public:
 	bool SubsongReachedEnd() const { return m_audioStream.IsEndReached(); }
 	void SetReplayPosInSec(int pos);
 
-	void	DrawGui(const char* musicName);
+	void	DrawGui(cui_ctx* ui);
+	void	DrawOptions(cui_ctx* ui, const char* musicName);
+	bool IsPaused() const { return m_paused.load(); }
+	bool IsRenderComplete() const { return m_audioBuffer && m_asyncInfo.fillPos.load() >= m_exactSongSamples; }
 
 	static void sAsyncSndhWorkerThread(void* a);
 	const AtariAudioRenderer* GetSndhFile() const { return m_asyncInfo.sndh; }

@@ -10,6 +10,7 @@
 #define	SNDH_ARCHIVE_PLAYER_VERSION	"1.24"
 
 #include <stdint.h>
+#include <cui/cui.h>
 #include "../AtariAudio/src/AtariAudio.h"
 #include "AsyncSndhStream.h"
 
@@ -28,22 +29,32 @@ public:
 	SndhArchivePlayer();
 	~SndhArchivePlayer();
 
-	void	Startup();
-	void	UpdateImGui();
+	void	Startup(cui_ctx* ui);
+	void	Update();
+	void	DrawGui(cui_ctx* ui);
+	bool	NeedsContinuousFrames() const;
 	void	DropFile(const char* sFilename);
 	bool	LoadNewMusic(const char* sFilename);
-	void	Shutdown();
+	void	Shutdown(cui_ctx* ui);
 	void	PlayZipEntry(SndhArchive& sndhArchive, int zipIndex);
+	void	QueueZipEntry(int zipIndex) { m_pendingZipIndex = zipIndex; }
 	int 	GetPlayingZipEntry() const { return m_currentZipIndex; };
 
 private:
 	bool	StartSubsong(int subsong);
-	void	DrawPlayList();
-	bool	show_demo_window = false;
-	bool	show_another_window = false;
+	void	Navigate(int direction);
+	void	DrawSongInfo(cui_ctx* ui);
+	bool	m_showAbout = false;
+	bool	m_showDetails = false;
+	int		m_pendingDirection = 0;
+	int		m_pendingZipIndex = -1;
+	float	m_topRatio = 0.36f;
+	float	m_songRatio = 0.55f;
+	float	m_archiveRatio = 0.64f;
+	int		m_archiveTab = 0;
 
 	AsyncSndhStream	m_sndh;
-	int		m_currentSubSong;
+	int		m_currentSubSong = 1;
 	int		m_currentZipIndex = -1;
 
 };

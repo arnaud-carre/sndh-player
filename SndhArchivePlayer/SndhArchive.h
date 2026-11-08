@@ -11,7 +11,14 @@
 #include <atomic>
 #include <random>
 #include <ctime>
-#include "imgui_internal.h"
+#include "ArchiveFilter.h"
+#include <cui/cui.h>
+#include <memory>
+#include <cstring>
+#include <cstdlib>
+#ifndef _WIN32
+#include <strings.h>
+#endif
 #include "extern/zip/src/zip.h"
 #include "jobSystem.h"
 
@@ -31,7 +38,8 @@ public:
 	void	Close();
 	int		GetFilteredSize() const { return m_filterdSize; }
 	int		GetUnFilteredSize() const { return m_size; }
-	void	ImGuiDraw(SndhArchivePlayer& player);
+	void	DrawGui(cui_ctx* ui, SndhArchivePlayer& player);
+	void	Update();
 	bool	IsOpen() const { return m_zipArchive != NULL; }
 	bool	IsOpening() const { return m_asyncBrowse; }
 
@@ -101,22 +109,32 @@ private:
 		m_filterdSize = 0;
 		for (int i = 0; i < m_size; i++)
 		{
-			bool bFilter = m_ImGuiFilter.PassFilter(m_list[i].author);
+			bool bFilter = m_filter.PassFilter(m_list[i].author);
 			if ( !bFilter )
-				bFilter = m_ImGuiFilter.PassFilter(m_list[i].title);
+				bFilter = m_filter.PassFilter(m_list[i].title);
 			if (bFilter)
 			{
 				m_filteredList[m_filterdSize] = m_list[i];
 				m_filterdSize++;
 			}
 		}
+		m_selected.reset(new bool[m_filterdSize]());
+		m_cursor = -1;
+		m_lastPlayingIndex = -1;
 	}
 
 	PlayListItem*	m_list;
 	int				m_size;
 	PlayListItem*	m_filteredList;
 	int				m_filterdSize;
-	ImGuiTextFilter m_ImGuiFilter;
+	ArchiveFilter m_filter;
+	char m_search[256] = {};
+	std::unique_ptr<bool[]> m_selected;
+	int m_cursor = -1;
+	int m_lastPlayingIndex = -1;
+	int m_columnOrder[4] = { 0, 1, 2, 3 };
+	bool m_columnVisible[4] = { true, true, true, true };
+	int m_columnRevision = 0;
 	struct zip_t*	m_zipArchive;
 	static int fEntrySort(const void *arg1, const void *arg2)
 	{

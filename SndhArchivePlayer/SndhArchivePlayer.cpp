@@ -6,88 +6,23 @@
 //
 //-----------------------------------------------------------------
 #define _CRT_SECURE_NO_WARNINGS
-#ifndef _WIN32
-#include <CoreFoundation/CoreFoundation.h>
-#include <stddef.h>
-#endif
-#include "imgui.h"
-#include "imgui_internal.h"
-#include "imgui_memory_editor.h"
+#include "AppData.h"
+#include <string.h>
+#include "Ui.h"
+#include <algorithm>
+#include <stdio.h>
+#include <string>
 #include "../AtariAudio/src/AtariAudio.h"
 #include "SndhArchivePlayer.h"
 #include "SndhArchive.h"
 #include "AsyncSndhStream.h"
 
 
-static const int kLatencySampleCount = kHostReplayRate / 60;
-
 static int gDefaultDurationInMin = 4;
 
 static	SndhArchive	gArchive;
 
-int16_t gOneSecondAudioBuffer[kHostReplayRate];
 
-#ifdef _WIN32
-bool SaveAppData(const char* keyName, const char* utf8Path)
-{
-	WritePrivateProfileStringA("SNDH-Archive-Player", keyName, utf8Path, ".\\SNDH_Archive.ini");
-	return true;
-}
-
-bool LoadAppData(const char* keyName,char* bufferOut, size_t size)
-{
-	DWORD nc = GetPrivateProfileStringA("SNDH-Archive-Player", "ArchiveFile", "", bufferOut, DWORD(size), ".\\SNDH_Archive.ini");
-	return (nc > 0);
-}
-
-#else
-
-static CFStringRef PreferencesDomain()
-{
-    return CFSTR("com.arnaudcarre.SndhArchivePlayer");
-}
-
-bool SaveAppData(const char* keyName, const char* utf8Path)
-{
-    if (!utf8Path)
-        return false;
-
-    CFStringRef key8 = CFStringCreateWithCString(kCFAllocatorDefault, keyName, kCFStringEncodingUTF8);
-    CFStringRef path = CFStringCreateWithCString(kCFAllocatorDefault, utf8Path, kCFStringEncodingUTF8);
-    CFPreferencesSetAppValue(key8, path, PreferencesDomain());
-    CFRelease(path);
-    CFRelease(key8);
-    return CFPreferencesAppSynchronize(PreferencesDomain());
-}
-
-bool LoadAppData(const char* keyName,char* buffer, size_t bufferSize)
-{
-    if (!buffer || bufferSize == 0)
-        return false;
-
-    buffer[0] = '\0';
-
-    CFStringRef key8 = CFStringCreateWithCString(kCFAllocatorDefault, keyName, kCFStringEncodingUTF8);
-    CFPropertyListRef value = CFPreferencesCopyAppValue(key8, PreferencesDomain());
-    if (!value)
-        return false;
-
-    bool success = false;
-
-    if (CFGetTypeID(value) == CFStringGetTypeID())
-    {
-        success = CFStringGetCString( static_cast<CFStringRef>(value), buffer, static_cast<CFIndex>(bufferSize), kCFStringEncodingUTF8);
-    }
-
-    CFRelease(key8);
-    CFRelease(value);
-
-    if (!success)
-        buffer[0] = '\0';
-
-    return success;
-}
-#endif
 
 
 
@@ -103,11 +38,12 @@ bool	SndhArchivePlayer::StartSubsong(int subsong)
 {
 	bool ret = false;
 	const AtariAudioRenderer* sf = m_sndh.GetSndhFile();
-	if ((subsong >= 1) && (subsong <= sf->GetSongInfo().subsongCount))
+	if (sf && (subsong >= 1) && (subsong <= sf->GetSongInfo().subsongCount))
 	{
 		if (m_sndh.StartSubsong(subsong, gDefaultDurationInMin*60))
 		{
 			m_currentSubSong = subsong;
+			ret = true;
 		}
 	}
 	return ret;
@@ -165,587 +101,361 @@ void	SndhArchivePlayer::PlayZipEntry(SndhArchive& sndhArchive, int zipIndex)
 	}
 }
 
-void	SndhArchivePlayer::DrawPlayList()
+void SndhArchivePlayer::Navigate(int direction)
 {
-	gArchive.ImGuiDraw(*this);
-}
-
-
-void	ImDrawOscillo(const int16_t* audio, int count, const char* winName)
-{
-	const float dpiScale = 1.0f;
-//	ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale, 32.0f*dpiScale), ImVec2(1280, 800));
-	if (ImGui::Begin(winName, NULL, 0))
+	const AtariAudioRenderer* sf = m_sndh.GetSndhFile();
+	if (!sf || !direction) return;
+	int next = m_currentSubSong + direction;
+	const int count = sf->GetSongInfo().subsongCount;
+	int zipIndex = -1;
+	int targetSubsong = 1;
+	if (direction > 0 && m_sndh.GetPlayMode() == AsyncSndhStream::PlayMode_Random)
+		gArchive.GetRandomFilteredSong(zipIndex, targetSubsong);
+	else if (next < 1)
+		zipIndex = gArchive.GetPrevFilteredZipIndex(m_currentZipIndex);
+	else if (next > count)
+		zipIndex = gArchive.GetNextFilteredZipIndex(m_currentZipIndex);
+	if (zipIndex >= 0)
 	{
-		ImDrawList* dl = ImGui::GetWindowDrawList();
-		ImGuiWindow* window = ImGui::GetCurrentWindow();
-		if (count > kLatencySampleCount)
-			count = kLatencySampleCount;
-		ImVec2 waveform[kLatencySampleCount];
-		ImVec2 size = ImGui::GetContentRegionAvail();
-
-		ImVec2 minArea = window->DC.CursorPos;
-		ImVec2 maxArea = ImVec2(
-			minArea.x + size.x,
-			minArea.y + size.y
-		);
-		ImRect rect = ImRect(minArea, maxArea);
-		ImRect inRect = rect;
-		inRect.Min.x += dpiScale;
-		inRect.Min.y += dpiScale;
-		inRect.Max.x -= dpiScale;
-		inRect.Max.y -= dpiScale;
-		ImGuiStyle& style = ImGui::GetStyle();
-		ImU32 color = IM_COL32(255, 255, 255, 255);
-		ImU32 borderColor = IM_COL32(0, 0, 255, 255);
-		ImU32 refColor = IM_COL32(0, 0, 0, 255);
-		ImU32 guideColor = IM_COL32(255, 0, 0, 255);
-		ImGui::ItemSize(size, style.FramePadding.y);
-		ImU32 bkgColor = IM_COL32(16, 16, 48, 255);
-		if (ImGui::ItemAdd(rect, ImGui::GetID("wsDisplay")))
-		{
-			dl->AddRectFilledMultiColor(
-				inRect.Min,
-				inRect.Max,
-				bkgColor,
-				bkgColor,
-				bkgColor,
-				bkgColor
-			);
-
-			int w = int(inRect.Max.x) - int(inRect.Min.x);
-			if (w > count)
-				w = count;
-			if (w <= 0)
-				w = 1;
-
-			ImU32 rPos = 0;
-			ImU32 rStep = (count << 16) / w;
-			for (int i = 0; i < w; i++)
-			{
-				float x = (float)i / float(w);
-				float y = 0.f;
-				if (audio)
-				{
-					y = float(audio[rPos >> 16])*(1.0f / 65536.f);
-					rPos += rStep;
-					{
-						if (y < -0.5f) y = -0.5f;
-						if (y > 0.5f) y = 0.5f;
-					}
-				}
-				waveform[i] = ImLerp(inRect.Min, inRect.Max, ImVec2(x, 0.5f - y));
-			}
-
-			{
-				dl->PushClipRectFullScreen();
-				dl->AddPolyline(waveform, w, color, ImDrawFlags_None, dpiScale);
-				dl->PopClipRect();
-			}
-			{
-				dl->AddRect(inRect.Min, inRect.Max, borderColor, 8.0f*dpiScale, 0, 1.5f*dpiScale);
-			}
-		}
-
+		PlayZipEntry(gArchive, zipIndex);
+		if (targetSubsong > 1) StartSubsong(targetSubsong);
 	}
-	ImGui::End();
+	else if (next >= 1 && next <= count)
+		StartSubsong(next);
 }
 
-void	ImDrawOscilloVoice(const uint32_t* audio, int count, int index, const char* name, const ImVec2& size)
+void SndhArchivePlayer::Update()
 {
-	const float dpiScale = 1.0f;
-	ImGui::BeginChild(name, size, false); //, window_flags);
-	ImGui::Text(name);
+	gArchive.Update();
+	if (m_pendingZipIndex >= 0)
 	{
-		ImDrawList* dl = ImGui::GetWindowDrawList();
-		ImGuiWindow* window = ImGui::GetCurrentWindow();
-		if (count > kLatencySampleCount)
-			count = kLatencySampleCount;
-		ImVec2 waveform[kLatencySampleCount];
-		ImVec2 size = ImGui::GetContentRegionAvail();
-
-		ImVec2 minArea = window->DC.CursorPos;
-		ImVec2 maxArea = ImVec2(
-			minArea.x + size.x,
-			minArea.y + size.y
-		);
-		ImRect rect = ImRect(minArea, maxArea);
-		ImRect inRect = rect;
-		const int voiceShift = index * 8;
-/*
-		inRect.Min.x += dpiScale;
-		inRect.Min.y += dpiScale;
-		inRect.Max.x -= dpiScale;
-		inRect.Max.y -= dpiScale;
-*/
-		ImGuiStyle& style = ImGui::GetStyle();
-		ImU32 color = IM_COL32(224, 255, 224, 255);
-		ImU32 borderColor = IM_COL32(0, 0, 255, 255);
-		ImU32 refColor = IM_COL32(0, 0, 0, 255);
-		ImU32 guideColor = IM_COL32(255, 0, 0, 255);
-		ImGui::ItemSize(size, style.FramePadding.y);
-		ImU32 bkgColor = IM_COL32(15, 31, 15, 255);
-		if (ImGui::ItemAdd(rect, ImGui::GetID("wsDisplay")))
-		{
-
-			dl->AddRectFilledMultiColor(
-				inRect.Min,
-				inRect.Max,
-				bkgColor,
-				bkgColor,
-				bkgColor,
-				bkgColor
-			);
-
-			int w = int(inRect.Max.x) - int(inRect.Min.x);
-			if (w > count)
-				w = count;
-			if (w <= 0)
-				w = 1;
-
-			ImU32 rPos = 0;
-			ImU32 rStep = (count << 16) / w;
-			const float ooW = 1.f / float(w);
-			for (int i = 0; i < w; i++)
-			{
-				float y = 0.f;
-				if (audio)
-				{
-					int8_t sv = int8_t((audio[rPos >> 16] >> voiceShift) & 0xff);
-					y = float(sv * (1.0f / 256.f));
-					rPos += rStep;
-				}
-				waveform[i] = ImLerp(inRect.Min, inRect.Max, ImVec2(float(i)*ooW, 0.5f - y));
-			}
-
-			{
-				dl->PushClipRectFullScreen();
-				dl->AddPolyline(waveform, w, color, ImDrawFlags_None, dpiScale);
-				dl->PopClipRect();
-			}
-			{
-//				dl->AddRect(inRect.Min, inRect.Max, borderColor, 8.0f * dpiScale, 0, 1.5f * dpiScale);
-			}
-		}
-	}
-	ImGui::EndChild();
-}
-
-void ImDrawOscillo4Voices(const uint32_t* audio, int count)
-{
-
-	if (ImGui::Begin(kWndEmulation, NULL, 0))
-	{
-		ImVec2 totalSize = ImGui::GetContentRegionAvail();
-		ImDrawOscilloVoice(audio, count, 0, "Ym Voice A", ImVec2(totalSize.x*0.5f, totalSize.y * 0.5f));
-		ImGui::SameLine();
-		ImDrawOscilloVoice(audio, count, 1, "Ym Voice B", ImVec2(0, totalSize.y*0.5f));
-		ImDrawOscilloVoice(audio, count, 2, "Ym Voice C", ImVec2(totalSize.x*0.5f, 0));
-		ImGui::SameLine();
-		ImDrawOscilloVoice(audio, count, 3, "STE DAC", ImVec2(0, 0));
-	}
-	ImGui::End();
-}
-
-void	SndhArchivePlayer::DropFile(const char* sFilename)
-{
-
-	if (gArchive.IsOpening())
+		PlayZipEntry(gArchive, m_pendingZipIndex);
+		m_pendingZipIndex = -1;
+		m_pendingDirection = 0;
 		return;
+	}
+	const int direction = m_pendingDirection;
+	m_pendingDirection = 0;
+	if (direction) Navigate(direction);
+	else if (m_sndh.GetSndhFile() && m_sndh.SubsongReachedEnd())
+	{
+		if (m_sndh.GetPlayMode() == AsyncSndhStream::PlayMode_Loop)
+			m_sndh.SetReplayPosInSec(0);
+		else
+			Navigate(1);
+	}
+}
 
+bool SndhArchivePlayer::NeedsContinuousFrames() const
+{
+	return gArchive.IsOpening() || (m_sndh.GetSndhFile() && !m_sndh.IsPaused());
+}
+
+void SndhArchivePlayer::DropFile(const char* filename)
+{
+	if (gArchive.IsOpening()) return;
 	m_sndh.Unload();
+	m_currentZipIndex = -1;
+	m_pendingDirection = 0;
+	bool loaded = gArchive.Open(filename);
+	m_pendingZipIndex = -1;
+	if (!loaded) loaded = LoadNewMusic(filename);
+	if (loaded) SaveAppData("ArchiveFile", filename);
+}
 
-	// first, try to open as a big ZIP archive
-	bool loadOk = gArchive.Open(sFilename);
-
-	if (!loadOk)
+void SndhArchivePlayer::Startup(cui_ctx* ui)
+{
+	char value[4096];
+	if (LoadAppData("CuiTheme", value, sizeof(value)))
+		cui_set_theme(ui, strcmp(value, "light") == 0 ? CUI_THEME_LIGHT : CUI_THEME_DARK);
+	if (LoadAppData("CuiSplits", value, sizeof(value)))
 	{
-		// if not zip archive, try to play the file as sndh
-		loadOk = LoadNewMusic(sFilename);
-	}
-
-	if (loadOk)
-	{
-		SaveAppData("ArchiveFile", sFilename);
-	}
-}
-
-void	SndhArchivePlayer::Startup()
-{
-	char sFilename[kMAX_PATH];
-	if (LoadAppData("ArchiveFile", sFilename, sizeof(sFilename)))
-		DropFile(sFilename);
-}
-
-static void DrawTextCentered(const char* text)
-{
-	ImGui::SetCursorPosX( (ImGui::GetWindowWidth() - ImGui::CalcTextSize(text).x) * 0.5f);
-	ImGui::Text(text);
-}
-
-static bool CenteredButton(const char* label, float widthScale = 1.2f)
-{
-	const float buttonWidth = ImGui::CalcTextSize(label).x * widthScale;
-	ImGui::SetCursorPosX( ((ImGui::GetWindowWidth() - buttonWidth) * 0.5f));
-	return ImGui::Button(label, ImVec2(buttonWidth, 0));
-}
-
-void	SndhArchivePlayer::UpdateImGui()
-{
-	
-	
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
-
-	ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
-
-
-	// 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
-	{
-		static float f = 0.0f;
-		static int counter = 0;
-
-		//			ImGui::DockSpaceOverViewport(NULL, (ImGuiDockNodeFlags_NoWindowMenuButton | ImGuiDockNodeFlags_NoResize | ImGuiDockNodeFlags_NoCloseButton | ImGuiDockNodeFlags_NoDocking | ImGuiDockNodeFlags_NoDockingSplitMe | ImGuiDockNodeFlags_NoDockingSplitOther));
-
-		static char foos[8] = {};
-
-//		ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
-		ImGui::Begin(kWndSongInfo);
-//				ImGui::InputText("mytxt", foos, sizeof(foos));
-
-//		if (ImGui::BeginTable("song", 2, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoBordersInBody))
-
-		const AtariAudioRenderer* sf = m_sndh.GetSndhFile();
-		if (sf)	// if sndh file isn't loaded, subsongCount would be 0
+		float top, song, archive;
+		if (sscanf(value, "%f %f %f", &top, &song, &archive) == 3 &&
+			top >= 0.1f && top <= 0.9f && song >= 0.1f && song <= 0.9f && archive >= 0.1f && archive <= 0.9f)
 		{
-			static bool showDetails = false;
-			const SndhRenderer::SongInfo& info = sf->GetSongInfo();
+			m_topRatio = top;
+			m_songRatio = song;
+			m_archiveRatio = archive;
+		}
+	}
+	if (LoadAppData("ArchiveFile", value, sizeof(value))) DropFile(value);
+}
 
-/*
-			// Optionnel : Survol avec bulle d'aide
-			if (ImGui::IsItemHovered()) {
-				ImGui::SetTooltip(showDetails ? "Masquer les détails" : "Afficher plus de détails");
-			}
-			*/
-/*
-			// 3. Affichage conditionnel des détails (aucun TreePop requis !)
-			if (showDetails) {
-				ImGui::Separator(); // Petite ligne de séparation propre
-    
-				// Un tableau léger pour aligner proprement les informations
-				if (ImGui::BeginTable("details_table", 2, ImGuiTableFlags_SizingFixedFit)) {
-					ImGui::TableNextRow();
-					ImGui::TableNextColumn(); ImGui::TextDisabled("Année :");
-					ImGui::TableNextColumn(); ImGui::Text("%s", info.year);
+void SndhArchivePlayer::Shutdown(cui_ctx* ui)
+{
+	char splits[96];
+	snprintf(splits, sizeof(splits), "%.6f %.6f %.6f", m_topRatio, m_songRatio, m_archiveRatio);
+	SaveAppData("CuiSplits", splits);
+	SaveAppData("CuiTheme", cui_get_theme_mode(ui) == CUI_THEME_LIGHT ? "light" : "dark");
+	m_sndh.Unload();
+	gArchive.Close();
+}
 
-					ImGui::TableNextRow();
-					ImGui::TableNextColumn(); ImGui::TextDisabled("Système :");
-					ImGui::TableNextColumn(); ImGui::Text("%s", info.converter);
+static void Detail(cui_ctx* ui, const char* label, const char* value)
+{
+	Ui::Row row(ui);
+	cui_text_opts opts = {};
+	opts.width = CUI_PX(112);
+	opts.color = CUI_COLOR_TEXT_SECONDARY;
+	cui_text_ex(ui, label, &opts);
+	cui_text_ex(ui, value ? value : "", nullptr);
+}
 
-					ImGui::EndTable();
-				}
-				ImGui::Separator();
-			}
-			*/
-
-			// 2. Première ligne : Petite flèche + texte "Détails" juste à côté
-			ImGuiDir dir = showDetails ? ImGuiDir_Down : ImGuiDir_Right;
-
-			// Flèche compacte
-			if (ImGui::ArrowButton("##details_arrow", dir))
-				showDetails = !showDetails;
-
-			if (ImGui::IsItemHovered())
+void SndhArchivePlayer::DrawSongInfo(cui_ctx* ui)
+{
+	cui_scroll_opts scroll = {};
+	scroll.height = CUI_FILL;
+	scroll.width = CUI_FILL;
+	scroll.pad = 16;
+	scroll.gap = 10;
+	cui_scroll_begin(ui, &scroll);
+	const AtariAudioRenderer* sf = m_sndh.GetSndhFile();
+	if (sf)
+	{
+		const auto& info = sf->GetSongInfo();
+		{
+			Ui::Row row(ui, 6);
+			cui_text_opts title = {};
+			title.font = CUI_FONT_MEDIUM;
+			title.size = 17;
+			title.nowrap = true;
+			title.width = CUI_FIT;
+			title.align = CUI_TEXT_LEFT;
+			std::string caption = info.musicName[0] ? info.musicName : "Untitled";
+			if (info.musicAuthor && info.musicAuthor[0])
 			{
-				const char* tooltips[] = { "Mode: Single Track", "Mode: Loop Current", "Mode: Continuous Play", "Mode: Random Shuffle" };
-				if ( showDetails )
-					ImGui::SetTooltip("Hide details");
-				else
-					ImGui::SetTooltip("Show details");
+				caption += " by ";
+				caption += info.musicAuthor;
 			}
-
-
-			ImGui::SameLine();
-
-			if (ImGui::BeginTable("song", 2, ImGuiTableFlags_SizingFixedFit))
+			cui_text_ex(ui, caption.c_str(), &title);
+			cui_button_opts details = {};
+			details.icon = m_showDetails ? CUI_ICON_CHEVRON_DOWN : CUI_ICON_CHEVRON_RIGHT;
+			details.tooltip = m_showDetails ? "Hide details" : "Show details";
+			details.variant = CUI_BUTTON_OUTLINE;
+			details.size = CUI_SIZE_SM;
+			details.width = CUI_PX(30);
+			cui_theme* theme = cui_theme_get(ui);
+			const float radius = theme->radius_control;
+			theme->radius_control = 15;
+			if (cui_button_ex(ui, "##song-details", &details)) m_showDetails = !m_showDetails;
+			theme->radius_control = radius;
+		}
+		if (m_showDetails)
+		{
+			cui_separator(ui);
+			Detail(ui, "File type", info.fileFormat);
+			if (info.fileType == AtariAudioRenderer::eFileType::eSndh)
 			{
-//				ImGui::TableSetupColumn("info", ImGuiTableColumnFlags_WidthFixed, 80.0f);
+				Detail(ui, "Year", info.year);
+				Detail(ui, "Converter", info.converter);
+				Detail(ui, "Ripper", info.ripper);
+			}
+			else Detail(ui, "Comment", info.converter);
+			char value[96];
+			const uint32_t ms = sf->SampleToMs(sf->GetSubsongDurationSample(m_currentSubSong));
+			snprintf(value, sizeof(value), "%u:%02u.%03u", ms / 60000, (ms / 1000) % 60, ms % 1000);
+			Detail(ui, "Duration", value);
+			snprintf(value, sizeof(value), "%d Hz", info.playerTickRate); Detail(ui, "Player rate", value);
+			snprintf(value, sizeof(value), "%.3f MHz", info.ym2149Clock / 1000000.0); Detail(ui, "YM2149 clock", value);
+			snprintf(value, sizeof(value), "%.1f kHz", info.hostReplayRate / 1000.0); Detail(ui, "Output rate", value);
+			snprintf(value, sizeof(value), "%u bytes", unsigned(info.rawBinaryDataSize)); Detail(ui, "Data size", value);
+		}
+		if (info.subsongCount >= 2)
+		{
+			Ui::Row row(ui);
+			if (Ui::IconButton(ui, CUI_ICON_CHEVRON_LEFT, "Previous sub-tune / track")) m_pendingDirection = -1;
+			cui_textf(ui, "Sub-tune %d / %d", m_currentSubSong, info.subsongCount);
+			if (Ui::IconButton(ui, CUI_ICON_CHEVRON_RIGHT, "Next sub-tune / track")) m_pendingDirection = 1;
+		}
+		m_sndh.DrawGui(ui);
+	}
+	else
+	{
+		cui_heading(ui, "Your Atari music collection", 3);
+		cui_secondary(ui, "Drop a ZIP archive, SNDH or YM file into this window to start listening.");
+	}
+	{
+		Ui::Row row(ui, 8);
+		if (Ui::Button(ui, "About")) m_showAbout = true;
+		cui_menu_opts options = {};
+		options.width = 240;
+		if (cui_menu_begin(ui, "Options", &options))
+		{
+			m_sndh.DrawOptions(ui, sf ? sf->GetSongInfo().musicName : nullptr);
+			cui_menu_separator(ui);
+			cui_menu_label(ui, "Default length");
+			static const char* durations[] = { "4 minutes", "8 minutes", "12 minutes", "16 minutes", "32 minutes" };
+			static const int minutes[] = { 4, 8, 12, 16, 32 };
+			int duration = 0;
+			for (int i = 0; i < 5; i++) if (minutes[i] == gDefaultDurationInMin) duration = i;
+			cui_select_opts durationOptions = {};
+			durationOptions.width = CUI_FILL;
+			if (cui_select_ex(ui, "default-duration", durations, 5, &duration, &durationOptions))
+				gDefaultDurationInMin = minutes[duration];
+			cui_menu_separator(ui);
+			cui_menu_label(ui, "Appearance");
+			cui_menu_item_opts dark = {};
+			dark.checked = cui_get_theme_mode(ui) == CUI_THEME_DARK;
+			if (cui_menu_item_ex(ui, "Dark", &dark)) cui_set_theme(ui, CUI_THEME_DARK);
+			cui_menu_item_opts light = {};
+			light.checked = cui_get_theme_mode(ui) == CUI_THEME_LIGHT;
+			if (cui_menu_item_ex(ui, "Light", &light)) cui_set_theme(ui, CUI_THEME_LIGHT);
+			cui_menu_end(ui);
+		}
+	}
+	cui_scroll_end(ui);
+}
 
-				const uint32_t lenSample = sf->GetSubsongDurationSample(m_currentSubSong);
-				const uint32_t lenMs = sf->SampleToMs(lenSample);
+static const int kScopeSamples = kHostReplayRate / 60;
+struct ScopeData
+{
+	const int16_t* audio;
+	const uint32_t* voices;
+	int voice;
+};
 
-				int dir = 0;
+static void PaintScope(cui_ctx* ui, cui_rect rect, void* user)
+{
+	const ScopeData& data = *static_cast<const ScopeData*>(user);
+	cui_draw_rect(ui, rect, CUI_CORNERS(8), CUI_COLOR_SURFACE_MUTED);
+	cui_push_clip(ui, rect);
+	const float center = rect.y + rect.h * 0.5f;
+	cui_draw_line(ui, { rect.x, center }, { rect.x + rect.w, center }, 1, CUI_COLOR_BORDER);
+	cui_vec2 points[kScopeSamples];
+	const int count = (std::max)(2, (std::min)(kScopeSamples, int(rect.w)));
+	for (int i = 0; i < count; i++)
+	{
+		const int sample = i * (kScopeSamples - 1) / (count - 1);
+		float value = 0;
+		if (data.voice < 0 && data.audio) value = data.audio[sample] / 65536.0f;
+		else if (data.voices) value = int8_t((data.voices[sample] >> (data.voice * 8)) & 255) / 256.0f;
+		points[i] = { rect.x + rect.w * i / (count - 1), center - value * (rect.h - 12) };
+	}
+	cui_draw_polyline(ui, points, count, 1.35f, data.voice < 0 ? CUI_COLOR_ACCENT : CUI_COLOR_SERIES(data.voice), false);
+	cui_pop_clip(ui);
+}
 
-				ImGui::TableNextColumn();
-				ImGui::TextDisabled("Song name:");
-				ImGui::TableNextColumn();
-				if (!showDetails)
-					ImGui::Text("%s (%d:%02d)", info.musicName, (lenMs/1000) / 60, (lenMs/1000) % 60);
-				else
-					ImGui::Text("%s", info.musicName);
-
-				ImGui::TableNextColumn();
-				ImGui::TextDisabled("Author:");
-				ImGui::TableNextColumn();
-				if ((info.year[0]) && (!showDetails))
-					ImGui::Text("%s (%s)", info.musicAuthor, info.year);
-				else
-					ImGui::TextUnformatted(info.musicAuthor);
-				ImGui::TableNextColumn();
-
-				if (showDetails)
+void SndhArchivePlayer::DrawGui(cui_ctx* ui)
+{
+	Ui::Column root(ui, CUI_FILL, 10, 14);
+	// Fixed panel arrangement: only the dividers can move.
+	cui_split_opts vertical = {};
+	vertical.vertical = true;
+	vertical.min_first = 120;
+	vertical.min_second = 120;
+	cui_split_begin(ui, "player-top-bottom", &m_topRatio, &vertical);
+	cui_split_opts horizontal = {};
+	horizontal.min_first = 200;
+	horizontal.min_second = 200;
+	cui_split_begin(ui, "player-song-output", &m_songRatio, &horizontal);
+	{
+		Ui::Column panel(ui, CUI_FILL, 0, 0, CUI_COLOR_SURFACE);
+		DrawSongInfo(ui);
+	}
+	uint32_t* voices = nullptr;
+	const int16_t* audio = m_sndh.GetDisplaySampleData(kScopeSamples, &voices);
+	cui_split_next(ui);
+	{
+		Ui::Column panel(ui, CUI_FILL, 0, 0, CUI_COLOR_SURFACE);
+		Ui::Column column(ui, CUI_FILL, 8, 14);
+		cui_muted(ui, "MASTER OUTPUT");
+		ScopeData scope = { audio, voices, -1 };
+		cui_canvas(ui, "master-scope", CUI_FILL, CUI_FILL, PaintScope, &scope, sizeof(scope));
+	}
+	cui_split_end(ui);
+	cui_split_next(ui);
+	cui_split_begin(ui, "player-archive-voices", &m_archiveRatio, &vertical);
+	{
+		Ui::Column panel(ui, CUI_FILL, 0, 0, CUI_COLOR_SURFACE);
+		const cui_doc_tab tabs[] = { { kWndSndhArchive }, { kWndFileViewer } };
+		cui_doc_tabs_opts tabOptions = {};
+		tabOptions.no_close = true;
+		tabOptions.no_reorder = true;
+		tabOptions.shortcuts = true;
+		cui_doc_tabs_ex(ui, "archive-tabs", tabs, 2, &m_archiveTab, &tabOptions);
+		if (m_archiveTab == 0)
+			gArchive.DrawGui(ui, *this);
+		else
+		{
+			Ui::Column column(ui, CUI_FILL, 8, 12);
+			const auto* sf = m_sndh.GetSndhFile();
+			if (sf)
+			{
+				const auto& info = sf->GetSongInfo();
+				cui_hex_view_opts opts = {};
+				opts.height = -1;
+				cui_hex_view_ex(ui, "file-bytes", static_cast<const uint8_t*>(info.rawBinaryData), info.rawBinaryDataSize, nullptr, &opts);
+			}
+			else cui_secondary(ui, "Load a track to inspect its file.");
+		}
+	}
+	cui_split_next(ui);
+	{
+		Ui::Column panel(ui, CUI_FILL, 0, 0, CUI_COLOR_SURFACE);
+		Ui::Column column(ui, CUI_FILL, 8, 12);
+		const char* names[] = { "YM VOICE A", "YM VOICE B", "YM VOICE C", "STE DAC" };
+		for (int rowIndex = 0; rowIndex < 2; rowIndex++)
+		{
+			Ui::Row row(ui, 12, false, CUI_FILL);
+			for (int columnIndex = 0; columnIndex < 2; columnIndex++)
+			{
+				const int i = rowIndex * 2 + columnIndex;
+				cui_push_id_int(ui, i);
 				{
-					ImGui::TableNextRow();
-					ImGui::TableNextColumn(); ImGui::TextDisabled("Duration");
-					ImGui::TableNextColumn(); ImGui::Text("%d:%02d.%03d", (lenMs/1000) / 60, (lenMs/1000) % 60, lenMs%1000);
-					ImGui::TableNextRow();
-					ImGui::TableNextColumn(); ImGui::TextDisabled("File type");
-					ImGui::TableNextColumn(); ImGui::Text("%s", info.fileFormat);
-					if (info.fileType == AtariAudioRenderer::eFileType::eSndh)
-					{
-						ImGui::TableNextRow();
-						ImGui::TableNextColumn(); ImGui::TextDisabled("Year");
-						ImGui::TableNextColumn(); ImGui::Text("%s", info.year);
-						ImGui::TableNextRow();
-						ImGui::TableNextColumn(); ImGui::TextDisabled("Converter");
-						ImGui::TableNextColumn(); ImGui::Text("%s", info.converter);
-						ImGui::TableNextRow();
-						ImGui::TableNextColumn(); ImGui::TextDisabled("Ripper");
-						ImGui::TableNextColumn(); ImGui::Text("%s", info.ripper);
-					}
-					else
-					{
-						ImGui::TableNextRow();
-						ImGui::TableNextColumn(); ImGui::TextDisabled("Comment");
-						ImGui::TableNextColumn(); ImGui::Text("%s", info.converter);
-					}
-					ImGui::TableNextRow();
-					ImGui::TableNextColumn(); ImGui::TextDisabled("Player rate");
-					ImGui::TableNextColumn(); ImGui::Text("%dHz", info.playerTickRate);
-					ImGui::TableNextRow();
-					ImGui::TableNextColumn(); ImGui::TextDisabled("YM2149 Clock");
-					ImGui::TableNextColumn(); ImGui::Text("%.3fMHz", float(info.ym2149Clock)/1000000.f);
-					ImGui::TableNextRow();
-					ImGui::TableNextColumn(); ImGui::TextDisabled("Output Rate");
-					ImGui::TableNextColumn(); ImGui::Text("%.1fkHz", float(info.hostReplayRate)/1000.f);
-					ImGui::TableNextRow();
-					ImGui::TableNextColumn(); ImGui::TextDisabled("Data size");
-					ImGui::TableNextColumn(); ImGui::Text("%d bytes", info.rawBinaryDataSize);
+					Ui::Column voice(ui, CUI_FILL, 4);
+					cui_muted(ui, names[i]);
+					ScopeData scope = { audio, voices, i };
+					cui_canvas(ui, "voice-scope", CUI_FILL, CUI_FILL, PaintScope, &scope, sizeof(scope));
 				}
-
-				ImGui::TableNextRow();
-				ImGui::TableNextColumn(); ImGui::Separator();
-				ImGui::TableNextColumn(); ImGui::Separator();
-
-				ImGui::TableNextRow();
-				ImGui::TableNextColumn();
-				ImGui::TextUnformatted("Sub-tune:");
-				ImGui::TableNextColumn();
-
-				if (ImGui::ArrowButton("prev", ImGuiDir_Left))
-					dir = -1;
-				ImGui::SameLine();
-				ImGui::Text("%d/%d", m_currentSubSong, info.subsongCount);
-				ImGui::SameLine();
-				if (ImGui::ArrowButton("next", ImGuiDir_Right))
-					dir = 1;
-
-				ImGui::SameLine();
-				ImGui::Text("(%d Hz)", info.playerTickRate);
-
-				// Continuous/Random signaled that the current song has ended
-				if (0 == dir)
-				{
-					if (m_sndh.SubsongReachedEnd())
-					{
-						if (m_sndh.GetPlayMode() == AsyncSndhStream::PlayMode::PlayMode_Loop)
-						{
-							m_sndh.SetReplayPosInSec(0);
-						}
-						else
-							dir = 1;
-					}
-				}
-
-				// Set when we need to load a different archive entry rather than
-				// just switching sub-song within the currently loaded file
-				int pendingNextZipIndex = -1;
-				int targetSubsongOnLoad = 1;
-
-				if (dir)
-				{
-					int newSubsong = m_currentSubSong + dir;
-					const int subsongCount = m_sndh.GetSndhFile()->GetSongInfo().subsongCount;
-
-					// Random mode always shuffles to a new file when moving forward,
-					// whether triggered by the user or by natural end-of-song
-					const bool forceRandomFileSkip = (dir == 1 && m_sndh.GetPlayMode() == AsyncSndhStream::PlayMode_Random);
-
-					if (newSubsong < 1)
-					{
-						int prevZipIndex = gArchive.GetPrevFilteredZipIndex(m_currentZipIndex);
-						if (prevZipIndex != -1)
-							pendingNextZipIndex = prevZipIndex;
-						else
-							newSubsong = 1;
-					}
-					else if (newSubsong > subsongCount || forceRandomFileSkip)
-					{
-						if (m_sndh.GetPlayMode() == AsyncSndhStream::PlayMode_Random)
-						{
-							int randZipIdx = -1;
-							int randSubsongIdx = 1;
-							gArchive.GetRandomFilteredSong(randZipIdx, randSubsongIdx);
-
-							if (randZipIdx != -1)
-							{
-								pendingNextZipIndex = randZipIdx;
-								targetSubsongOnLoad = randSubsongIdx;
-							}
-							else
-							{
-								newSubsong = subsongCount;
-							}
-						}
-						else
-						{
-							int nextZipIndex = gArchive.GetNextFilteredZipIndex(m_currentZipIndex);
-							if (nextZipIndex != -1)
-							{
-								pendingNextZipIndex = nextZipIndex;
-								targetSubsongOnLoad = 1;
-							}
-							else
-							{
-								newSubsong = subsongCount;
-							}
-						}
-					}
-
-					// Only switch sub-songs inside the current file if we aren't swapping physical files
-					if (pendingNextZipIndex == -1 && newSubsong != m_currentSubSong)
-					{
-						StartSubsong(newSubsong);
-					}
-				}
-
-				ImGui::EndTable();
-				ImGui::Separator();
-
-/*
-				if (ImGui::TreeNode("Details"))
-				{
-					ImGui::Text("Year: %s", info.year);
-					ImGui::Text("Comment: %s", info.converter);
-  
-					ImGui::TreePop(); // MUST be called if TreeNode returns true!
-				}
-				*/
-				if (pendingNextZipIndex == -1)
-				{
-					m_sndh.DrawGui(info.musicName);
-				}
-				else
-				{
-					PlayZipEntry(gArchive, pendingNextZipIndex);
-
-					// A random pick may target a specific sub-song rather than the default one
-					if (targetSubsongOnLoad > 1)
-					{
-						StartSubsong(targetSubsongOnLoad);
-					}
-				}
+				cui_pop_id(ui);
 			}
 		}
-
+	}
+	cui_split_end(ui);
+	cui_split_end(ui);
+	cui_dialog_opts about = {};
+	about.width = 400;
+	about.center_title = true;
+	if (cui_dialog_begin(ui, "About", &m_showAbout, &about))
+	{
 		{
-			static char sBuf[128];
-			sprintf(sBuf, "Default duration: %d min", gDefaultDurationInMin);
-			if (ImGui::Button(sBuf))
-				ImGui::OpenPopup("my_select_popup");
-			if (ImGui::BeginPopup("my_select_popup"))
+			Ui::Column content(ui, CUI_FIT, 8);
+			auto text = [&](const char* label)
 			{
-				const char* names[] = { "4 minutes", "8 minutes", "12 minutes", "16 minutes", "32 minutes" };
-				const int lens[] = { 4,8,12,16,32 };
-				for (int i = 0; i < 5; i++)
-					if (ImGui::Selectable(names[i]))
-						gDefaultDurationInMin = lens[i];
-				ImGui::EndPopup();
-			}
-		}
-
-		if (ImGui::Button("About"))
-			ImGui::OpenPopup("About");
-
-		// Always center this window when appearing
-		ImVec2 center = ImGui::GetMainViewport()->GetCenter();
-		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-		ImGui::SetNextWindowSize(ImVec2(480,400), ImGuiCond_FirstUseEver);
-
-		if (ImGui::BeginPopupModal("About", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-		{
-			DrawTextCentered("SNDH & YM Archive Player v" SNDH_ARCHIVE_PLAYER_VERSION);
-			ImGui::Separator();
+				cui_text_opts opts = {};
+				opts.width = CUI_FILL;
+				opts.align = CUI_TEXT_CENTER;
+				cui_text_ex(ui, label, &opts);
+			};
+			auto button = [&](const char* label)
+			{
+				cui_box row = {};
+				row.width = CUI_FILL;
+				row.justify = CUI_JUSTIFY_CENTER;
+				cui_row_begin(ui, &row);
+				const bool clicked = Ui::Button(ui, label);
+				cui_box_end(ui);
+				return clicked;
+			};
+			text("SNDH & YM Archive Player v" SNDH_ARCHIVE_PLAYER_VERSION);
+			cui_separator(ui);
+			cui_gap(ui, 4);
+			text("Accurate & fast ATARI SNDH & YM player");
+			text("Written by Leonard/Oxygene");
 			extern void OsOpenInShell(const char* path);
-
-			ImGui::Text("\n");
-			DrawTextCentered("Accurate & fast ATARI SNDH & YM player");
-			DrawTextCentered("Written by Leonard/Oxygene");
-			if (CenteredButton("GitHub Repository"))
-				OsOpenInShell("https://github.com/arnaud-carre/sndh-player");
-			ImGui::Text("\n");
-
-			DrawTextCentered("Powered by AtariAudio library v" ATARI_AUDIO_VERSION);
-			if (CenteredButton("AtariAudio Repository"))
-				OsOpenInShell("https://github.com/arnaud-carre/AtariAudio");
-
-			ImGui::Text("\n");
-			DrawTextCentered("You can also use awesome Web player");
-			DrawTextCentered("written by Oxbab/Oxygene");
-			if (CenteredButton("Web Player"))
-			{
-				OsOpenInShell("https://sndh.oxygenedemos.com/");
-			}
-
-			ImGui::Text("\n\n");
-
-			if (CenteredButton("Ok", 6.0f))
-			{
-				ImGui::CloseCurrentPopup();
-			}
-			ImGui::SetItemDefaultFocus();
-			ImGui::EndPopup();
+			if (button("GitHub Repository")) OsOpenInShell("https://github.com/arnaud-carre/sndh-player");
+			cui_gap(ui, 4);
+			text("Powered by AtariAudio library v" ATARI_AUDIO_VERSION);
+			if (button("AtariAudio Repository")) OsOpenInShell("https://github.com/arnaud-carre/AtariAudio");
+			cui_gap(ui, 4);
+			text("You can also use awesome Web player");
+			text("written by Oxbab/Oxygene");
+			if (button("Web Player")) OsOpenInShell("https://sndh.oxygenedemos.com/");
+			cui_gap(ui, 4);
+			text("Interface powered by CUI v" CUI_VERSION_STRING);
+			if (button("Ok")) m_showAbout = false;
 		}
-		ImGui::End();
+		cui_dialog_end(ui);
 	}
-
-	uint32_t* debugAudio = nullptr;
-	const int16_t* display = m_sndh.GetDisplaySampleData(kLatencySampleCount, &debugAudio);
-	ImDrawOscillo(display, kLatencySampleCount,kWndAudioOut);
-	ImDrawOscillo4Voices(debugAudio, kLatencySampleCount);
-
-	// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-//	show_demo_window = true;
-// 	if (show_demo_window)
-// 		ImGui::ShowDemoWindow(&show_demo_window);
-
-	static MemoryEditor mem_edit;
-	mem_edit.ReadOnly = true;
-	const void* rdata = nullptr;
-	size_t rdatasize = 0;
-	if (m_sndh.GetSndhFile())
-	{
-		const SndhRenderer::SongInfo& si = m_sndh.GetSndhFile()->GetSongInfo();
-		rdata = si.rawBinaryData;
-		rdatasize = si.rawBinaryDataSize;
-	}
-	mem_edit.DrawWindow(kWndFileViewer, (void*)rdata, rdatasize);
-
-	DrawPlayList();
-
-	ImGui::PopStyleVar();
-
-}
-
-void	SndhArchivePlayer::Shutdown()
-{
 }

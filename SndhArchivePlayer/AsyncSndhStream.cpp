@@ -9,8 +9,9 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string>
 #include "AsyncSndhStream.h"
-#include "imgui.h"
+#include "Ui.h"
 #include "WavWriter.h"
 
 static const uint32_t kMaxSongDurationSample = 60 * 60*kHostReplayRate;		// clamp max pre-rendering music time to 1 hour
@@ -21,7 +22,7 @@ AsyncSndhStream::AsyncSndhStream()
 	m_audioDebugBuffer = nullptr;
 	m_asyncInfo.sndh = nullptr;
 	m_asyncInfo.thread = nullptr;
-	m_playMode = PlayMode_Single;
+	m_playMode = PlayMode_Continuous;
 	m_replayRate = kHostReplayRate;
 }
 
@@ -184,83 +185,69 @@ const int16_t* AsyncSndhStream::GetDisplaySampleData(int sampleCount, uint32_t**
 	return m_audioBuffer + posInSample;
 }
 
-void	AsyncSndhStream::DrawGui(const char* musicName)
+void AsyncSndhStream::DrawGui(cui_ctx* ui)
 {
-
-	bool change = false;
-
-	if (m_paused)
-		change = ImGui::ArrowButton("play", ImGuiDir_Right);
-	else
-		change = ImGui::Button("||");
-
-	if (change)
 	{
-		m_paused = !m_paused;
-		Pause(m_paused);
-	}
-	ImGui::SameLine();
-
-	ImGui::BeginDisabled(m_asyncInfo.fillPos < m_exactSongSamples);
-	uint32_t lenInSec = m_exactSongSamples / m_replayRate;
-	char sLen[64];
-	sprintf(sLen, "%d:%02d", lenInSec / 60, lenInSec % 60);
-	static int pos;
-	pos = GetReplayPosInSec();
-
-	char sPos[64];
-	sprintf(sPos, "%d:%02d", pos / 60, pos % 60);
-
-	// Leave room on the right for the length text and the play-mode button
-	ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x - 150.0f);
-	if (ImGui::SliderInt("##TimeSlider", &pos, 0, lenInSec, sPos))
-	{
-		SetReplayPosInSec(pos);
-	}
-	ImGui::PopItemWidth();
-
-	ImGui::SameLine();
-	ImGui::Text("%s", sLen);
-
-	ImGui::SameLine();
-
-	// Cycles Single -> Loop -> Continuous -> Random
-	const char* modeLabels[] = { "[ ]", "[L]", "[C]", "[R]" };
-	if (ImGui::Button(modeLabels[m_playMode]))
-	{
-		m_playMode = static_cast<PlayMode>((m_playMode + 1) % PlayMode_Count);
-	}
-	if (ImGui::IsItemHovered())
-	{
-		const char* tooltips[] = { "Mode: Single Track", "Mode: Loop Current", "Mode: Continuous Play", "Mode: Random Shuffle" };
-		ImGui::SetTooltip("%s", tooltips[m_playMode]);
-	}
-
-	if (musicName)
-	{
-		char sFilename[kMAX_PATH];
-		sprintf(sFilename, "%s.wav", musicName);
-		char dispName[kMAX_PATH];
-		uint32_t sizeInMiB = (m_exactSongSamples * sizeof(int16_t) + (1 << 20) - 1) >> 20;
-		if ( m_saved )
-			sprintf(dispName, "\"%s\" saved", sFilename);
-		else
-			sprintf(dispName, "Save \"%s\" (%d MiB)", sFilename, sizeInMiB);
-		ImGui::BeginDisabled(m_saved);
-		if (ImGui::Button(dispName))
+		Ui::Row row(ui);
+		cui_button_opts play = {};
+		play.icon = m_paused ? CUI_ICON_PLAY : CUI_ICON_PAUSE;
+		play.tooltip = m_paused ? "Play" : "Pause";
+		play.size = CUI_SIZE_SM;
+		play.variant = CUI_BUTTON_PRIMARY;
+		if (cui_button_ex(ui, "##transport-play", &play))
 		{
-			WavWriter wv;
-			if (wv.Open(sFilename, m_replayRate, 1))
-			{
-				wv.AddAudioData(m_audioBuffer, m_exactSongSamples);
-				wv.Close();
-				m_saved = true;
-			}
+			m_paused = !m_paused;
+			Pause(m_paused);
 		}
-		ImGui::EndDisabled();
+		const bool ready = IsRenderComplete();
+		const uint32_t length = m_exactSongSamples / m_replayRate;
+		float position = float(GetReplayPosInSec());
+		cui_slider_opts slider = {};
+		slider.step = 1;
+		slider.width = CUI_FILL;
+		slider.disabled = !ready;
+		if (cui_slider_ex(ui, "##seek", &position, 0, float(length), &slider))
+			SetReplayPosInSec(int(position));
+		const int seconds = int(position);
+		cui_textf(ui, "%d:%02d / %u:%02u", seconds / 60, seconds % 60, length / 60, length % 60);
 	}
+}
 
-	ImGui::EndDisabled();
+void AsyncSndhStream::DrawOptions(cui_ctx* ui, const char* musicName)
+{
+	cui_menu_label(ui, "Playback mode");
+	const char* modes[] = { "Continuous", "Random", "Loop" };
+	for (int mode = 0; mode < PlayMode_Count; mode++)
+	{
+		cui_menu_item_opts item = {};
+		item.checked = m_playMode.load() == PlayMode(mode);
+		if (cui_menu_item_ex(ui, modes[mode], &item)) m_playMode = PlayMode(mode);
+	}
+	cui_menu_separator(ui);
+	const std::string filename = musicName ? std::string(musicName) + ".wav" : "";
+	char label[80];
+	if (!musicName) snprintf(label, sizeof(label), "Export WAV");
+	else
+	{
+		const uint32_t mib = (m_exactSongSamples * sizeof(int16_t) + (1 << 20) - 1) >> 20;
+		snprintf(label, sizeof(label), m_saved ? "WAV saved" : "Export WAV (%u MiB)", mib);
+	}
+	cui_menu_item_opts exportItem = {};
+	exportItem.icon = CUI_ICON_DOWNLOAD;
+	exportItem.disabled = !musicName || !IsRenderComplete() || m_saved;
+	exportItem.tooltip = filename.empty() ? nullptr : filename.c_str();
+	const bool save = cui_menu_item_ex(ui, label, &exportItem);
+	if (save)
+	{
+		WavWriter writer;
+		if (writer.Open(filename.c_str(), m_replayRate, 1))
+		{
+			writer.AddAudioData(m_audioBuffer, m_exactSongSamples);
+			writer.Close();
+			m_saved = true;
+		}
+		else cui_toast_ex(ui, "Unable to save WAV file", nullptr);
+	}
 }
 
 void AsyncSndhStream::Pause(bool pause)

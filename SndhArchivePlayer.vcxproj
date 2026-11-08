@@ -35,13 +35,6 @@
     <ClCompile Include="AtariAudio\src\YmRenderer.cpp" />
     <ClCompile Include="SndhArchivePlayer\AsyncSndhStream.cpp" />
     <ClCompile Include="SndhArchivePlayer\AudioStream.cpp" />
-    <ClCompile Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_opengl3.cpp" />
-    <ClCompile Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_glfw.cpp" />
-    <ClCompile Include="SndhArchivePlayer\extern\imgui\imgui.cpp" />
-    <ClCompile Include="SndhArchivePlayer\extern\imgui\imgui_demo.cpp" />
-    <ClCompile Include="SndhArchivePlayer\extern\imgui\imgui_draw.cpp" />
-    <ClCompile Include="SndhArchivePlayer\extern\imgui\imgui_tables.cpp" />
-    <ClCompile Include="SndhArchivePlayer\extern\imgui\imgui_widgets.cpp" />
     <ClCompile Include="SndhArchivePlayer\extern\zip\src\zip.c" />
     <ClCompile Include="SndhArchivePlayer\jobSystem.cpp" />
     <ClCompile Include="SndhArchivePlayer\extern\glfw\src\context.c">
@@ -107,9 +100,199 @@
     <ClCompile Include="SndhArchivePlayer\extern\glfw\src\wgl_context.c">
       <PreprocessorDefinitions>_GLFW_WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\CuiGlfw.cpp" />
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_core.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_theme.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_draw.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_text.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_layout.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_widgets.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_controls.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_textedit.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_overlay.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_data.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_charts.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_extras.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_actions.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_pickers.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_disclosure.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_grid.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_treetable.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_code.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_markdown.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_editor.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_diff.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_tools.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_hex.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_social.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_media.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_planning.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_chrome.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_dock.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_viz.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_motion.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_ai.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_image.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_nodes.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_flame.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_curves.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_timeline.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_dials.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_month.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_tour.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_photo.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_files.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_terminal.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_emoji.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\render\cui_render_sw.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\render\cui_render_gl.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_font_data.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_inflate.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4201;4204;4221;4244;4267;4305;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
     <ClCompile Include="SndhArchivePlayer\main.cpp" />
     <ClCompile Include="SndhArchivePlayer\SndhArchive.cpp" />
     <ClCompile Include="SndhArchivePlayer\SndhArchivePlayer.cpp" />
+    <ClCompile Include="SndhArchivePlayer\AppData.cpp" />
     <ClCompile Include="SndhArchivePlayer\WavWriter.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -132,17 +315,12 @@
     <ClInclude Include="AtariAudio\src\ym2149_tables.h" />
     <ClInclude Include="AtariAudio\src\YmRenderer.h" />
     <ClInclude Include="SndhArchivePlayer\AsyncSndhStream.h" />
+    <ClInclude Include="SndhArchivePlayer\ArchiveFilter.h" />
+    <ClInclude Include="SndhArchivePlayer\Ui.h" />
+    <ClInclude Include="SndhArchivePlayer\CuiGlfw.h" />
+    <ClInclude Include="SndhArchivePlayer\AppData.h" />
     <ClInclude Include="SndhArchivePlayer\AudioStream.h" />
-    <ClInclude Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_opengl3.h" />
     <ClInclude Include="SndhArchivePlayer\extern\glfw\include\GLFW\glfw3.h" />
-    <ClInclude Include="SndhArchivePlayer\extern\imgui\backends\imgui_impl_glfw.h" />
-    <ClInclude Include="SndhArchivePlayer\extern\imgui\imconfig.h" />
-    <ClInclude Include="SndhArchivePlayer\extern\imgui\imgui.h" />
-    <ClInclude Include="SndhArchivePlayer\extern\imgui\imgui_internal.h" />
-    <ClInclude Include="SndhArchivePlayer\extern\imgui\imgui_memory_editor.h" />
-    <ClInclude Include="SndhArchivePlayer\extern\imgui\imstb_rectpack.h" />
-    <ClInclude Include="SndhArchivePlayer\extern\imgui\imstb_textedit.h" />
-    <ClInclude Include="SndhArchivePlayer\extern\imgui\imstb_truetype.h" />
     <ClInclude Include="SndhArchivePlayer\extern\zip\src\miniz.h" />
     <ClInclude Include="SndhArchivePlayer\extern\zip\src\zip.h" />
     <ClInclude Include="SndhArchivePlayer\jobSystem.h" />
@@ -202,6 +380,14 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard_C>stdc11</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(ProjectDir)SndhArchivePlayer\extern\cui\include;$(ProjectDir)SndhArchivePlayer\extern\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)\</OutDir>
     <TargetName>$(ProjectName)_$(Platform)</TargetName>
@@ -245,7 +431,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\SndhArchivePlayer\extern\imgui\backends;$(SolutionDir)\SndhArchivePlayer\extern\glfw\include;$(SolutionDir)\SndhArchivePlayer\extern\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\SndhArchivePlayer\extern\glfw\include;$(SolutionDir)\SndhArchivePlayer\extern\cui\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -263,7 +449,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\SndhArchivePlayer\extern\imgui\backends;$(SolutionDir)\SndhArchivePlayer\extern\glfw\include;$(SolutionDir)\SndhArchivePlayer\extern\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\SndhArchivePlayer\extern\glfw\include;$(SolutionDir)\SndhArchivePlayer\extern\cui\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
