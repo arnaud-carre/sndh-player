@@ -29,7 +29,7 @@ public:
 	SndhArchivePlayer();
 	~SndhArchivePlayer();
 
-	void	Startup(cui_ctx* ui);
+	void	Startup(cui_ctx* ui, const char* startupFile = nullptr);
 	void	Update();
 	void	DrawGui(cui_ctx* ui);
 	void	DrawDataGui(cui_ctx* ui);
@@ -49,11 +49,10 @@ private:
 	void	SkipMusic(int direction);
 	void	DrawSongInfo(cui_ctx* ui);
 	bool	m_showAbout = false;
-	bool	m_showDetails = false;
 	int		m_pendingDirection = 0;
 	int		m_pendingSubsongDirection = 0;
 	int		m_pendingZipIndex = -1;
-	float	m_topRatio = 0.36f;
+	float	m_topRatio = 0.20f;
 	float	m_songRatio = 0.55f;
 	float	m_archiveRatio = 0.64f;
 	bool	m_showDataViewer = false;

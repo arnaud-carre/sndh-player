@@ -105,6 +105,17 @@ bool cui_data_grid_begin_ex(cui_ctx *ui, const char *id_str, const cui_grid_colu
     ss->bar_t = 1.0f;
     b->checks = o->selected && !o->hide_checkboxes;
     float total = b->checks ? CUI__GRID_CHECK : 0;
+    if (o->proportional_columns) {
+        float weight = 0;
+        for (int k = 0; k < ncols; k++) weight += cols[k].width > 0 ? cols[k].width : 1;
+        float available = (ss->view_w > 0 ? ss->view_w : ui->vw) - total;
+        if (ss->view_w <= 0) ui->animating = true;
+        for (int k = 0; k < ncols; k++) {
+            float w = CUI_MAX(0, available) * (cols[k].width > 0 ? cols[k].width : 1) / CUI_MAX(1, weight);
+            if (fabsf(st->widths[k] - w) > 0.01f) ui->animating = true;
+            st->widths[k] = w;
+        }
+    }
     for (int k = 0; k < ncols; k++) total += st->widths[k];
     /* too narrow: columns with a priority hide, the highest number first, until the rest fit */
     for (int shown = ncols; ss->view_w > 0 && total > ss->view_w + 0.5f && shown > 1; shown--) {   /* one column always stays */

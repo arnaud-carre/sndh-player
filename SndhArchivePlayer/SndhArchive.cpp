@@ -324,7 +324,7 @@ void SndhArchive::DrawGui(cui_ctx* ui, SndhArchivePlayer& player)
 		m_lastPlayingIndex = playing;
 	}
 	static const cui_grid_column columns[] = {
-		{ "Author", 260, CUI_TEXT_LEFT, true }, { "Name", 350, CUI_TEXT_LEFT, true }, { "Duration", 110, CUI_TEXT_RIGHT, true }, { "Sub-tunes", 100, CUI_TEXT_RIGHT, true }
+		{ "Author", 25, CUI_TEXT_LEFT, true, true }, { "Name", 50, CUI_TEXT_LEFT, true, true }, { "Duration", 15, CUI_TEXT_RIGHT, true, true }, { "Sub-tunes", 10, CUI_TEXT_RIGHT, true, true }
 	};
 	cui_grid_column shownColumns[4];
 	int shownIndices[4];
@@ -341,6 +341,7 @@ void SndhArchive::DrawGui(cui_ctx* ui, SndhArchivePlayer& player)
 	const cui_table_sort previousSort = sort;
 	cui_grid_opts grid = {};
 	grid.sort = &sort;
+	grid.proportional_columns = true;
 	grid.width = CUI_FILL;
 	grid.height = CUI_FILL;
 	grid.row_height = 30;

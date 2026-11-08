@@ -186,7 +186,7 @@ void SndhArchivePlayer::DropFile(const char* filename)
 	if (loaded) SaveAppData("ArchiveFile", filename);
 }
 
-void SndhArchivePlayer::Startup(cui_ctx* ui)
+void SndhArchivePlayer::Startup(cui_ctx* ui, const char* startupFile)
 {
 	char value[4096];
 	cui_set_theme(ui, CUI_THEME_LIGHT);
@@ -203,7 +203,8 @@ void SndhArchivePlayer::Startup(cui_ctx* ui)
 			m_archiveRatio = archive;
 		}
 	}
-	if (LoadAppData("ArchiveFile", value, sizeof(value))) DropFile(value);
+	if (startupFile && startupFile[0]) DropFile(startupFile);
+	else if (LoadAppData("ArchiveFile", value, sizeof(value))) DropFile(value);
 }
 
 void SndhArchivePlayer::Shutdown(cui_ctx* ui)
@@ -214,16 +215,6 @@ void SndhArchivePlayer::Shutdown(cui_ctx* ui)
 	SaveAppData("CuiTheme", cui_get_theme_mode(ui) == CUI_THEME_LIGHT ? "light" : "dark");
 	m_sndh.Unload();
 	gArchive.Close();
-}
-
-static void Detail(cui_ctx* ui, const char* label, const char* value)
-{
-	Ui::Row row(ui);
-	cui_text_opts opts = {};
-	opts.width = CUI_PX(112);
-	opts.color = CUI_COLOR_TEXT_SECONDARY;
-	cui_text_ex(ui, label, &opts);
-	cui_text_ex(ui, value ? value : "", nullptr);
 }
 
 void SndhArchivePlayer::DrawSongInfo(cui_ctx* ui)
@@ -252,38 +243,32 @@ void SndhArchivePlayer::DrawSongInfo(cui_ctx* ui)
 				caption += " by ";
 				caption += info.musicAuthor;
 			}
-			cui_text_ex(ui, caption.c_str(), &title);
-			cui_button_opts details = {};
-			details.icon = m_showDetails ? CUI_ICON_CHEVRON_DOWN : CUI_ICON_CHEVRON_RIGHT;
-			details.tooltip = m_showDetails ? "Hide details" : "Show details";
-			details.variant = CUI_BUTTON_OUTLINE;
-			details.size = CUI_SIZE_SM;
-			details.width = CUI_PX(30);
-			cui_theme* theme = cui_theme_get(ui);
-			const float radius = theme->radius_control;
-			theme->radius_control = 15;
-			if (cui_button_ex(ui, "##song-details", &details)) m_showDetails = !m_showDetails;
-			theme->radius_control = radius;
-		}
-		if (m_showDetails)
-		{
-			cui_separator(ui);
-			Detail(ui, "File type", info.fileFormat);
+			std::string metadata;
+			auto detail = [&](const char* label, const char* value)
+			{
+				if (!metadata.empty()) metadata += "\n";
+				metadata += label;
+				metadata += ": ";
+				if (value) metadata += value;
+			};
+			detail("File type", info.fileFormat);
 			if (info.fileType == AtariAudioRenderer::eFileType::eSndh)
 			{
-				Detail(ui, "Year", info.year);
-				Detail(ui, "Converter", info.converter);
-				Detail(ui, "Ripper", info.ripper);
+				detail("Year", info.year);
+				detail("Converter", info.converter);
+				detail("Ripper", info.ripper);
 			}
-			else Detail(ui, "Comment", info.converter);
+			else detail("Comment", info.converter);
 			char value[96];
 			const uint32_t ms = sf->SampleToMs(sf->GetSubsongDurationSample(m_currentSubSong));
 			snprintf(value, sizeof(value), "%u:%02u.%03u", ms / 60000, (ms / 1000) % 60, ms % 1000);
-			Detail(ui, "Duration", value);
-			snprintf(value, sizeof(value), "%d Hz", info.playerTickRate); Detail(ui, "Player rate", value);
-			snprintf(value, sizeof(value), "%.3f MHz", info.ym2149Clock / 1000000.0); Detail(ui, "YM2149 clock", value);
-			snprintf(value, sizeof(value), "%.1f kHz", info.hostReplayRate / 1000.0); Detail(ui, "Output rate", value);
-			snprintf(value, sizeof(value), "%u bytes", unsigned(info.rawBinaryDataSize)); Detail(ui, "Data size", value);
+			detail("Duration", value);
+			snprintf(value, sizeof(value), "%d Hz", info.playerTickRate); detail("Player rate", value);
+			snprintf(value, sizeof(value), "%.3f MHz", info.ym2149Clock / 1000000.0); detail("YM2149 clock", value);
+			snprintf(value, sizeof(value), "%.1f kHz", info.hostReplayRate / 1000.0); detail("Output rate", value);
+			snprintf(value, sizeof(value), "%u bytes", unsigned(info.rawBinaryDataSize)); detail("Data size", value);
+			title.tooltip = metadata.c_str();
+			cui_text_ex(ui, caption.c_str(), &title);
 		}
 		if (info.subsongCount >= 2)
 		{
@@ -332,7 +317,7 @@ void SndhArchivePlayer::DrawSongInfo(cui_ctx* ui)
 			if (cui_menu_item_ex(ui, "Light", &light)) cui_set_theme(ui, CUI_THEME_LIGHT);
 			cui_menu_end(ui);
 		}
-		if (gArchive.IsOpen() && !gArchive.IsOpening() && m_currentZipIndex >= 0 && sf)
+		if (sf)
 			if (cui_button_ex(ui, "File Viewer", nullptr)) m_showDataViewer = true;
 	}
 	cui_scroll_end(ui);

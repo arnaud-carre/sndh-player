@@ -7,11 +7,17 @@
 //-----------------------------------------------------------------
 #include "SndhArchivePlayer.h"
 #include "CuiGlfw.h"
+#include "AppData.h"
 #include <cui/cui_render.h>
 #include <stdio.h>
 #include <vector>
 #include <algorithm>
 #include <memory>
+#include <string>
+#include <sstream>
+#ifdef _WIN32
+#include <shellapi.h>
+#endif
 
 static SndhArchivePlayer gApp;
 
@@ -184,8 +190,37 @@ private:
     double m_previousTime = 0;
 };
 
-int main()
+static std::string StartupFileArgument(int argc, char** argv)
 {
+#ifdef _WIN32
+    // Read UTF-16 arguments directly, then use the same native encoding as
+    // file drops and the existing Windows file/archive loaders.
+    int count = 0;
+    wchar_t** args = CommandLineToArgvW(GetCommandLineW(), &count);
+    std::string path;
+    if (args && count > 1)
+    {
+        const int length = WideCharToMultiByte(CP_ACP, 0, args[1], -1, nullptr, 0, nullptr, nullptr);
+        if (length > 0)
+        {
+            std::vector<char> buffer(length);
+            if (WideCharToMultiByte(CP_ACP, 0, args[1], -1, buffer.data(), length, nullptr, nullptr))
+                path = buffer.data();
+        }
+    }
+    if (args) LocalFree(args);
+    return path;
+#else
+    // Finder may supply its legacy process serial number when launching a bundle.
+    for (int i = 1; i < argc; ++i)
+        if (strncmp(argv[i], "-psn_", 5) != 0) return argv[i];
+    return {};
+#endif
+}
+
+int main(int argc, char** argv)
+{
+    const std::string startupFile = StartupFileArgument(argc, argv);
     glfwSetErrorCallback(GlfwErrorCallback);
     if (!glfwInit()) return 1;
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -202,7 +237,14 @@ int main()
         glfwTerminate();
         return 1;
     }
+    char savedSize[64];
+    int normalWidth, normalHeight;
+    if (LoadAppData("WindowSize", savedSize, sizeof(savedSize)) &&
+        (std::istringstream(savedSize) >> normalWidth >> normalHeight) &&
+        normalWidth > 0 && normalHeight > 0 && normalWidth <= 32768 && normalHeight <= 32768)
+        glfwSetWindowSize(window, normalWidth, normalHeight);
     FitStartupWindow(window);
+    glfwGetWindowSize(window, &normalWidth, &normalHeight);
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
     cui_gl_renderer* renderer = cui_gl_create([](const char* name) -> void* { return reinterpret_cast<void*>(glfwGetProcAddress(name)); });
@@ -229,12 +271,23 @@ int main()
         CuiGlfw platform(window, ui);
         DataViewerWindow dataViewer;
         glfwSetDropCallback(window, DropFilesCallback);
-        gApp.Startup(ui);
+        gApp.Startup(ui, startupFile.c_str());
         glfwShowWindow(window);
         double previousTime = glfwGetTime();
         while (!glfwWindowShouldClose(window))
         {
             glfwPollEvents();
+            // Keep the restored size when the window is maximized or minimized.
+            if (!glfwGetWindowAttrib(window, GLFW_MAXIMIZED) && !glfwGetWindowAttrib(window, GLFW_ICONIFIED))
+            {
+                int width, height;
+                glfwGetWindowSize(window, &width, &height);
+                if (width > 0 && height > 0)
+                {
+                    normalWidth = width;
+                    normalHeight = height;
+                }
+            }
             if (glfwWindowShouldClose(window)) break;
 
             // Playback and job completion advance independently of visible panels.
@@ -263,6 +316,8 @@ int main()
                 glfwWaitEventsTimeout(wakeup > 0 && wakeup < 0.1f ? wakeup : 0.1);
             }
         }
+        snprintf(savedSize, sizeof(savedSize), "%d %d", normalWidth, normalHeight);
+        SaveAppData("WindowSize", savedSize);
         gApp.Shutdown(ui);
     }
     cui_destroy(ui);

@@ -446,8 +446,17 @@ bool cui_select_ex(cui_ctx *ui, const char *id_str, const char *const *items, in
 /* Tooltip                                                                  */
 /* ------------------------------------------------------------------------ */
 
-typedef struct { char text[256]; cui_id anchor, shown; cui_spring t, ox, oy; double last_shown; bool visible, passive; } cui__tooltip_state;
-static cui__tooltip_state *cui__tip(cui_ctx *ui) { return cui_state(ui, 0x7001717u, sizeof(cui__tooltip_state)); }
+typedef struct { char *text; size_t text_size; cui_id anchor, shown; cui_spring t, ox, oy; double last_shown; bool visible, passive; } cui__tooltip_state;
+static cui__tooltip_state *cui__tip(cui_ctx *ui) {
+    cui__tooltip_state *tt = cui_state(ui, 0x7001717u, sizeof *tt);
+    if (tt->text_size) tt->text = cui_state(ui, 0x7001719u, tt->text_size);
+    return tt;
+}
+static void cui__tooltip_set_text(cui_ctx *ui, cui__tooltip_state *tt, const char *text) {
+    tt->text_size = strlen(text) + 1;
+    tt->text = cui_state(ui, 0x7001719u, tt->text_size);
+    memcpy(tt->text, text, tt->text_size);
+}
 
 void cui_tooltip(cui_ctx *ui, const char *text) {
     cui_id anchor = ui->last_id;
@@ -462,7 +471,7 @@ void cui_tooltip(cui_ctx *ui, const char *text) {
         bool warm = ui->time - tt->last_shown < 0.4;
         float delay = warm ? 0.0f : 0.55f;
         if (ui->time - ui->hover_start >= delay) {
-            snprintf(tt->text, sizeof tt->text, "%s", text);
+            cui__tooltip_set_text(ui, tt, text);
             tt->anchor = anchor;
             tt->visible = true;
             tt->passive = false;
@@ -487,7 +496,7 @@ void cui__tooltip_passive(cui_ctx *ui, cui_id anchor, const char *text) {
     bool warm = ui->time - tt->last_shown < 0.4;
     float delay = warm ? 0.0f : 0.7f;
     if (ui->time - ui->hover_start >= delay) {
-        snprintf(tt->text, sizeof tt->text, "%s", text);
+        cui__tooltip_set_text(ui, tt, text);
         tt->anchor = anchor;
         tt->visible = true;
         tt->passive = true;

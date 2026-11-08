@@ -20,6 +20,11 @@ Data-grid scrollbars remain visible whenever their content overflows, including
 while idle, to show the current position and the extent of the list. Their
 vertical track and hit area exclude the fixed header; thumb size and dragging
 use the body viewport and body content heights.
+Text options accept a passive tooltip, used for song metadata on title hover.
+Tooltip text uses context-owned growable state instead of a fixed 256-byte
+buffer so complete metadata is retained and released with the context.
+Data grids optionally treat column widths as relative weights and recompute
+them from the viewport on resize. The player uses 25/50/15/10 for its columns.
 Other upstream sources are unchanged.
 
 Only build inputs and license notices are included; upstream demos, tests,

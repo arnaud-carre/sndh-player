@@ -74,7 +74,7 @@ void cui_text_ex(cui_ctx *ui, const char *text, const cui_text_opts *o) {
     if (o->line_height > 0) n->line_height = o->line_height;
     if (o->width.kind != CUI_SIZE_FIT) n->w = o->width;
     if (o->align != CUI_TEXT_LEFT && o->width.kind == CUI_SIZE_FIT) n->self_align = CUI_ALIGN_STRETCH;
-    if (o->nowrap && text && text[0]) {
+    if ((o->nowrap || o->tooltip) && text && text[0]) {
         /* a single line cut short by an ellipsis shows its whole text on hover. The
          * text stays non-interactive, so a row or card around it keeps its clicks. */
         cui_id tid = cui_make_id(ui, text) ^ ((cui_id)ui->node_count * 2654435761u);
@@ -82,7 +82,8 @@ void cui_text_ex(cui_ctx *ui, const char *text, const cui_text_opts *o) {
         cui_rect pr = cui__prev_rect(ui, tid);
         if (pr.w > 0 && !ui->mdown[0] && cui__rect_contains(pr, ui->mx, ui->my)) {
             float tw = cui__text_width(ui, n->font, n->font_size, text, -1, o->tabular);
-            if (tw > pr.w + 0.5f) cui__tooltip_passive(ui, tid, text);
+            if (o->tooltip) cui__tooltip_passive(ui, tid, o->tooltip);
+            else if (tw > pr.w + 0.5f) cui__tooltip_passive(ui, tid, text);
         }
     }
 }

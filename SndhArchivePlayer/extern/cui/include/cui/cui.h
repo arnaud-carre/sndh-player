@@ -487,6 +487,7 @@ typedef struct cui_text_opts {
     bool nowrap;               /* single line, ellipsis when it does not fit */
     bool tabular;              /* tabular numbers */
     bool selectable;           /* reserved */
+    const char *tooltip;       /* optional passive tooltip on the text */
     cui_size width;
     float line_height;         /* multiplier, default 1.45 */
 } cui_text_opts;
@@ -1086,6 +1087,7 @@ typedef struct cui_grid_opts {
     float row_height;          /* default 40 */
     bool *selected;            /* one bool per row; adds a checkbox column */
     cui_table_sort *sort;
+    bool proportional_columns; /* grid column widths are relative weights, recomputed on resize */
     bool striped;
     int *cursor;               /* the keyboard row, optional; setting it scrolls that row into view */
     bool hide_checkboxes;      /* with selected: rows still select (click, Shift, Ctrl) but no checkbox column */
