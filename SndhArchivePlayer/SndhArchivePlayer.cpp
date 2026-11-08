@@ -243,6 +243,12 @@ void SndhArchivePlayer::DrawSongInfo(cui_ctx* ui)
 				caption += " by ";
 				caption += info.musicAuthor;
 			}
+			if (info.year && info.year[0])
+			{
+				caption += " (";
+				caption += info.year;
+				caption += ")";
+			}
 			std::string metadata;
 			auto detail = [&](const char* label, const char* value)
 			{
@@ -251,6 +257,8 @@ void SndhArchivePlayer::DrawSongInfo(cui_ctx* ui)
 				metadata += ": ";
 				if (value) metadata += value;
 			};
+			detail("Title", info.musicName);
+			detail("Author", info.musicAuthor);
 			detail("File type", info.fileFormat);
 			if (info.fileType == AtariAudioRenderer::eFileType::eSndh)
 			{
