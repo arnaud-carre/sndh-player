@@ -33,395 +33,395 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\context.c">
+    <ClCompile Include="src\extern\glfw\src\context.c">
       <Filter>Source Files\extern\glfw</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\init.c">
+    <ClCompile Include="src\extern\glfw\src\init.c">
       <Filter>Source Files\extern\glfw</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\input.c">
+    <ClCompile Include="src\extern\glfw\src\input.c">
       <Filter>Source Files\extern\glfw</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\monitor.c">
+    <ClCompile Include="src\extern\glfw\src\monitor.c">
       <Filter>Source Files\extern\glfw</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\platform.c">
+    <ClCompile Include="src\extern\glfw\src\platform.c">
       <Filter>Source Files\extern\glfw</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\vulkan.c">
+    <ClCompile Include="src\extern\glfw\src\vulkan.c">
       <Filter>Source Files\extern\glfw</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\window.c">
+    <ClCompile Include="src\extern\glfw\src\window.c">
       <Filter>Source Files\extern\glfw</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\egl_context.c">
+    <ClCompile Include="src\extern\glfw\src\egl_context.c">
       <Filter>Source Files\extern\glfw</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\osmesa_context.c">
+    <ClCompile Include="src\extern\glfw\src\osmesa_context.c">
       <Filter>Source Files\extern\glfw</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\null_init.c">
+    <ClCompile Include="src\extern\glfw\src\null_init.c">
       <Filter>Source Files\extern\glfw</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\null_monitor.c">
+    <ClCompile Include="src\extern\glfw\src\null_monitor.c">
       <Filter>Source Files\extern\glfw</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\null_window.c">
+    <ClCompile Include="src\extern\glfw\src\null_window.c">
       <Filter>Source Files\extern\glfw</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\null_joystick.c">
+    <ClCompile Include="src\extern\glfw\src\null_joystick.c">
       <Filter>Source Files\extern\glfw</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\win32_module.c">
+    <ClCompile Include="src\extern\glfw\src\win32_module.c">
       <Filter>Source Files\extern\glfw</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\win32_time.c">
+    <ClCompile Include="src\extern\glfw\src\win32_time.c">
       <Filter>Source Files\extern\glfw</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\win32_thread.c">
+    <ClCompile Include="src\extern\glfw\src\win32_thread.c">
       <Filter>Source Files\extern\glfw</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\win32_init.c">
+    <ClCompile Include="src\extern\glfw\src\win32_init.c">
       <Filter>Source Files\extern\glfw</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\win32_joystick.c">
+    <ClCompile Include="src\extern\glfw\src\win32_joystick.c">
       <Filter>Source Files\extern\glfw</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\win32_monitor.c">
+    <ClCompile Include="src\extern\glfw\src\win32_monitor.c">
       <Filter>Source Files\extern\glfw</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\win32_window.c">
+    <ClCompile Include="src\extern\glfw\src\win32_window.c">
       <Filter>Source Files\extern\glfw</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\glfw\src\wgl_context.c">
+    <ClCompile Include="src\extern\glfw\src\wgl_context.c">
       <Filter>Source Files\extern\glfw</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\main.cpp">
+    <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\SndhArchive.cpp">
+    <ClCompile Include="src\SndhArchive.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\SndhArchivePlayer.cpp">
+    <ClCompile Include="src\SndhArchivePlayer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\zip\src\zip.c">
+    <ClCompile Include="src\extern\zip\src\zip.c">
       <Filter>Source Files\extern</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\AsyncSndhStream.cpp">
+    <ClCompile Include="src\AsyncSndhStream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\WavWriter.cpp">
+    <ClCompile Include="src\WavWriter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\jobSystem.cpp">
+    <ClCompile Include="src\jobSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AtariAudio\src\AtariMachine.cpp">
+    <ClCompile Include="src\AtariAudio\src\AtariMachine.cpp">
       <Filter>Source Files\AtariAudio</Filter>
     </ClCompile>
-    <ClCompile Include="AtariAudio\src\Mk68901.cpp">
+    <ClCompile Include="src\AtariAudio\src\Mk68901.cpp">
       <Filter>Source Files\AtariAudio</Filter>
     </ClCompile>
-    <ClCompile Include="AtariAudio\src\SteDac.cpp">
+    <ClCompile Include="src\AtariAudio\src\SteDac.cpp">
       <Filter>Source Files\AtariAudio</Filter>
     </ClCompile>
-    <ClCompile Include="AtariAudio\src\timedb.cpp">
+    <ClCompile Include="src\AtariAudio\src\timedb.cpp">
       <Filter>Source Files\AtariAudio</Filter>
     </ClCompile>
-    <ClCompile Include="AtariAudio\src\ym2149c.cpp">
+    <ClCompile Include="src\AtariAudio\src\ym2149c.cpp">
       <Filter>Source Files\AtariAudio</Filter>
     </ClCompile>
-    <ClCompile Include="AtariAudio\src\SndhRenderer.cpp">
+    <ClCompile Include="src\AtariAudio\src\SndhRenderer.cpp">
       <Filter>Source Files\AtariAudio</Filter>
     </ClCompile>
-    <ClCompile Include="AtariAudio\src\external\Musashi\m68k.cpp">
+    <ClCompile Include="src\AtariAudio\src\external\Musashi\m68k.cpp">
       <Filter>Source Files\AtariAudio\external\Musashi</Filter>
     </ClCompile>
-    <ClCompile Include="AtariAudio\src\external\Musashi\m68kcpu.cpp">
+    <ClCompile Include="src\AtariAudio\src\external\Musashi\m68kcpu.cpp">
       <Filter>Source Files\AtariAudio\external\Musashi</Filter>
     </ClCompile>
-    <ClCompile Include="AtariAudio\src\external\Musashi\m68kops.cpp">
+    <ClCompile Include="src\AtariAudio\src\external\Musashi\m68kops.cpp">
       <Filter>Source Files\AtariAudio\external\Musashi</Filter>
     </ClCompile>
-    <ClCompile Include="AtariAudio\src\AtariAudioRenderer.cpp">
+    <ClCompile Include="src\AtariAudio\src\AtariAudioRenderer.cpp">
       <Filter>Source Files\AtariAudio</Filter>
     </ClCompile>
-    <ClCompile Include="AtariAudio\src\YmRenderer.cpp">
+    <ClCompile Include="src\AtariAudio\src\YmRenderer.cpp">
       <Filter>Source Files\AtariAudio</Filter>
     </ClCompile>
-    <ClCompile Include="AtariAudio\src\external\lzh.cpp">
+    <ClCompile Include="src\AtariAudio\src\external\lzh.cpp">
       <Filter>Source Files\AtariAudio\external</Filter>
     </ClCompile>
-    <ClCompile Include="AtariAudio\src\external\ice_24.cpp">
+    <ClCompile Include="src\AtariAudio\src\external\ice_24.cpp">
       <Filter>Source Files\AtariAudio\external</Filter>
     </ClCompile>
-    <ClCompile Include="AtariAudio\src\Blitter.cpp">
+    <ClCompile Include="src\AtariAudio\src\Blitter.cpp">
       <Filter>Source Files\AtariAudio</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\AudioStream.cpp">
+    <ClCompile Include="src\AudioStream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="SndhArchivePlayer\SndhArchive.h">
+    <ClInclude Include="src\SndhArchive.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="SndhArchivePlayer\SndhArchivePlayer.h">
+    <ClInclude Include="src\SndhArchivePlayer.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="SndhArchivePlayer\extern\glfw\include\GLFW\glfw3.h">
+    <ClInclude Include="src\extern\glfw\include\GLFW\glfw3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SndhArchivePlayer\extern\zip\src\miniz.h">
+    <ClInclude Include="src\extern\zip\src\miniz.h">
       <Filter>Source Files\extern</Filter>
     </ClInclude>
-    <ClInclude Include="SndhArchivePlayer\extern\zip\src\zip.h">
+    <ClInclude Include="src\extern\zip\src\zip.h">
       <Filter>Source Files\extern</Filter>
     </ClInclude>
-    <ClInclude Include="SndhArchivePlayer\AsyncSndhStream.h">
+    <ClInclude Include="src\AsyncSndhStream.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="SndhArchivePlayer\WavWriter.h">
+    <ClInclude Include="src\WavWriter.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="SndhArchivePlayer\jobSystem.h">
+    <ClInclude Include="src\jobSystem.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="AtariAudio\src\AtariAudio.h">
+    <ClInclude Include="src\AtariAudio\src\AtariAudio.h">
       <Filter>Source Files\AtariAudio</Filter>
     </ClInclude>
-    <ClInclude Include="AtariAudio\src\AtariMachine.h">
+    <ClInclude Include="src\AtariAudio\src\AtariMachine.h">
       <Filter>Source Files\AtariAudio</Filter>
     </ClInclude>
-    <ClInclude Include="AtariAudio\src\Mk68901.h">
+    <ClInclude Include="src\AtariAudio\src\Mk68901.h">
       <Filter>Source Files\AtariAudio</Filter>
     </ClInclude>
-    <ClInclude Include="AtariAudio\src\SteDac.h">
+    <ClInclude Include="src\AtariAudio\src\SteDac.h">
       <Filter>Source Files\AtariAudio</Filter>
     </ClInclude>
-    <ClInclude Include="AtariAudio\src\timedb.h">
+    <ClInclude Include="src\AtariAudio\src\timedb.h">
       <Filter>Source Files\AtariAudio</Filter>
     </ClInclude>
-    <ClInclude Include="AtariAudio\src\ym2149_tables.h">
+    <ClInclude Include="src\AtariAudio\src\ym2149_tables.h">
       <Filter>Source Files\AtariAudio</Filter>
     </ClInclude>
-    <ClInclude Include="AtariAudio\src\ym2149c.h">
+    <ClInclude Include="src\AtariAudio\src\ym2149c.h">
       <Filter>Source Files\AtariAudio</Filter>
     </ClInclude>
-    <ClInclude Include="AtariAudio\src\external\Musashi\m68k.h">
+    <ClInclude Include="src\AtariAudio\src\external\Musashi\m68k.h">
       <Filter>Source Files\AtariAudio\external\Musashi</Filter>
     </ClInclude>
-    <ClInclude Include="AtariAudio\src\external\Musashi\m68kconf.h">
+    <ClInclude Include="src\AtariAudio\src\external\Musashi\m68kconf.h">
       <Filter>Source Files\AtariAudio\external\Musashi</Filter>
     </ClInclude>
-    <ClInclude Include="AtariAudio\src\external\Musashi\m68kcpu.h">
+    <ClInclude Include="src\AtariAudio\src\external\Musashi\m68kcpu.h">
       <Filter>Source Files\AtariAudio\external\Musashi</Filter>
     </ClInclude>
-    <ClInclude Include="AtariAudio\src\external\Musashi\m68kops.h">
+    <ClInclude Include="src\AtariAudio\src\external\Musashi\m68kops.h">
       <Filter>Source Files\AtariAudio\external\Musashi</Filter>
     </ClInclude>
-    <ClInclude Include="AtariAudio\src\external\ice_24.h">
+    <ClInclude Include="src\AtariAudio\src\external\ice_24.h">
       <Filter>Source Files\AtariAudio\external</Filter>
     </ClInclude>
-    <ClInclude Include="AtariAudio\src\external\timedb.inc.h">
+    <ClInclude Include="src\AtariAudio\src\external\timedb.inc.h">
       <Filter>Source Files\AtariAudio\external</Filter>
     </ClInclude>
-    <ClInclude Include="AtariAudio\src\SndhRenderer.h">
+    <ClInclude Include="src\AtariAudio\src\SndhRenderer.h">
       <Filter>Source Files\AtariAudio</Filter>
     </ClInclude>
-    <ClInclude Include="AtariAudio\src\AtariAudioRenderer.h">
+    <ClInclude Include="src\AtariAudio\src\AtariAudioRenderer.h">
       <Filter>Source Files\AtariAudio</Filter>
     </ClInclude>
-    <ClInclude Include="AtariAudio\src\YmRenderer.h">
+    <ClInclude Include="src\AtariAudio\src\YmRenderer.h">
       <Filter>Source Files\AtariAudio</Filter>
     </ClInclude>
-    <ClInclude Include="AtariAudio\src\external\lzh.h">
+    <ClInclude Include="src\AtariAudio\src\external\lzh.h">
       <Filter>Source Files\AtariAudio\external</Filter>
     </ClInclude>
-    <ClInclude Include="AtariAudio\src\Blitter.h">
+    <ClInclude Include="src\AtariAudio\src\Blitter.h">
       <Filter>Source Files\AtariAudio</Filter>
     </ClInclude>
-    <ClInclude Include="SndhArchivePlayer\AudioStream.h">
+    <ClInclude Include="src\AudioStream.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="SndhArchivePlayer\CuiGlfw.cpp">
+    <ClCompile Include="src\CuiGlfw.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_core.c">
+    <ClCompile Include="src\extern\cui\src\cui_core.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_theme.c">
+    <ClCompile Include="src\extern\cui\src\cui_theme.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_draw.c">
+    <ClCompile Include="src\extern\cui\src\cui_draw.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_text.c">
+    <ClCompile Include="src\extern\cui\src\cui_text.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_layout.c">
+    <ClCompile Include="src\extern\cui\src\cui_layout.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_widgets.c">
+    <ClCompile Include="src\extern\cui\src\cui_widgets.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_controls.c">
+    <ClCompile Include="src\extern\cui\src\cui_controls.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_textedit.c">
+    <ClCompile Include="src\extern\cui\src\cui_textedit.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_overlay.c">
+    <ClCompile Include="src\extern\cui\src\cui_overlay.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_data.c">
+    <ClCompile Include="src\extern\cui\src\cui_data.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_charts.c">
+    <ClCompile Include="src\extern\cui\src\cui_charts.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_extras.c">
+    <ClCompile Include="src\extern\cui\src\cui_extras.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_actions.c">
+    <ClCompile Include="src\extern\cui\src\cui_actions.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_pickers.c">
+    <ClCompile Include="src\extern\cui\src\cui_pickers.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_disclosure.c">
+    <ClCompile Include="src\extern\cui\src\cui_disclosure.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_grid.c">
+    <ClCompile Include="src\extern\cui\src\cui_grid.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_treetable.c">
+    <ClCompile Include="src\extern\cui\src\cui_treetable.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_code.c">
+    <ClCompile Include="src\extern\cui\src\cui_code.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_markdown.c">
+    <ClCompile Include="src\extern\cui\src\cui_markdown.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_editor.c">
+    <ClCompile Include="src\extern\cui\src\cui_editor.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_diff.c">
+    <ClCompile Include="src\extern\cui\src\cui_diff.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_tools.c">
+    <ClCompile Include="src\extern\cui\src\cui_tools.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_hex.c">
+    <ClCompile Include="src\extern\cui\src\cui_hex.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_social.c">
+    <ClCompile Include="src\extern\cui\src\cui_social.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_media.c">
+    <ClCompile Include="src\extern\cui\src\cui_media.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_planning.c">
+    <ClCompile Include="src\extern\cui\src\cui_planning.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_chrome.c">
+    <ClCompile Include="src\extern\cui\src\cui_chrome.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_dock.c">
+    <ClCompile Include="src\extern\cui\src\cui_dock.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_viz.c">
+    <ClCompile Include="src\extern\cui\src\cui_viz.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_motion.c">
+    <ClCompile Include="src\extern\cui\src\cui_motion.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_ai.c">
+    <ClCompile Include="src\extern\cui\src\cui_ai.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_image.c">
+    <ClCompile Include="src\extern\cui\src\cui_image.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_nodes.c">
+    <ClCompile Include="src\extern\cui\src\cui_nodes.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_flame.c">
+    <ClCompile Include="src\extern\cui\src\cui_flame.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_curves.c">
+    <ClCompile Include="src\extern\cui\src\cui_curves.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_timeline.c">
+    <ClCompile Include="src\extern\cui\src\cui_timeline.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_dials.c">
+    <ClCompile Include="src\extern\cui\src\cui_dials.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_month.c">
+    <ClCompile Include="src\extern\cui\src\cui_month.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_tour.c">
+    <ClCompile Include="src\extern\cui\src\cui_tour.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_photo.c">
+    <ClCompile Include="src\extern\cui\src\cui_photo.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_files.c">
+    <ClCompile Include="src\extern\cui\src\cui_files.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_terminal.c">
+    <ClCompile Include="src\extern\cui\src\cui_terminal.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_emoji.c">
+    <ClCompile Include="src\extern\cui\src\cui_emoji.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\render\cui_render_sw.c">
+    <ClCompile Include="src\extern\cui\src\render\cui_render_sw.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\render\cui_render_gl.c">
+    <ClCompile Include="src\extern\cui\src\render\cui_render_gl.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_font_data.c">
+    <ClCompile Include="src\extern\cui\src\cui_font_data.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
-    <ClCompile Include="SndhArchivePlayer\extern\cui\src\cui_inflate.c">
+    <ClCompile Include="src\extern\cui\src\cui_inflate.c">
       <Filter>Source Files\extern\cui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="SndhArchivePlayer\ArchiveFilter.h">
+    <ClInclude Include="src\ArchiveFilter.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="SndhArchivePlayer\Ui.h">
+    <ClInclude Include="src\Ui.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="SndhArchivePlayer\CuiGlfw.h">
+    <ClInclude Include="src\CuiGlfw.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="SndhArchivePlayer\AppData.cpp">
+    <ClCompile Include="src\AppData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClInclude Include="SndhArchivePlayer\AppData.h">
+    <ClInclude Include="src\AppData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="SndhArchivePlayer\resources\app.rc">
+    <ResourceCompile Include="src\resources\app.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
-    <Image Include="SndhArchivePlayer\resources\app.ico">
+    <Image Include="src\resources\app.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="SndhArchivePlayer\AppIcon.cpp"><Filter>Source Files</Filter></ClCompile>
-    <ClInclude Include="SndhArchivePlayer\AppIcon.h"><Filter>Header Files</Filter></ClInclude>
-    <Image Include="SndhArchivePlayer\resources\app-about.png"><Filter>Resource Files</Filter></Image>
+    <ClCompile Include="src\AppIcon.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClInclude Include="src\AppIcon.h"><Filter>Header Files</Filter></ClInclude>
+    <Image Include="src\resources\app-about.png"><Filter>Resource Files</Filter></Image>
   </ItemGroup>
 </Project>

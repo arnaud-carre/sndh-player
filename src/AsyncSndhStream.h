@@ -10,7 +10,7 @@
 #include <cui/cui.h>
 #include <thread>
 #include <atomic>
-#include "../AtariAudio/src/AtariAudio.h"
+#include "AtariAudio/src/AtariAudio.h"
 #include "AudioStream.h"
 
 static const int kHostReplayRate = 48000;

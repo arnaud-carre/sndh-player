@@ -11,7 +11,7 @@
 
 #include <stdint.h>
 #include <cui/cui.h>
-#include "../AtariAudio/src/AtariAudio.h"
+#include "AtariAudio/src/AtariAudio.h"
 #include "AsyncSndhStream.h"
 
 class SndhArchive;

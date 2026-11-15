@@ -15,31 +15,31 @@ endif()
 
 # Compile the checked-out sources directly. No dependency downloads or Git commands.
 set(GLFW_SOURCES
-    SndhArchivePlayer/extern/glfw/src/context.c
-    SndhArchivePlayer/extern/glfw/src/init.c
-    SndhArchivePlayer/extern/glfw/src/input.c
-    SndhArchivePlayer/extern/glfw/src/monitor.c
-    SndhArchivePlayer/extern/glfw/src/platform.c
-    SndhArchivePlayer/extern/glfw/src/vulkan.c
-    SndhArchivePlayer/extern/glfw/src/window.c
-    SndhArchivePlayer/extern/glfw/src/egl_context.c
-    SndhArchivePlayer/extern/glfw/src/osmesa_context.c
-    SndhArchivePlayer/extern/glfw/src/null_init.c
-    SndhArchivePlayer/extern/glfw/src/null_monitor.c
-    SndhArchivePlayer/extern/glfw/src/null_window.c
-    SndhArchivePlayer/extern/glfw/src/null_joystick.c
+    src/extern/glfw/src/context.c
+    src/extern/glfw/src/init.c
+    src/extern/glfw/src/input.c
+    src/extern/glfw/src/monitor.c
+    src/extern/glfw/src/platform.c
+    src/extern/glfw/src/vulkan.c
+    src/extern/glfw/src/window.c
+    src/extern/glfw/src/egl_context.c
+    src/extern/glfw/src/osmesa_context.c
+    src/extern/glfw/src/null_init.c
+    src/extern/glfw/src/null_monitor.c
+    src/extern/glfw/src/null_window.c
+    src/extern/glfw/src/null_joystick.c
 )
 
 if(WIN32)
     list(APPEND GLFW_SOURCES
-        SndhArchivePlayer/extern/glfw/src/win32_module.c
-        SndhArchivePlayer/extern/glfw/src/win32_time.c
-        SndhArchivePlayer/extern/glfw/src/win32_thread.c
-        SndhArchivePlayer/extern/glfw/src/win32_init.c
-        SndhArchivePlayer/extern/glfw/src/win32_joystick.c
-        SndhArchivePlayer/extern/glfw/src/win32_monitor.c
-        SndhArchivePlayer/extern/glfw/src/win32_window.c
-        SndhArchivePlayer/extern/glfw/src/wgl_context.c
+        src/extern/glfw/src/win32_module.c
+        src/extern/glfw/src/win32_time.c
+        src/extern/glfw/src/win32_thread.c
+        src/extern/glfw/src/win32_init.c
+        src/extern/glfw/src/win32_joystick.c
+        src/extern/glfw/src/win32_monitor.c
+        src/extern/glfw/src/win32_window.c
+        src/extern/glfw/src/wgl_context.c
     )
     set_source_files_properties(${GLFW_SOURCES} PROPERTIES
         COMPILE_DEFINITIONS "_GLFW_WIN32;_CRT_SECURE_NO_WARNINGS"
@@ -47,14 +47,14 @@ if(WIN32)
 elseif(APPLE)
     enable_language(OBJC)
     list(APPEND GLFW_SOURCES
-        SndhArchivePlayer/extern/glfw/src/cocoa_time.c
-        SndhArchivePlayer/extern/glfw/src/posix_thread.c
-        SndhArchivePlayer/extern/glfw/src/posix_module.c
-        SndhArchivePlayer/extern/glfw/src/cocoa_init.m
-        SndhArchivePlayer/extern/glfw/src/cocoa_joystick.m
-        SndhArchivePlayer/extern/glfw/src/cocoa_monitor.m
-        SndhArchivePlayer/extern/glfw/src/cocoa_window.m
-        SndhArchivePlayer/extern/glfw/src/nsgl_context.m
+        src/extern/glfw/src/cocoa_time.c
+        src/extern/glfw/src/posix_thread.c
+        src/extern/glfw/src/posix_module.c
+        src/extern/glfw/src/cocoa_init.m
+        src/extern/glfw/src/cocoa_joystick.m
+        src/extern/glfw/src/cocoa_monitor.m
+        src/extern/glfw/src/cocoa_window.m
+        src/extern/glfw/src/nsgl_context.m
     )
     set_source_files_properties(${GLFW_SOURCES} PROPERTIES
         COMPILE_DEFINITIONS "_GLFW_COCOA"
@@ -62,34 +62,34 @@ elseif(APPLE)
 endif()
 
 add_executable(SndhArchivePlayer
-    SndhArchivePlayer/main.cpp
-    SndhArchivePlayer/SndhArchivePlayer.cpp
-    SndhArchivePlayer/AppData.cpp
-    SndhArchivePlayer/AppIcon.cpp
-    SndhArchivePlayer/SndhArchive.cpp
-    SndhArchivePlayer/AudioStream.cpp
-    SndhArchivePlayer/AudioStream.h
-    SndhArchivePlayer/AsyncSndhStream.cpp
-    SndhArchivePlayer/jobSystem.cpp
-    SndhArchivePlayer/WavWriter.cpp
+    src/main.cpp
+    src/SndhArchivePlayer.cpp
+    src/AppData.cpp
+    src/AppIcon.cpp
+    src/SndhArchive.cpp
+    src/AudioStream.cpp
+    src/AudioStream.h
+    src/AsyncSndhStream.cpp
+    src/jobSystem.cpp
+    src/WavWriter.cpp
 
-    AtariAudio/src/AtariAudioRenderer.cpp
-    AtariAudio/src/AtariMachine.cpp
-    AtariAudio/src/Blitter.cpp
-    AtariAudio/src/Mk68901.cpp
-    AtariAudio/src/SndhRenderer.cpp
-    AtariAudio/src/SteDac.cpp
-    AtariAudio/src/timedb.cpp
-    AtariAudio/src/ym2149c.cpp
-    AtariAudio/src/YmRenderer.cpp
-    AtariAudio/src/external/ice_24.cpp
-    AtariAudio/src/external/lzh.cpp
-    AtariAudio/src/external/Musashi/m68k.cpp
-    AtariAudio/src/external/Musashi/m68kcpu.cpp
-    AtariAudio/src/external/Musashi/m68kops.cpp
+    src/AtariAudio/src/AtariAudioRenderer.cpp
+    src/AtariAudio/src/AtariMachine.cpp
+    src/AtariAudio/src/Blitter.cpp
+    src/AtariAudio/src/Mk68901.cpp
+    src/AtariAudio/src/SndhRenderer.cpp
+    src/AtariAudio/src/SteDac.cpp
+    src/AtariAudio/src/timedb.cpp
+    src/AtariAudio/src/ym2149c.cpp
+    src/AtariAudio/src/YmRenderer.cpp
+    src/AtariAudio/src/external/ice_24.cpp
+    src/AtariAudio/src/external/lzh.cpp
+    src/AtariAudio/src/external/Musashi/m68k.cpp
+    src/AtariAudio/src/external/Musashi/m68kcpu.cpp
+    src/AtariAudio/src/external/Musashi/m68kops.cpp
 
-    SndhArchivePlayer/CuiGlfw.cpp
-    SndhArchivePlayer/extern/zip/src/zip.c
+    src/CuiGlfw.cpp
+    src/extern/zip/src/zip.c
     ${GLFW_SOURCES}
 )
 
@@ -97,16 +97,16 @@ add_executable(SndhArchivePlayer
 set(CUI_WITH_APP OFF CACHE BOOL "Use the player's GLFW integration" FORCE)
 set(CUI_BUILD_TESTS OFF CACHE BOOL "Build CUI tests" FORCE)
 set(CUI_BUILD_EXAMPLES OFF CACHE BOOL "Build CUI examples" FORCE)
-add_subdirectory(SndhArchivePlayer/extern/cui EXCLUDE_FROM_ALL)
+add_subdirectory(src/extern/cui EXCLUDE_FROM_ALL)
 target_link_libraries(SndhArchivePlayer PRIVATE cui::cui)
 target_compile_features(SndhArchivePlayer PRIVATE cxx_std_17)
 target_include_directories(SndhArchivePlayer PRIVATE
-    SndhArchivePlayer/extern/glfw/include
+    src/extern/glfw/include
 )
 if(WIN32)
     enable_language(RC)
-    target_sources(SndhArchivePlayer PRIVATE SndhArchivePlayer/resources/app.rc)
-    target_include_directories(SndhArchivePlayer PRIVATE SndhArchivePlayer/resources)
+    target_sources(SndhArchivePlayer PRIVATE src/resources/app.rc)
+    target_include_directories(SndhArchivePlayer PRIVATE src/resources)
     set_target_properties(SndhArchivePlayer PROPERTIES WIN32_EXECUTABLE TRUE)
     target_compile_definitions(SndhArchivePlayer PRIVATE UNICODE _UNICODE)
     target_link_libraries(SndhArchivePlayer PRIVATE
@@ -114,11 +114,11 @@ if(WIN32)
     )
 elseif(APPLE)
     target_sources(SndhArchivePlayer PRIVATE
-        SndhArchivePlayer/resources/app.icns
-        SndhArchivePlayer/resources/app-about.png)
+        src/resources/app.icns
+        src/resources/app-about.png)
     set_source_files_properties(
-        SndhArchivePlayer/resources/app.icns
-        SndhArchivePlayer/resources/app-about.png PROPERTIES
+        src/resources/app.icns
+        src/resources/app-about.png PROPERTIES
         MACOSX_PACKAGE_LOCATION Resources)
     set_target_properties(SndhArchivePlayer PROPERTIES
         MACOSX_BUNDLE TRUE

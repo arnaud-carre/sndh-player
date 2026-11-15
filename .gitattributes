@@ -6,4 +6,4 @@
 /.github/**/*.yaml -text !eol
 
 # CUI uses its upstream LF convention.
-/SndhArchivePlayer/extern/cui/** text=auto eol=lf
+/src/extern/cui/** text=auto eol=lf

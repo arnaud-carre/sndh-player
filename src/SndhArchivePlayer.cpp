@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <stdio.h>
 #include <string>
-#include "../AtariAudio/src/AtariAudio.h"
+#include "AtariAudio/src/AtariAudio.h"
 #include "SndhArchivePlayer.h"
 #include "SndhArchive.h"
 #include "AsyncSndhStream.h"
