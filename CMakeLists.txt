@@ -103,13 +103,21 @@ target_include_directories(SndhArchivePlayer PRIVATE
     SndhArchivePlayer/extern/glfw/include
 )
 if(WIN32)
+    enable_language(RC)
+    target_sources(SndhArchivePlayer PRIVATE SndhArchivePlayer/resources/app.rc)
+    target_include_directories(SndhArchivePlayer PRIVATE SndhArchivePlayer/resources)
     set_target_properties(SndhArchivePlayer PROPERTIES WIN32_EXECUTABLE TRUE)
     target_compile_definitions(SndhArchivePlayer PRIVATE UNICODE _UNICODE)
     target_link_libraries(SndhArchivePlayer PRIVATE
         opengl32 user32 gdi32 shell32 imm32 winmm
     )
 elseif(APPLE)
-    set_target_properties(SndhArchivePlayer PROPERTIES MACOSX_BUNDLE TRUE)
+    target_sources(SndhArchivePlayer PRIVATE SndhArchivePlayer/resources/app.icns)
+    set_source_files_properties(SndhArchivePlayer/resources/app.icns PROPERTIES
+        MACOSX_PACKAGE_LOCATION Resources)
+    set_target_properties(SndhArchivePlayer PROPERTIES
+        MACOSX_BUNDLE TRUE
+        MACOSX_BUNDLE_ICON_FILE app.icns)
     target_link_libraries(SndhArchivePlayer PRIVATE
         "-framework Cocoa" "-framework IOKit"
         "-framework CoreFoundation" "-framework OpenGL" "-framework AudioToolbox"
