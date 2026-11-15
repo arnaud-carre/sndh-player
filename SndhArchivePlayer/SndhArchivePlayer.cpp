@@ -219,12 +219,14 @@ void SndhArchivePlayer::Shutdown(cui_ctx* ui)
 
 void SndhArchivePlayer::DrawSongInfo(cui_ctx* ui)
 {
-	cui_scroll_opts scroll = {};
+	cui_box scroll = {};
 	scroll.height = CUI_FILL;
 	scroll.width = CUI_FILL;
 	scroll.pad = 16;
+	scroll.pad_top = 12; // Plus the 4-unit outer margin: 16 units total.
+	scroll.scroll_y = true;
 	scroll.gap = 10;
-	cui_scroll_begin(ui, &scroll);
+	cui_box_begin(ui, &scroll);
 	const AtariAudioRenderer* sf = m_sndh.GetSndhFile();
 	if (sf)
 	{
@@ -271,7 +273,10 @@ void SndhArchivePlayer::DrawSongInfo(cui_ctx* ui)
 			const uint32_t ms = sf->SampleToMs(sf->GetSubsongDurationSample(m_currentSubSong));
 			snprintf(value, sizeof(value), "%u:%02u.%03u", ms / 60000, (ms / 1000) % 60, ms % 1000);
 			detail("Duration", value);
-			snprintf(value, sizeof(value), "%d Hz", info.playerTickRate); detail("Player rate", value);
+			if (info.playerTickRate > 0)
+			{
+				snprintf(value, sizeof(value), "%d Hz", info.playerTickRate); detail("Player rate", value);
+			}
 			snprintf(value, sizeof(value), "%.3f MHz", info.ym2149Clock / 1000000.0); detail("YM2149 clock", value);
 			snprintf(value, sizeof(value), "%.1f kHz", info.hostReplayRate / 1000.0); detail("Output rate", value);
 			snprintf(value, sizeof(value), "%u bytes", unsigned(info.rawBinaryDataSize)); detail("Data size", value);
@@ -328,7 +333,7 @@ void SndhArchivePlayer::DrawSongInfo(cui_ctx* ui)
 		if (sf)
 			if (cui_button_ex(ui, "File Viewer", nullptr)) m_showDataViewer = true;
 	}
-	cui_scroll_end(ui);
+	cui_box_end(ui);
 }
 
 static const int kScopeSamples = kHostReplayRate / 60;
@@ -376,7 +381,7 @@ void SndhArchivePlayer::DrawDataGui(cui_ctx* ui)
 
 void SndhArchivePlayer::DrawGui(cui_ctx* ui)
 {
-	Ui::Column root(ui, CUI_FILL, 10, 14);
+	Ui::Column root(ui, CUI_FILL, 10, 14, CUI_TRANSPARENT, 4, 4);
 	// Fixed panel arrangement: only the dividers can move.
 	cui_split_opts vertical = {};
 	vertical.vertical = true;
@@ -396,7 +401,7 @@ void SndhArchivePlayer::DrawGui(cui_ctx* ui)
 	cui_split_next(ui);
 	{
 		Ui::Column panel(ui, CUI_FILL, 0, 0, CUI_COLOR_SURFACE);
-		Ui::Column column(ui, CUI_FILL, 8, 14);
+		Ui::Column column(ui, CUI_FILL, 8, 14, CUI_TRANSPARENT, 4);
 		cui_muted(ui, "MASTER OUTPUT");
 		ScopeData scope = { audio, voices, -1 };
 		cui_canvas(ui, "master-scope", CUI_FILL, CUI_FILL, PaintScope, &scope, sizeof(scope));

@@ -7,7 +7,7 @@
 //-----------------------------------------------------------------
 #pragma once
 
-#define	SNDH_ARCHIVE_PLAYER_VERSION	"1.25"
+#define	SNDH_ARCHIVE_PLAYER_VERSION	"1.26"
 
 #include <stdint.h>
 #include <cui/cui.h>

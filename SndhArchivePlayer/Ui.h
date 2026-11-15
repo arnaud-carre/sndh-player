@@ -9,13 +9,15 @@ namespace Ui
 class Column
 {
 public:
-	Column(cui_ctx* ui, cui_size height = CUI_FIT, float gap = 10, float pad = 0, cui_color bg = CUI_TRANSPARENT) : m_ui(ui)
+	Column(cui_ctx* ui, cui_size height = CUI_FIT, float gap = 10, float pad = 0, cui_color bg = CUI_TRANSPARENT, float padTop = 0, float padLeft = 0) : m_ui(ui)
 	{
 		cui_box box = {};
 		box.width = CUI_FILL;
 		box.height = height;
 		box.gap = gap;
 		box.pad = pad;
+		box.pad_top = padTop;
+		box.pad_left = padLeft;
 		box.bg = bg;
 		cui_column_begin(ui, &box);
 	}
