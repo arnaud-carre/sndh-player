@@ -356,6 +356,8 @@ static bool cui__button_impl(cui_ctx *ui, const char *label, const char *icon_on
     cui__spring(ui, &st->press, r.pressed ? CUI__PRESS : 1.0f, CUI_SPRING_SNAPPY);
 
     float h = cui__control_height(ui, o->size);
+    float image_size = o->image_size > 0 ? o->image_size : 80;
+    if (o->image) h = CUI_MAX(h, image_size + 8);
     float fs = o->size == CUI_SIZE_SM ? ui->theme.text_sm : o->size == CUI_SIZE_LG ? ui->theme.text_lg - 1 : ui->theme.text_body;
     float icon_size = o->size == CUI_SIZE_SM ? 14 : o->size == CUI_SIZE_LG ? 18 : 16;
     float pad = o->size == CUI_SIZE_SM ? 11 : o->size == CUI_SIZE_LG ? 18 : 14;
@@ -372,6 +374,10 @@ static bool cui__button_impl(cui_ctx *ui, const char *label, const char *icon_on
     if (icon_only) n->w = CUI_PX(h);
     else {
         n->pad[1] = n->pad[3] = pad;
+    }
+    if (o->image && !icon_only && (!label || cui__display_len(label) == 0)) {
+        n->pad[1] = n->pad[3] = 4;
+        n->w = CUI_PX(image_size + 8);
     }
     if (o->full_width) { n->w = CUI_FILL; n->self_align = CUI_ALIGN_STRETCH; }
     else if (o->width.kind != CUI_SIZE_FIT) n->w = o->width;
@@ -398,6 +404,11 @@ static bool cui__button_impl(cui_ctx *ui, const char *label, const char *icon_on
     if (r.hovered) cui__set_cursor(ui, CUI_CURSOR_HAND);
     if (disabled && ui->hot == id) cui__set_cursor(ui, CUI_CURSOR_NOT_ALLOWED);
     cui__open(ui, i);
+    if (o->image) {
+        cui_image_opts image = {0};
+        image.width = image.height = CUI_PX(image_size);
+        cui_image_ex(ui, o->image, &image);
+    }
     const char *icon = icon_only ? icon_only : o->icon;
     if (o->loading) cui__spinner_node(ui, icon_size - 2, col.fg);
     else if (icon) cui__icon_swap(ui, swap_id, icon, icon_size, col.fg);

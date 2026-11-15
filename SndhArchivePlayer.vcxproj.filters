@@ -419,4 +419,9 @@
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="SndhArchivePlayer\AppIcon.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClInclude Include="SndhArchivePlayer\AppIcon.h"><Filter>Header Files</Filter></ClInclude>
+    <Image Include="SndhArchivePlayer\resources\app-about.png"><Filter>Resource Files</Filter></Image>
+  </ItemGroup>
 </Project>

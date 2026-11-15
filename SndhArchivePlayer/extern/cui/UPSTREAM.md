@@ -25,6 +25,9 @@ Tooltip text uses context-owned growable state instead of a fixed 256-byte
 buffer so complete metadata is retained and released with the context.
 Data grids optionally treat column widths as relative weights and recompute
 them from the viewport on resize. The player uses 25/50/15/10 for its columns.
+Buttons optionally display a full-color square image while keeping their
+normal focus, keyboard, hover and tooltip behavior. Images can be decoded from
+memory for the embedded About icon resource on Windows.
 Other upstream sources are unchanged.
 
 Only build inputs and license notices are included; upstream demos, tests,

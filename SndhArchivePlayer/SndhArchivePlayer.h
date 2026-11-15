@@ -49,6 +49,7 @@ private:
 	void	SkipMusic(int direction);
 	void	DrawSongInfo(cui_ctx* ui);
 	bool	m_showAbout = false;
+	cui_texture m_aboutIcon = 0;
 	int		m_pendingDirection = 0;
 	int		m_pendingSubsongDirection = 0;
 	int		m_pendingZipIndex = -1;

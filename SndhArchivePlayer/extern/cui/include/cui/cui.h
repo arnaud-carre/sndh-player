@@ -533,6 +533,8 @@ typedef struct cui_button_opts {
     const char *shortcut;      /* shown as a hint in the tooltip, e.g. "Ctrl S" */
     cui_size width;
     cui_color color;           /* text and icon color, e.g. CUI_COLOR_ACCENT for a toggled icon */
+    cui_texture image;         /* optional full-color bitmap */
+    float image_size;          /* square image side in points, default 80 */
 } cui_button_opts;
 
 CUI_API bool cui_button_ex(cui_ctx *ui, const char *label, const cui_button_opts *opts);
@@ -867,6 +869,7 @@ CUI_API void cui_gauge(cui_ctx *ui, const char *label, float value, float size);
 /* Images */
 CUI_API cui_texture cui_image_create(cui_ctx *ui, int w, int h, const void *rgba);
 CUI_API cui_texture cui_image_load(cui_ctx *ui, const char *path, int *w, int *h);   /* PNG/JPEG via stb_image */
+CUI_API cui_texture cui_image_load_memory(cui_ctx *ui, const void *data, int size, int *w, int *h);
 CUI_API void cui_image_destroy(cui_ctx *ui, cui_texture tex);
 typedef struct cui_image_opts { int _; cui_size width, height; float radius; cui_color tint; } cui_image_opts;
 CUI_API void cui_image_ex(cui_ctx *ui, cui_texture tex, const cui_image_opts *opts);

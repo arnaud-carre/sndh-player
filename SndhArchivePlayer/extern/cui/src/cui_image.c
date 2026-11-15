@@ -41,6 +41,18 @@ unsigned char *cui__png_decode(const unsigned char *data, int len, int *w, int *
 }
 void cui__png_free(unsigned char *px) { stbi_image_free(px); }
 
+cui_texture cui_image_load_memory(cui_ctx *ui, const void *data, int size, int *w, int *h) {
+    int iw = 0, ih = 0, comp = 0;
+    if (!data || size <= 0) return 0;
+    unsigned char *px = stbi_load_from_memory(data, size, &iw, &ih, &comp, 4);
+    if (!px) return 0;
+    cui_texture t = cui_image_create(ui, iw, ih, px);
+    stbi_image_free(px);
+    if (w) *w = iw;
+    if (h) *h = ih;
+    return t;
+}
+
 cui_texture cui_image_load(cui_ctx *ui, const char *path, int *w, int *h) {
     int iw = 0, ih = 0, comp = 0;
     unsigned char *px = stbi_load(path, &iw, &ih, &comp, 4);
@@ -52,6 +64,10 @@ cui_texture cui_image_load(cui_ctx *ui, const char *path, int *w, int *h) {
     return t;
 }
 #else
+cui_texture cui_image_load_memory(cui_ctx *ui, const void *data, int size, int *w, int *h) {
+    (void)ui; (void)data; (void)size; (void)w; (void)h;
+    return 0;
+}
 unsigned char *cui__png_decode(const unsigned char *data, int len, int *w, int *h) { (void)data; (void)len; (void)w; (void)h; return NULL; }
 void cui__png_free(unsigned char *px) { (void)px; }
 cui_texture cui_image_load(cui_ctx *ui, const char *path, int *w, int *h) {

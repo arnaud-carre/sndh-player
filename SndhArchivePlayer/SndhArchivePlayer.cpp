@@ -7,6 +7,7 @@
 //-----------------------------------------------------------------
 #define _CRT_SECURE_NO_WARNINGS
 #include "AppData.h"
+#include "AppIcon.h"
 #include <string.h>
 #include "Ui.h"
 #include <algorithm>
@@ -209,6 +210,8 @@ void SndhArchivePlayer::Startup(cui_ctx* ui, const char* startupFile)
 
 void SndhArchivePlayer::Shutdown(cui_ctx* ui)
 {
+	cui_image_destroy(ui, m_aboutIcon);
+	m_aboutIcon = 0;
 	char splits[96];
 	snprintf(splits, sizeof(splits), "%.6f %.6f %.6f", m_topRatio, m_songRatio, m_archiveRatio);
 	SaveAppData("CuiSplits", splits);
@@ -467,10 +470,24 @@ void SndhArchivePlayer::DrawGui(cui_ctx* ui)
 			text("Accurate & fast ATARI SNDH & YM player");
 			text("Written by Leonard/Oxygene");
 			extern void OsOpenInShell(const char* path);
-			if (button("GitHub Repository")) OsOpenInShell("https://github.com/arnaud-carre/sndh-player");
 			cui_gap(ui, 4);
-			text("Powered by AtariAudio library v" ATARI_AUDIO_VERSION);
-			if (button("AtariAudio Repository")) OsOpenInShell("https://github.com/arnaud-carre/AtariAudio");
+			text("Powered by my AtariAudio library v" ATARI_AUDIO_VERSION);
+			if (!m_aboutIcon) m_aboutIcon = LoadAboutIcon(ui);
+			if (m_aboutIcon)
+			{
+				cui_box row = {};
+				row.width = CUI_FILL;
+				row.justify = CUI_JUSTIFY_CENTER;
+				cui_row_begin(ui, &row);
+				cui_button_opts icon = {};
+				icon.image = m_aboutIcon;
+				icon.image_size = 80;
+				icon.variant = CUI_BUTTON_OUTLINE;
+				if (cui_button_ex(ui, "##atari-audio-repository", &icon))
+					OsOpenInShell("https://github.com/arnaud-carre/AtariAudio");
+				cui_box_end(ui);
+			}
+			else if (button("AtariAudio Repository")) OsOpenInShell("https://github.com/arnaud-carre/AtariAudio");
 			cui_gap(ui, 4);
 			text("You can also use awesome Web player");
 			text("written by Oxbab/Oxygene");

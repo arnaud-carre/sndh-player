@@ -65,6 +65,7 @@ add_executable(SndhArchivePlayer
     SndhArchivePlayer/main.cpp
     SndhArchivePlayer/SndhArchivePlayer.cpp
     SndhArchivePlayer/AppData.cpp
+    SndhArchivePlayer/AppIcon.cpp
     SndhArchivePlayer/SndhArchive.cpp
     SndhArchivePlayer/AudioStream.cpp
     SndhArchivePlayer/AudioStream.h
@@ -112,8 +113,12 @@ if(WIN32)
         opengl32 user32 gdi32 shell32 imm32 winmm
     )
 elseif(APPLE)
-    target_sources(SndhArchivePlayer PRIVATE SndhArchivePlayer/resources/app.icns)
-    set_source_files_properties(SndhArchivePlayer/resources/app.icns PROPERTIES
+    target_sources(SndhArchivePlayer PRIVATE
+        SndhArchivePlayer/resources/app.icns
+        SndhArchivePlayer/resources/app-about.png)
+    set_source_files_properties(
+        SndhArchivePlayer/resources/app.icns
+        SndhArchivePlayer/resources/app-about.png PROPERTIES
         MACOSX_PACKAGE_LOCATION Resources)
     set_target_properties(SndhArchivePlayer PROPERTIES
         MACOSX_BUNDLE TRUE

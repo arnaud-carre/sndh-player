@@ -1,2 +1,3 @@
 // GLFW loads this named resource for native Windows application icons.
 GLFW_ICON ICON "app.ico"
+PLAYER_ABOUT_ICON RCDATA "app-about.png"

@@ -293,6 +293,7 @@
     <ClCompile Include="SndhArchivePlayer\SndhArchive.cpp" />
     <ClCompile Include="SndhArchivePlayer\SndhArchivePlayer.cpp" />
     <ClCompile Include="SndhArchivePlayer\AppData.cpp" />
+    <ClCompile Include="SndhArchivePlayer\AppIcon.cpp" />
     <ClCompile Include="SndhArchivePlayer\WavWriter.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -319,6 +320,7 @@
     <ClInclude Include="SndhArchivePlayer\Ui.h" />
     <ClInclude Include="SndhArchivePlayer\CuiGlfw.h" />
     <ClInclude Include="SndhArchivePlayer\AppData.h" />
+    <ClInclude Include="SndhArchivePlayer\AppIcon.h" />
     <ClInclude Include="SndhArchivePlayer\AudioStream.h" />
     <ClInclude Include="SndhArchivePlayer\extern\glfw\include\GLFW\glfw3.h" />
     <ClInclude Include="SndhArchivePlayer\extern\zip\src\miniz.h" />
@@ -468,6 +470,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)SndhArchivePlayer\resources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Image Include="SndhArchivePlayer\resources\app.ico" />
+    <Image Include="SndhArchivePlayer\resources\app-about.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
