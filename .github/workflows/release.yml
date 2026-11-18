@@ -30,8 +30,14 @@ jobs:
             archive: SndhArchivePlayer_windows_arm64.zip
           - name: macOS ARM64
             runner: macos-latest
+            architecture: arm64
             artifact: release-macos-arm64
             archive: SndhArchivePlayer_macos_arm64.zip
+          - name: macOS Intel x64
+            runner: macos-15-intel
+            architecture: x86_64
+            artifact: release-macos-x64
+            archive: SndhArchivePlayer_macos_x64.zip
 
     steps:
       - name: Check out source
@@ -44,12 +50,12 @@ jobs:
         if: runner.os == 'Windows'
         run: cmake -S . -B build -G "Visual Studio 17 2022" -A ${{ matrix.platform.architecture }}
 
-      - name: Configure macOS ARM64
+      - name: Configure macOS
         if: runner.os == 'macOS'
         run: >-
           cmake -S . -B build -G "Unix Makefiles"
           -DCMAKE_BUILD_TYPE=Release
-          -DCMAKE_OSX_ARCHITECTURES=arm64
+          -DCMAKE_OSX_ARCHITECTURES=${{ matrix.platform.architecture }}
           -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0
 
       - name: Build Release
@@ -204,7 +210,7 @@ jobs:
           mkdir package
           ditto build/SndhArchivePlayer.app package/SndhArchivePlayer.app
           cp README.md package/README.md
-          archive=SndhArchivePlayer_macos_arm64.zip
+          archive='${{ matrix.platform.archive }}'
           if [[ "$NOTARIZATION_OUTCOME" != success ]]; then
             cat > package/MACOS-LAUNCH.txt <<'EOF'
           This build is ad hoc signed and has not been notarized by Apple.
