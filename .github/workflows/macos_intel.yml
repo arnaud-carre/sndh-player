@@ -166,14 +166,14 @@ jobs:
       - name: Package application bundle
         run: |
           test -x build/SndhArchivePlayer.app/Contents/MacOS/SndhArchivePlayer
-          ditto -c -k --sequesterRsrc --keepParent build/SndhArchivePlayer.app SndhPlayer-macOS-intel.zip
-          unzip -l SndhPlayer-macOS-intel.zip
+          ditto -c -k --sequesterRsrc --keepParent build/SndhArchivePlayer.app SndhArchivePlayer_macos_x64.zip
+          unzip -l SndhArchivePlayer_macos_x64.zip
 
       - name: Upload manual build
         if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v7
         with:
-          path: SndhPlayer-macOS-intel.zip
+          path: SndhArchivePlayer_macos_x64.zip
           archive: false
           if-no-files-found: error
           retention-days: 14
@@ -186,8 +186,8 @@ jobs:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" SndhPlayer-macOS-intel.zip --clobber
+            gh release upload "$RELEASE_TAG" SndhArchivePlayer_macos_x64.zip --clobber
           else
-            gh release create "$RELEASE_TAG" SndhPlayer-macOS-intel.zip \
+            gh release create "$RELEASE_TAG" SndhArchivePlayer_macos_x64.zip \
               --verify-tag --title "$RELEASE_TAG" --generate-notes
           fi

@@ -18,6 +18,10 @@ jobs:
         platform:
           - name: Windows x64
             runner: windows-2022
+            architecture: x64
+          - name: Windows ARM64
+            runner: windows-2022
+            architecture: ARM64
           - name: macOS ARM64
             runner: macos-latest
             architecture: arm64
@@ -33,9 +37,9 @@ jobs:
           submodules: recursive
           persist-credentials: false
 
-      - name: Configure Windows x64
+      - name: Configure Windows
         if: runner.os == 'Windows'
-        run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+        run: cmake -S . -B build -G "Visual Studio 17 2022" -A ${{ matrix.platform.architecture }}
 
       - name: Configure macOS
         if: runner.os == 'macOS'

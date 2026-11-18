@@ -20,12 +20,18 @@ jobs:
         platform:
           - name: Windows x64
             runner: windows-2022
-            artifact: release-win64
-            archive: SndhArchivePlayer_win64.zip
+            architecture: x64
+            artifact: release-windows-x64
+            archive: SndhArchivePlayer_windows_x64.zip
+          - name: Windows ARM64
+            runner: windows-2022
+            architecture: ARM64
+            artifact: release-windows-arm64
+            archive: SndhArchivePlayer_windows_arm64.zip
           - name: macOS ARM64
             runner: macos-latest
             artifact: release-macos-arm64
-            archive: SndhArchivePlayer_macOS.zip
+            archive: SndhArchivePlayer_macos_arm64.zip
 
     steps:
       - name: Check out source
@@ -34,9 +40,9 @@ jobs:
           submodules: recursive
           persist-credentials: false
 
-      - name: Configure Windows x64
+      - name: Configure Windows
         if: runner.os == 'Windows'
-        run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+        run: cmake -S . -B build -G "Visual Studio 17 2022" -A ${{ matrix.platform.architecture }}
 
       - name: Configure macOS ARM64
         if: runner.os == 'macOS'
@@ -57,7 +63,7 @@ jobs:
           if (-not (Test-Path -LiteralPath $executable)) {
             throw 'Windows executable not found.'
           }
-          Compress-Archive -LiteralPath $executable, 'README.md' -DestinationPath 'SndhArchivePlayer_win64.zip'
+          Compress-Archive -LiteralPath $executable, 'README.md' -DestinationPath '${{ matrix.platform.archive }}'
 
       - name: Preserve macOS application for signing fallback
         if: runner.os == 'macOS'
@@ -198,7 +204,7 @@ jobs:
           mkdir package
           ditto build/SndhArchivePlayer.app package/SndhArchivePlayer.app
           cp README.md package/README.md
-          archive=SndhArchivePlayer_macOS.zip
+          archive=SndhArchivePlayer_macos_arm64.zip
           if [[ "$NOTARIZATION_OUTCOME" != success ]]; then
             cat > package/MACOS-LAUNCH.txt <<'EOF'
           This build is ad hoc signed and has not been notarized by Apple.
